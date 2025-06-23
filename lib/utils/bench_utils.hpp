@@ -34,7 +34,7 @@ void print_rusage(struct rusage *usage);
 void start_timer(struct per_thread_stats *stats);
 void end_timer(struct per_thread_stats *stats);
 
-void report_thread_latency(struct per_thread_stats *stats);
+void report_thread_latency(struct per_thread_stats *stats, bool csv = false);
 void report_run_latency(struct run_stats *stats);
 
 #endif // __BENCH_UTILS_HPP_

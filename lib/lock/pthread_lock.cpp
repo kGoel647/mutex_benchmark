@@ -11,7 +11,7 @@ public:
         pthread_mutex_destroy(&mutex_);
     }
     void init(size_t num_threads) override {
-        //num_threads; // This parameter is not used in this implementation
+        (void)num_threads; // This parameter is not used in this implementation
 
         // Initialization is done in the constructor, so this can be empty
          if (pthread_mutex_init(&mutex_, nullptr) != 0) {
@@ -20,11 +20,11 @@ public:
     }
 
     void lock(size_t thread_id) override {
-        //thread_id; // This parameter is not used in this implementation
+        (void)thread_id; // This parameter is not used in this implementation
         pthread_mutex_lock(&mutex_);
     }
     void unlock(size_t thread_id) override {
-        //thread_id; // This parameter is not used in this implementation
+        (void)thread_id; // This parameter is not used in this implementation
         pthread_mutex_unlock(&mutex_);
     }
     void destroy() override {

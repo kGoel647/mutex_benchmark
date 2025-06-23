@@ -12,9 +12,9 @@ void record_rusage() {
 }
 
 void print_rusage(struct rusage *usage) {
-    printf("User CPU time used: %ld.%06ld seconds\n", 
+    printf("User CPU time used: %ld.%06d seconds\n", 
            usage->ru_utime.tv_sec, usage->ru_utime.tv_usec);
-    printf("System CPU time used: %ld.%06ld seconds\n", 
+    printf("System CPU time used: %ld.%06d seconds\n", 
            usage->ru_stime.tv_sec, usage->ru_stime.tv_usec);
     printf("Maximum resident set size: %ld KB\n", usage->ru_maxrss);
     printf("Integral shared memory size: %ld KB\n", usage->ru_ixrss);
@@ -40,18 +40,27 @@ void end_timer(struct per_thread_stats *stats) {
     clock_gettime(CLOCK_MONOTONIC, &stats->end_time);
 }
 
-void report_thread_latency(struct per_thread_stats *stats) {
+void report_thread_latency(struct per_thread_stats *stats, bool csv) {
+
     long seconds = stats->end_time.tv_sec - stats->start_time.tv_sec;
     long nanoseconds = stats->end_time.tv_nsec - stats->start_time.tv_nsec;
 
     if (nanoseconds < 0) {
         seconds--;
-        nanoseconds += 1000000000;
+        nanoseconds += 1e9;
     }
 
     double elapsed = seconds + nanoseconds / 1e9;
-    printf("Thread %d: %d iterations completed in %.6f seconds\n",
-           stats->thread_id, stats->num_iterations, elapsed);
+
+    if (csv) {
+        printf("%d,%d,%.6f\n", stats->thread_id, stats->num_iterations, elapsed);
+        return;
+    }
+    else {
+        printf("Thread %d: %d iterations completed in %.6f seconds\n",
+               stats->thread_id, stats->num_iterations, elapsed);
+    }
+
 }
 
 void report_run_latency(struct run_args *stats){

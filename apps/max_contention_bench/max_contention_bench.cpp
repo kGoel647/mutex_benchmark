@@ -77,7 +77,7 @@ void max_contention_bench(int num_threads, int num_iterations, SoftwareMutex* lo
     // Output benchmark results
 
     for (auto& args : thread_args) {
-        report_thread_latency(&args.stats); // Report latency for each thread
+        report_thread_latency(&args.stats, false); // Report latency for each thread
     }
 
     // record_rusage(); // Record resource usage
