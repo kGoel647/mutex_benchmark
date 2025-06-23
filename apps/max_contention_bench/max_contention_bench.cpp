@@ -3,6 +3,7 @@
 
 #include "lock.hpp"
 #include "pthread_lock.cpp"
+#include "cpp_std_mutex.cpp"
 
 void max_contention_bench(int num_threads, int num_iterations, SoftwareMutex* lock) {
 
