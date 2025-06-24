@@ -4,6 +4,7 @@
 #include "lock.hpp"
 #include "pthread_lock.cpp"
 #include "cpp_std_mutex.cpp"
+#include "boost_lock.cpp"
 
 void max_contention_bench(int num_threads, int num_iterations, SoftwareMutex* lock) {
 
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
     int num_iterations = atoi(argv[2]);
 
     // Create a lock instance (using Pthread lock as an example)
-    SoftwareMutex* lock = new Pthread();
+    SoftwareMutex* lock = new BoostMutex();
     
     // Run the max contention benchmark
     max_contention_bench(num_threads, num_iterations, lock);
