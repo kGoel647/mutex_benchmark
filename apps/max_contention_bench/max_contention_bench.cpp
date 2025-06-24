@@ -6,7 +6,11 @@
 #include "cpp_std_mutex.cpp"
 #include "boost_lock.cpp"
 
-void max_contention_bench(int num_threads, int num_iterations, SoftwareMutex* lock) {
+#define PTHREAD_MUTEX 0
+#define CPP_STD_MUTEX 1
+#define BOOST_MUTEX 2
+
+void max_contention_bench(int num_threads, int num_iterations, bool csv, SoftwareMutex* lock) {
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -79,7 +83,7 @@ void max_contention_bench(int num_threads, int num_iterations, SoftwareMutex* lo
     // Output benchmark results
 
     for (auto& args : thread_args) {
-        report_thread_latency(&args.stats, false); // Report latency for each thread
+        report_thread_latency(&args.stats, csv); // Report latency for each thread
     }
 
     // record_rusage(); // Record resource usage
@@ -87,19 +91,51 @@ void max_contention_bench(int num_threads, int num_iterations, SoftwareMutex* lo
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <num_threads> <num_iterations>\n", argv[0]);
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s <mutex_name> <num_threads> <num_iterations> [<flags>]\n", argv[0]);
         return 1;
     }
 
-    int num_threads = atoi(argv[1]);
-    int num_iterations = atoi(argv[2]);
+    // First, take in command line arguments
+    char *mutex_name = nullptr;
+    int num_threads = -1;
+    int num_iterations = -1;
+    bool csv = false;
+
+    for (int i = 1; i < argc; i++) 
+    {
+        // First, check if the argument is a flag, which can be placed anywhere.
+        if (strcmp(argv[i], "--csv") == 0 || strcmp(argv[i], "-c") == 0) {
+            csv = true;
+        } else if (mutex_name == nullptr) {
+            mutex_name = argv[i];
+        } else if (num_threads == -1) {
+            num_threads = atoi(argv[i]);
+        } else if (num_iterations == -1) {
+            num_iterations = atoi(argv[i]);
+        } else {
+            fprintf(stderr, "Unrecognized command line argument: %s\n", argv[i]);
+            return 1;
+        }
+    }
 
     // Create a lock instance (using Pthread lock as an example)
-    SoftwareMutex* lock = new BoostMutex();
+    // This section is going to be annoying to change every time we add a new mutex.
+    SoftwareMutex* lock;
+    if (strcmp(mutex_name, "pthread") == 0) {
+        lock = new Pthread();
+    } else if (strcmp(mutex_name, "cpp_std") == 0) {
+        lock = new CPPMutex();
+    } else if (strcmp(mutex_name, "boost") == 0) {
+        lock = new BoostMutex();
+    } else {
+        fprintf(stderr, "Unrecognized mutex name: %s\nValid names are 'pthread', 'cpp_std', and 'boost'\n", mutex_name);
+        return 1;
+    }
+    lock->init(num_threads);
     
     // Run the max contention benchmark
-    max_contention_bench(num_threads, num_iterations, lock);
+    max_contention_bench(num_threads, num_iterations, csv, lock);
 
     return 0;
 }
