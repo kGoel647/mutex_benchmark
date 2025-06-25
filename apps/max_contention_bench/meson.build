@@ -11,6 +11,5 @@ include_directories = [
 max_contention_bench = executable(
   'max_contention_bench',
   'max_contention_bench.cpp',
-  link_with :  link_with,
-  include_directories : include_directories,
+  dependencies : [lock_dep, utils_dep, boost_dep],
 )
