@@ -1,10 +1,9 @@
 #include "lock.hpp"
 #include <stdexcept>
 
-class DijxstraMutex : public virtual SoftwareMutex {
+class DijkstraMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        printf("size: %d", sizeof(DijxstraMutex));
         this->unlocking = (volatile bool*)malloc(sizeof(bool) * num_threads);
         this->c = (volatile bool*)malloc(sizeof(bool) * num_threads);
         for (size_t i = 0; i < num_threads; i++) {

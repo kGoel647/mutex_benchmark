@@ -4,7 +4,7 @@ import os
 import sys
 import matplotlib.pyplot as plt
 
-MUTEX_NAMES = ["pthread", "cpp_std", "boost", "dijxstra"]
+MUTEX_NAMES = ["pthread", "cpp_std", "boost", "dijkstra"]
 EXECUTABLE_NAME = "max_contention_bench"
 BENCH_N_THREADS = "20"
 BENCH_N_ITERATIONS = "100"

@@ -5,7 +5,7 @@
 #include "pthread_lock.cpp"
 #include "cpp_std_mutex.cpp"
 #include "boost_lock.cpp"
-#include "dijxstra_lock.cpp"
+#include "dijkstra_lock.cpp"
 
 void max_contention_bench(int num_threads, int num_iterations, bool csv, SoftwareMutex* lock) {
 
@@ -125,8 +125,8 @@ int main(int argc, char* argv[]) {
         lock = new CPPMutex();
     } else if (strcmp(mutex_name, "boost") == 0) {
         lock = new BoostMutex();
-    } else if (strcmp(mutex_name, "dijxstra") == 0) {
-        lock = new DijxstraMutex();
+    } else if (strcmp(mutex_name, "dijkstra") == 0) {
+        lock = new DijkstraMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s\nValid names are 'pthread', 'cpp_std', and 'boost'\n", mutex_name);
         return 1;
