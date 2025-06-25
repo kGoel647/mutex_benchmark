@@ -1,8 +1,0 @@
-[wrap-git]
-url = https://github.com/google/nsync.git
-revision = HEAD
-depth = 1
-
-method = cmake
-[provide]
-nsync-1.29.2 = nsync_dep

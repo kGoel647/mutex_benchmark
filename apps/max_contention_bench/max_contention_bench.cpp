@@ -137,7 +137,6 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Unrecognized mutex name: %s\nValid names are 'pthread', 'cpp_std', and 'boost'\n", mutex_name);
         return 1;
     }
-    lock->init(num_threads);
     
     // Run the max contention benchmark
     max_contention_bench(num_threads, num_iterations, csv, lock);

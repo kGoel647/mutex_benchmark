@@ -2,7 +2,7 @@ import pandas as pd
 import subprocess
 import os
 
-MUTEX_NAMES = ["pthread", "cpp_std", "boost"]
+MUTEX_NAMES = ["pthread", "cpp_std", "boost", "nsync"]
 EXECUTABLE_NAME = "max_contention_bench"
 BENCH_N_THREADS = "10"
 BENCH_N_ITERATIONS = "1000"

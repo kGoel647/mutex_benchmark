@@ -1,7 +1,10 @@
 lock_includes = include_directories('.')
 
+cpp = meson.get_compiler('cpp')
+
+nsync_dep = cpp.find_library('nsync_cpp')
+
 boost_dep = dependency('boost', static : true)
-nsync_dep = dependency('nsync-1.29.2')
 
 lock_lib = library('lock', 
                     ['pthread_lock.cpp', 'boost_lock.cpp', 'pthread_lock.cpp'], 
