@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 MUTEX_NAMES = ["pthread", "cpp_std", "boost", "nsync", "dijkstra", "spin"]
 EXECUTABLE_NAME = "max_contention_bench"
-BENCH_N_THREADS = "100"
+BENCH_N_THREADS = "10"
 BENCH_N_ITERATIONS = "100"
 N_PROGRAM_ITERATIONS = 10
 DATA_FOLDER = "./data/generated"
@@ -25,7 +25,7 @@ def setup():
     os.chdir(parent_directory)
 
 def build():
-    subprocess.run("mkdir build data data/generated data/logs -p".split())
+    subprocess.run(f"mkdir build data {DATA_FOLDER} {LOGS_FOLDER} -p".split())
 
     # Compile
     subprocess.run("meson setup build".split(), stdout=subprocess.DEVNULL)
@@ -96,6 +96,8 @@ def analyze(data):
             skip=0,
             # worst_case=worst_case
         )
+
+    plt.xscale('log')
     plt.legend()
     plt.show()
     return output

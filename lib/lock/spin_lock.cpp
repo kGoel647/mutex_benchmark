@@ -12,10 +12,10 @@ public:
         (void)thread_id; // This parameter is not used in this implementation
 
         while (true) {
-            if (std::atomic_flag_test_and_set_explicit(&lock_, std::memory_order_acquire)) {
+            if (!std::atomic_flag_test_and_set_explicit(&lock_, std::memory_order_acquire)) {
                 break;
             }
-            // nanosleep(&nanosleep_timespec, &remaining);
+            nanosleep(&nanosleep_timespec, &remaining);
         }
     }
     void unlock(size_t thread_id) override {
@@ -26,6 +26,6 @@ public:
     
 private:
     volatile std::atomic_flag lock_ = ATOMIC_FLAG_INIT;
-    // const struct timespec nanosleep_timespec = { 1, 0 };
-    // struct timespec remaining;
+    const struct timespec nanosleep_timespec = { 0, 100 };
+    struct timespec remaining;
 };
