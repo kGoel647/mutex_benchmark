@@ -7,6 +7,8 @@
 #include "boost_lock.cpp"
 #include "dijkstra_lock.cpp"
 #include "spin_lock.cpp"
+#include "nsync_lock.cpp"
+
 
 int max_contention_bench(int num_threads, int num_iterations, bool csv, SoftwareMutex* lock) {
 
@@ -140,10 +142,14 @@ int main(int argc, char* argv[]) {
         lock = new DijkstraMutex();
     } else if (strcmp(mutex_name, "spin") == 0) {
         lock = new SpinLock();
+    } else if (strcmp(mutex_name, "nsync") == 0){
+        lock = new NSync();
+    }
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s\nValid names are 'pthread', 'cpp_std', and 'boost'\n", mutex_name);
         return 1;
     }    
+    
     // Run the max contention benchmark
     return max_contention_bench(num_threads, num_iterations, csv, lock);
 }
