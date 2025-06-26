@@ -1,5 +1,5 @@
 #include "lock.hpp"
-#include <stdatomic.h>
+#include <atomic>
 
 class SpinLock : public virtual SoftwareMutex {
 public:
