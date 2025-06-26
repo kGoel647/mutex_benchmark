@@ -96,7 +96,7 @@ def analyze(data):
             skip=0,
             # worst_case=worst_case
         )
-
+    plt.title(f"Thread time CDF for {BENCH_N_THREADS} threads and {BENCH_N_ITERATIONS} iterations ({N_PROGRAM_ITERATIONS}x)")
     plt.xscale('log')
     plt.legend()
     plt.show()
