@@ -17,6 +17,7 @@ public:
         mutex_.unlock();
     }
     void destroy() override {}
+    std::string name = "cpp_std";
     
 private:
     std::mutex mutex_;

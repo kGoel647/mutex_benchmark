@@ -23,6 +23,8 @@ public:
         std::atomic_flag_clear_explicit(&lock_, std::memory_order_release);
     }
     void destroy() override {}
+
+    std::string name = "spin";
     
 private:
     volatile std::atomic_flag lock_ = ATOMIC_FLAG_INIT;

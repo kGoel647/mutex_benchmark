@@ -23,6 +23,8 @@ public:
 
     // Cleanup any resources used by the mutex
     virtual void destroy() = 0;
+
+    std::string name;
 };
 
 #endif // LOCK_LOCK_HPP
