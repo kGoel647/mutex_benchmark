@@ -1,7 +1,5 @@
 #include "lock.hpp"
 #include <atomic>
-#include <stdio.h>
-#include <cstdlib>
 #include <time.h>
 
 class SpinLock : public virtual SoftwareMutex {
