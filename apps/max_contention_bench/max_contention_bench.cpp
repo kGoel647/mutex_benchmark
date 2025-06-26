@@ -134,7 +134,6 @@ int main(int argc, char* argv[]) {
         lock = new SpinLock();
     } else if (strcmp(mutex_name, "nsync") == 0){
         lock = new NSync();
-    }
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s\nValid names are 'pthread', 'cpp_std', and 'boost'\n", mutex_name);
         return 1;
