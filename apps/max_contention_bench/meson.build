@@ -8,7 +8,6 @@ include_directories = [
   utils_includes,
 ]
 
-
 max_contention_bench = executable(
   'max_contention_bench',
   'max_contention_bench.cpp',
