@@ -8,6 +8,7 @@
 #include "dijkstra_lock.cpp"
 #include "spin_lock.cpp"
 #include "nsync_lock.cpp"
+#include "exp_spin_lock.cpp"
 
 
 int max_contention_bench(int num_threads, int num_iterations, bool csv, SoftwareMutex* lock) {
@@ -144,6 +145,8 @@ int main(int argc, char* argv[]) {
         lock = new SpinLock();
     } else if (strcmp(mutex_name, "nsync") == 0){
         lock = new NSync();
+    } else if (strcmp(mutex_name, "exp_spin") == 0){
+        lock = new ExponentialSpinLock();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s\nValid names are 'pthread', 'cpp_std', and 'boost'\n", mutex_name);
         return 1;
