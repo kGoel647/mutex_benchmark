@@ -82,8 +82,8 @@ def analyze(data):
     output = ""
     output += f"{BENCH_N_THREADS=} | {BENCH_N_ITERATIONS=} | {N_PROGRAM_ITERATIONS=}\n"
     output += "\n"
-    worst_case = max([max(data[mutex_name]["Time Spent"]) for mutex_name in MUTEX_NAMES])
-    output += f"{worst_case=}\n";
+    # worst_case = max([max(data[mutex_name]["Time Spent"]) for mutex_name in MUTEX_NAMES])
+    # output += f"{worst_case=}\n";
 
     for mutex_name in MUTEX_NAMES:
         output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.7f} standard deviation: {data[mutex_name]['Time Spent'].std():.7f}\n"
@@ -92,10 +92,12 @@ def analyze(data):
             mutex_name,
             xlabel="Thread time (seconds)",
             ylabel="% of threads under",
-            title=f"Thread Time Variation ({mutex_name.title()})",
+            title=f"{mutex_name}",
             skip=0,
-            worst_case=worst_case
+            # worst_case=worst_case
         )
+    plt.legend()
+    plt.show()
     return output
 
 def log(output):
@@ -117,16 +119,9 @@ def plot_cdf(series, mutex_name, xlabel="", ylabel="", title="", skip=0, worst_c
     x = [x_values[i] for i in range(0, x_values.size, 1 + skip)]
     y = [y_values[i] for i in range(0, x_values.size, 1 + skip)]
 
-    plt.scatter(x, y, s=1.0)
+    plt.plot(x, y, label=title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(title)
-
-    if worst_case != -1:
-        ax = plt.gca()
-        ax.set_xlim([0, worst_case])
-
-    plt.show()
 
 
 def main():

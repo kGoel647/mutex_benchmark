@@ -10,7 +10,7 @@
 #include "nsync_lock.cpp"
 
 
-void max_contention_bench(int num_threads, int num_iterations, bool csv, SoftwareMutex* lock) {
+int max_contention_bench(int num_threads, int num_iterations, bool csv, SoftwareMutex* lock) {
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -26,6 +26,7 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, Softwar
 
     // Create a flag to signal the threads to start
     std::shared_ptr<std::atomic<bool>> start_flag = std::make_shared<std::atomic<bool>>(false);
+    volatile int *counter = (volatile int*)malloc(sizeof(int));
 
     // Create an array of thread arguments
     std::vector<per_thread_args> thread_args(num_threads);
@@ -39,7 +40,7 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, Softwar
     std::vector<std::thread> threads(num_threads);
     for (int i = 0; i < num_threads; ++i) {
         thread_args[i].start_flag = start_flag; // Share the start flag with each thread
-        threads[i] = std::thread([&thread_args, i]() {
+        threads[i] = std::thread([&thread_args, i, counter]() {
 
             // Record the thread ID
             thread_args[i].stats.thread_id = thread_args[i].thread_id;
@@ -55,6 +56,7 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, Softwar
             // Perform the locking operations
             for (int j = 0; j < thread_args[i].stats.num_iterations; ++j) {
                 thread_args[i].lock->lock(thread_args[i].thread_id);
+                (*counter)++;
                 // Critical section code goes here
                 thread_args[i].lock->unlock(thread_args[i].thread_id);
             }
@@ -74,8 +76,15 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, Softwar
         }
     }
 
+    if (*counter != num_threads * num_iterations) {
+        // The mutex did not work.
+        fprintf(stderr, "Mutex failed; *counter != num_threads * num_iterations (%d!=%d)\n", *counter, num_threads * num_iterations);
+        return 1;
+    }
+
     // Cleanup resources
     lock->destroy(); // Cleanup the lock resources
+    free((void *)counter);
 
     // Destroy the lock 
     delete lock; // Assuming lock was dynamically allocated
@@ -88,6 +97,7 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, Softwar
 
     // record_rusage(); // Record resource usage
     // report_latency(&args); // Report latency if needed
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -140,7 +150,5 @@ int main(int argc, char* argv[]) {
     }    
     
     // Run the max contention benchmark
-    max_contention_bench(num_threads, num_iterations, csv, lock);
-
-    return 0;
+    return max_contention_bench(num_threads, num_iterations, csv, lock);
 }
