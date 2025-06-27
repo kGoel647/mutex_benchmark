@@ -18,7 +18,7 @@ public:
     }
     void destroy() override {}
 
-    std::string name = "boost";
+    std::string name(){return "boost";};
     
 private:
     boost::mutex mutex_;

@@ -12,7 +12,7 @@ public:
         (void)thread_id; // This parameter is not used in this implementation
 
         while (true) {
-            if (std::atomic_flag_test_and_set_explicit(&lock_, std::memory_order_acquire)) {
+            if (!std::atomic_flag_test_and_set_explicit(&lock_, std::memory_order_acquire)) {
                 break;
             }
             // nanosleep(&nanosleep_timespec, &remaining);
@@ -24,7 +24,7 @@ public:
     }
     void destroy() override {}
 
-    std::string name = "spin";
+    std::string name(){return "spin";};
     
 private:
     volatile std::atomic_flag lock_ = ATOMIC_FLAG_INIT;

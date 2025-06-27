@@ -23,7 +23,7 @@ public:
     }
     void destroy() override {}
 
-    std::string nsyn = "nsync";
+    std::string name(){return "nsync";};
     
 private:
     

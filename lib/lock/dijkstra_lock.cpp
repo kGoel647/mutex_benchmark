@@ -42,7 +42,7 @@ public:
         free((void*)c);
     }
 
-    std::string name = "dijkstra";
+    std::string name(){return "djikstra";};
 
 private:
     volatile bool *unlocking;
