@@ -1,0 +1,12 @@
+MUTEX_NAMES = ["pthread", "cpp_std", "boost", "nsync", "spin", "exp_spin"]
+EXECUTABLE_NAME = "max_contention_bench"
+BENCH_N_THREADS = "100"
+BENCH_N_ITERATIONS = "10000"
+N_PROGRAM_ITERATIONS = 10
+DATA_FOLDER = "./data/generated"
+LOGS_FOLDER = "./data/logs"
+EXECUTABLE = f"./build/apps/{EXECUTABLE_NAME}/{EXECUTABLE_NAME}"
+MULTITHREADED = False
+THREAD_LEVEL = False
+SCATTER = True
+SKIP = 1000
