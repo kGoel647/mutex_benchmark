@@ -45,6 +45,9 @@ public:
         free((void*)choosing);
         free((void*)number);
     }
+
+
+    std::string name(){return "bakery";}
 private:
     volatile bool *choosing;
     // Note: Mutex will fail if this number overflows,

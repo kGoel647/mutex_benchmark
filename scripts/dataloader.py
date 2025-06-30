@@ -10,7 +10,7 @@ def load_data():
         dataframes = []
         for i in range(Constants.n_program_iterations):
             data_file_name = f"{Constants.data_folder}/{mutex_name}-{i}.csv"
-            dataframe = pd.read_csv(data_file_name, names=["Thread #", "# Iterations", "Time Spent"])
+            dataframe = pd.read_csv(data_file_name, names=["Thread #", "Seconds", "# Iterations"])
             dataframes.append(dataframe)
         data[mutex_name] = pd.concat(dataframes)
     return data
@@ -24,4 +24,19 @@ def load_data_lock_level():
             dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Iteration #", "Time Spent"])
             dataframes.append(dataframe)
         data[mutex_name] = pd.concat(dataframes)
+    return data
+
+def load_data_iter_v_threads():
+    data = {}
+    for mutex_name in Constants.mutex_names:
+        data[mutex_name]=[]
+        for threads in range(Constants.threads_start, Constants.threads_end, Constants.threads_step):
+            dataframes=[]
+            for i in range(Constants.n_program_iterations):
+                data_file_name = f"{Constants.data_folder}/{mutex_name}-{threads}-{i}.csv"
+                dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Seconds", "# Iterations"])
+                dataframes.append(dataframe)
+            dataframes=pd.concat(dataframes)
+            data[mutex_name].append(dataframes["# Iterations"].mean())
+            print(data[mutex_name])
     return data
