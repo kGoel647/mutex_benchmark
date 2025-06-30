@@ -1,27 +1,30 @@
 from .constants import *
+from .logger import logger
 
 import subprocess
 
 # TODO: save data files instead of deleting them every time (in their own folder)
 
 def get_data_file_name(mutex_name, i):
-    return f"{DATA_FOLDER}/{mutex_name}-{i}.csv"
+    return f"{Constants.data_folder}/{mutex_name}-{i}.csv"
 
 def get_command(mutex_name, *, csv=True, thread_level=False):
-    args = [EXECUTABLE, mutex_name, BENCH_N_THREADS, BENCH_N_ITERATIONS]
+    args = [Constants.Defaults.EXECUTABLE, mutex_name, 
+        str(Constants.bench_n_threads), str(Constants.bench_n_iterations)]
     if csv:
         args.append("--csv")
     if thread_level:
         args.append("--thread-level")
     return args
 
+# Should this be removed?
 def run_experiment_multithreaded():
     # Run experiment
     # print("Running programs...")
-    for mutex_name in MUTEX_NAMES:
+    for mutex_name in Constants.mutex_names:
         # Create program threads
         threads = []
-        for i in range(N_PROGRAM_ITERATIONS):
+        for i in range(Constants.n_program_iterations):
             data_file_name = get_data_file_name(mutex_name, i)
             subprocess.run(["rm", "-f", data_file_name])
             command = get_command(mutex_name, csv=True, thread_level=True)
@@ -37,11 +40,11 @@ def run_experiment_multithreaded():
 
 def run_experiment_single_threaded():
     # Run experiment
-    for mutex_name in MUTEX_NAMES:
+    for mutex_name in Constants.mutex_names:
         # Create program threads
         threads = []
-        for i in range(N_PROGRAM_ITERATIONS):
-            print(f"{mutex_name=} | {i=}")
+        for i in range(Constants.n_program_iterations):
+            logger.info(f"{mutex_name=} | {i=}")
             data_file_name = get_data_file_name(mutex_name, i)
             subprocess.run(["rm", "-f", data_file_name])
             command = get_command(mutex_name, csv=True, thread_level=True)
@@ -51,9 +54,9 @@ def run_experiment_single_threaded():
                 data_file.write(csv_data)
 
 def run_experiment_lock_level_single_threaded():
-    for i in range(N_PROGRAM_ITERATIONS):
-        for mutex_name in MUTEX_NAMES:
-            print(f"{mutex_name=} | {i=}")
+    for i in range(Constants.n_program_iterations):
+        for mutex_name in Constants.mutex_names:
+            logger.info(f"{mutex_name=} | {i=}")
             data_file_name = get_data_file_name(mutex_name, i)
             subprocess.run(["rm", "-f", data_file_name])
             command = get_command(mutex_name, csv=True, thread_level=False)

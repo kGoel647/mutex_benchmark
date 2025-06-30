@@ -3,7 +3,7 @@ from .constants import *
 import subprocess
 
 def build():
-    subprocess.run(f"mkdir build data {DATA_FOLDER} {LOGS_FOLDER} -p".split())
+    subprocess.run(f"mkdir build data {Constants.data_folder} {Constants.logs_folder} -p".split())
 
     # Compile
     subprocess.run("meson setup build".split(), stdout=subprocess.DEVNULL)

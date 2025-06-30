@@ -1,13 +1,11 @@
-from .constants import *
 from .runner import *
 from .dataloader import *
 from .analyzer import *
 from .builder import *
-from .logger import log
+from .logger import init_logger, logger
+from .args import init_args
 
 import os
-
-# TODO: add argument parsing to replace constants
 
 def setup():
     # Make sure the script is being run from the right location (in mutex_benchmark directory)
@@ -16,7 +14,7 @@ def setup():
     os.chdir(parent_directory + "/..")
 
 def run_experiment_thread_level():
-    if MULTITHREADED:
+    if Constants.multithreaded:
         run_experiment_multi_threaded()
     else:
         run_experiment_single_threaded()
@@ -30,13 +28,15 @@ def run_experiment_lock_level():
     data = load_data_lock_level()
     output = analyze_lock_level(data)
     print(output)
-    log(output)
+    logger.info(output)
 
 
 def main():
+    init_args()
+    init_logger()
     setup()
     build()
-    if THREAD_LEVEL:
+    if Constants.thread_level:
         run_experiment_thread_level()
     else:
         run_experiment_lock_level()

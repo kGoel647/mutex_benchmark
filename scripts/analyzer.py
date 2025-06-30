@@ -6,9 +6,8 @@ import pandas as pd
 def analyze(data):
     # TODO add more stuff here
     output = ""
-    output += f"{BENCH_N_THREADS=} | {BENCH_N_ITERATIONS=} | {N_PROGRAM_ITERATIONS=}\n"
     output += "\n"
-    for mutex_name in MUTEX_NAMES:
+    for mutex_name in Constants.mutex_names:
         output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.7f} standard deviation: {data[mutex_name]['Time Spent'].std():.7f}\n"
         plot_one_cdf(
             data[mutex_name]["Time Spent"], 
@@ -25,9 +24,8 @@ def analyze(data):
 def analyze_lock_level(data):
     # TODO add more stuff here
     output = ""
-    output += f"{BENCH_N_THREADS=} | {BENCH_N_ITERATIONS=} | {N_PROGRAM_ITERATIONS=}\n"
     output += "\n"
-    for mutex_name in MUTEX_NAMES:
+    for mutex_name in Constants.mutex_names:
         output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.7f} standard deviation: {data[mutex_name]['Time Spent'].std():.7f}\n"
         plot_one_cdf(
             data[mutex_name]["Time Spent"], 

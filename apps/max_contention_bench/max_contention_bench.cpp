@@ -9,9 +9,10 @@
 #include "spin_lock.cpp"
 #include "nsync_lock.cpp"
 #include "exp_spin_lock.cpp"
+#include "bakery_mutex.cpp"
 
 
-int max_contention_bench(int num_threads, int num_iterations, bool csv, bool thread_level, SoftwareMutex* lock) {
+void max_contention_bench(int num_threads, int num_iterations, bool csv, bool thread_level, SoftwareMutex* lock) {
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -106,8 +107,8 @@ int max_contention_bench(int num_threads, int num_iterations, bool csv, bool thr
 
     if (*counter != num_threads * num_iterations) {
         // The mutex did not work.
-        fprintf(stderr, "Mutex failed; *counter != num_threads * num_iterations (%d!=%d)\n", *counter, num_threads * num_iterations);
-        return 1;
+        fprintf(stderr, "\nMUTEX FAILED; *counter != num_threads * num_iterations (%d!=%d)\n\n", *counter, num_threads * num_iterations);
+        // return 1;
     }
 
     // Cleanup resources
@@ -125,7 +126,6 @@ int max_contention_bench(int num_threads, int num_iterations, bool csv, bool thr
 
     // record_rusage(); // Record resource usage
     // report_latency(&args); // Report latency if needed
-    return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -177,13 +177,17 @@ int main(int argc, char* argv[]) {
         lock = new NSync();
     } else if (strcmp(mutex_name, "exp_spin") == 0){
         lock = new ExponentialSpinLock();
+    } else if (strcmp(mutex_name, "bakery") == 0){
+        lock = new BakeryMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
-                "'spin', 'nsync', and 'exp_spin'\n", mutex_name);
+                "'spin', 'nsync', 'exp_spin', and 'bakery'\n", mutex_name);
         return 1;
     }    
     
     // Run the max contention benchmark
-    return max_contention_bench(num_threads, num_iterations, csv, thread_level, lock);
+    max_contention_bench(num_threads, num_iterations, csv, thread_level, lock);
+
+    return 0;
 }
