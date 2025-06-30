@@ -107,8 +107,8 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
 
     if (*counter != num_threads * num_iterations) {
         // The mutex did not work.
-        fprintf(stderr, "\nMUTEX FAILED; *counter != num_threads * num_iterations (%d!=%d)\n\n", *counter, num_threads * num_iterations);
-        // return 1;
+        fprintf(stderr, "Mutex %s failed; *counter != num_threads * num_iterations (%d!=%d)\n", lock->name().c_str(), *counter, num_threads * num_iterations);
+        return 1;
     }
 
     // Cleanup resources

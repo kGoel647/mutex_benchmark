@@ -27,6 +27,8 @@ public:
         std::atomic_store_explicit(&lock_, false, std::memory_order_release);
     }
     void destroy() override {}
+
+    std::string name(){return "spin";};
     
 private:
     volatile std::atomic_bool lock_ = false;
