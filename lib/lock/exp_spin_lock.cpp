@@ -1,6 +1,7 @@
 #include "lock.hpp"
 #include <atomic>
 #include <time.h>
+#include <string.h>
 
 class ExponentialSpinLock : public virtual SoftwareMutex {
 public:
@@ -27,6 +28,9 @@ public:
     }
     void destroy() override {}
     
+    std::string name() override {
+        return "exp_spin";
+    }
 private:
     volatile std::atomic_flag lock_ = ATOMIC_FLAG_INIT;
     struct timespec remaining;

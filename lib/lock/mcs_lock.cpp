@@ -77,6 +77,10 @@ public:
     void destroy() override {
 
     }
+
+    std::string name() override {
+        return "mcs";
+    }
 private:
     // Do these need to be volatile?
     static volatile thread_local QNode my_node;

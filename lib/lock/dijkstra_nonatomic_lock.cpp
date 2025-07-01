@@ -43,6 +43,10 @@ public:
         free((void*)unlocking);
         free((void*)c);
     }
+
+    std::string name() override {
+        return "dijkstra_nonatomic";
+    }
 private:
     volatile bool *unlocking;
     volatile bool *c;

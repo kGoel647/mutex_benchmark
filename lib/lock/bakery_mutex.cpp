@@ -46,6 +46,10 @@ public:
         free((void*)choosing);
         free((void*)number);
     }
+
+    std::string name() override {
+        return "bakery";
+    }
 private:
     volatile std::atomic_bool *choosing;
     // Note: Mutex will fail if this number overflows,
