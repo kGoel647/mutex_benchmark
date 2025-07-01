@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <vector>
 
 void record_rusage() {
     struct rusage usage;
@@ -33,20 +34,12 @@ void print_rusage(struct rusage *usage) {
     printf("Involuntary context switches: %ld\n", usage->ru_nivcsw);
 }
 
-void start_timer(struct per_thread_stats *stats) {
-    clock_gettime(CLOCK_MONOTONIC, &stats->start_time);
-}
-
-void end_timer(struct per_thread_stats *stats) {
-    clock_gettime(CLOCK_MONOTONIC, &stats->end_time);
-}
-
 void init_lock_timer(struct per_thread_stats *stats) {
-    stats->lock_times = (double *)malloc(sizeof(double) * stats->num_iterations);
+    // Currently unused.
+    (void)stats;
 }
 
-void start_lock_timer(struct per_thread_stats *stats, size_t index) {
-    (void)index; // Not used but could be used in the future.
+void start_lock_timer(struct per_thread_stats *stats) {
     clock_gettime(CLOCK_MONOTONIC, &stats->start_time);
 }
 
@@ -58,7 +51,6 @@ double get_elapsed_time(struct timespec start_time, struct timespec end_time) {
         seconds--;
         nanoseconds += 1e9;
     }
-
     double elapsed = seconds + nanoseconds / 1e9;
     if (elapsed < 0.0) {
         return 0.0;
@@ -66,28 +58,26 @@ double get_elapsed_time(struct timespec start_time, struct timespec end_time) {
     return elapsed;
 }
 
-void end_lock_timer(struct per_thread_stats *stats, size_t index) {
+void end_lock_timer(struct per_thread_stats *stats) {
     clock_gettime(CLOCK_MONOTONIC, &stats->end_time);
-    stats->lock_times[index] = get_elapsed_time(stats->start_time, stats->end_time);
+    double lock_time = get_elapsed_time(stats->start_time, stats->end_time);
+    stats->lock_times.push_back(lock_time);
 }
 
 void destroy_lock_timer(struct per_thread_stats *stats) {
-    free((void*)stats->lock_times);
+    (void)stats; // Currently
 }
 
 void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread_level) {
     if (thread_level) {
-        double elapsed = get_elapsed_time(stats->start_time, stats->end_time);
-        
         if (csv) {
-            printf("%d,%d,%.6f\n", stats->thread_id, stats->num_iterations, elapsed);
+            // Thread ID, Runtime, # Iterations
+            printf("%d,%ld,%d\n", stats->thread_id, stats->run_time.count(), stats->num_iterations);
         } else {
-            printf("Thread %d: %d iterations completed in %.6f seconds\n",
-                stats->thread_id, stats->num_iterations, elapsed);
+            printf("Thread %d: %d iterations completed in %ld seconds\n",
+                stats->thread_id, stats->num_iterations, stats->run_time.count());
         }
     } else {
-        double elapsed = get_elapsed_time(stats->start_time, stats->end_time);
-        
         if (csv) {
             for (int i = 0; i < stats->num_iterations; i++) {
                 // Thread ID, Iteration #, Time to lock
@@ -95,8 +85,8 @@ void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread
             }
         }
         else {
-            printf("Thread %d: %d iterations completed in %.6f seconds\n",
-                stats->thread_id, stats->num_iterations, elapsed);
+            printf("Thread %d: %d iterations completed in %ld seconds\n",
+                stats->thread_id, stats->num_iterations, stats->run_time.count());
             for (int i = 0; i < stats->num_iterations; i++) {
                 // Thread ID, Iteration #, Time to lock
                 printf("    #%d: iteration %d took %.10f seconds\n", stats->thread_id, i, stats->lock_times[i]);

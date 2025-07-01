@@ -5,12 +5,12 @@ import subprocess
 
 # TODO: save data files instead of deleting them every time (in their own folder)
 
-def get_data_file_name(mutex_name, i):
-    return f"{Constants.data_folder}/{mutex_name}-{i}.csv"
+def get_data_file_name(mutex_name, i, threads):
+    return f"{Constants.data_folder}/{mutex_name}-{threads}-{i}.csv"
 
-def get_command(mutex_name, *, csv=True, thread_level=False):
+def get_command(mutex_name, threads, *, csv=True, thread_level=False):
     args = [Constants.Defaults.EXECUTABLE, mutex_name, 
-        str(Constants.bench_n_threads), str(Constants.bench_n_iterations)]
+        str(threads), str(Constants.bench_n_seconds)]
     if csv:
         args.append("--csv")
     if thread_level:
@@ -25,9 +25,9 @@ def run_experiment_multithreaded():
         # Create program threads
         threads = []
         for i in range(Constants.n_program_iterations):
-            data_file_name = get_data_file_name(mutex_name, i)
+            data_file_name = get_data_file_name(mutex_name, i, Constants.bench_n_threads)
             subprocess.run(["rm", "-f", data_file_name])
-            command = get_command(mutex_name, csv=True, thread_level=True)
+            command = get_command(mutex_name, Constants.bench_n_threads, csv=True, thread_level=True)
             thread = subprocess.Popen(command, stdout=subprocess.PIPE)
             threads.append([data_file_name, thread])
         # Collect data from threads
@@ -40,14 +40,14 @@ def run_experiment_multithreaded():
 
 def run_experiment_single_threaded():
     # Run experiment
-    for mutex_name in Constants.mutex_names:
+    for i in range(Constants.n_program_iterations):
+        for mutex_name in Constants.mutex_names:
         # Create program threads
-        threads = []
-        for i in range(Constants.n_program_iterations):
+            threads = []
             logger.info(f"{mutex_name=} | {i=}")
-            data_file_name = get_data_file_name(mutex_name, i)
+            data_file_name = get_data_file_name(mutex_name, i, Constants.bench_n_threads)
             subprocess.run(["rm", "-f", data_file_name])
-            command = get_command(mutex_name, csv=True, thread_level=True)
+            command = get_command(mutex_name, Constants.bench_n_threads, csv=True, thread_level=True)
             thread = subprocess.run(command, stdout=subprocess.PIPE)
             csv_data = thread.stdout
             with open(data_file_name, "wb") as data_file:
@@ -57,12 +57,29 @@ def run_experiment_lock_level_single_threaded():
     for i in range(Constants.n_program_iterations):
         for mutex_name in Constants.mutex_names:
             logger.info(f"{mutex_name=} | {i=}")
-            data_file_name = get_data_file_name(mutex_name, i)
+            data_file_name = get_data_file_name(mutex_name, i, Constants.bench_n_threads)
             subprocess.run(["rm", "-f", data_file_name])
-            command = get_command(mutex_name, csv=True, thread_level=False)
+            command = get_command(mutex_name, Constants.bench_n_threads, csv=True, thread_level=False)
             thread = subprocess.run(command, stdout=subprocess.PIPE)
             csv_data = thread.stdout
             with open(data_file_name, "wb") as data_file:
                 data_file.write(csv_data)
+
+
+def run_experiment_iter_v_threads_single_threaded():
+    for threads in range(Constants.threads_start, Constants.threads_end, Constants.threads_step):
+        for i in range(Constants.n_program_iterations):
+            for mutex_name in Constants.mutex_names:
+                logger.info(f"{mutex_name=} | {threads=} | {i=}")
+                data_file_name = get_data_file_name(mutex_name, i, threads)
+                subprocess.run(["rm", "-f", data_file_name])
+                command = get_command(mutex_name, threads, csv=True)
+                thread=subprocess.run(command, stdout=subprocess.PIPE)
+                csv_data = thread.stdout
+                with open(data_file_name, "wb") as data_file:
+                    data_file.write(csv_data)
+
+
+
 
 # TODO: run_experiment_lock_level_multithreaded
