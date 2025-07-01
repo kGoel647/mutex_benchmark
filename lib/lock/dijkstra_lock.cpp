@@ -43,6 +43,9 @@ public:
         free((void*)unlocking);
         free((void*)c);
     }
+
+    std::string name(){return "djikstra";};
+
 private:
     volatile std::atomic_bool *unlocking;
     volatile std::atomic_bool *c;
