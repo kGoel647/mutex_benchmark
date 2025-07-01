@@ -5,7 +5,10 @@ import matplotlib.pyplot as plt
 
 def finish_plotting_cdf(thread_time_or_lock_time):
     print("Finishing plotting...")
-    plt.title(f"{thread_time_or_lock_time} CDF for {Constants.bench_n_threads} threads and {Constants.bench_n_iterations} iterations ({Constants.n_program_iterations}x)")
+    title = f"{thread_time_or_lock_time} CDF for {Constants.bench_n_threads} threads and {Constants.bench_n_iterations} iterations ({Constants.n_program_iterations}x)"
+    if Constants.scatter and Constants.skip != 1:
+        title += f"\nEach dot represents the average of {Constants.skip} operations"
+    plt.title(title)
     plt.xscale('log')
     legend = plt.legend()
     for handle in legend.legend_handles:
@@ -20,8 +23,8 @@ def plot_one_cdf(series, mutex_name, xlabel="", ylabel="", title="", skip=-1, wo
     x_values = series.sort_values().reset_index(drop=True)
     y_values = [a/x_values.size for a in range(x_values.size)]
     # Skip some values to save time
-    x = [x_values[i] for i in range(0, x_values.size, 1 + skip)]
-    y = [y_values[i] for i in range(0, x_values.size, 1 + skip)]
+    x = [x_values[i] for i in range(0, x_values.size, skip)]
+    y = [y_values[i] for i in range(0, x_values.size, skip)]
 
     if Constants.scatter:
         plt.scatter(x, y, label=title, s=0.2)

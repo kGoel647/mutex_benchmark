@@ -15,7 +15,6 @@ def analyze(data):
             xlabel="Thread time (seconds)",
             ylabel="% of threads under",
             title=f"{mutex_name}",
-            skip=0,
             # worst_case=worst_case
         )
     finish_plotting_cdf("Thread time")
@@ -33,7 +32,6 @@ def analyze_lock_level(data):
             xlabel="Lock time (seconds)",
             ylabel="% of iterations under",
             title=f"{mutex_name}",
-            skip=0,
             # worst_case=worst_case
         )
     finish_plotting_cdf("Lock time")

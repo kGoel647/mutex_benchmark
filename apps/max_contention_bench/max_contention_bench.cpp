@@ -6,10 +6,12 @@
 #include "cpp_std_mutex.cpp"
 #include "boost_lock.cpp"
 #include "dijkstra_lock.cpp"
+#include "dijkstra_nonatomic_lock.cpp"
 #include "spin_lock.cpp"
 #include "nsync_lock.cpp"
 #include "exp_spin_lock.cpp"
 #include "bakery_mutex.cpp"
+#include "mcs_lock.cpp"
 
 
 void max_contention_bench(int num_threads, int num_iterations, bool csv, bool thread_level, SoftwareMutex* lock) {
@@ -179,10 +181,14 @@ int main(int argc, char* argv[]) {
         lock = new ExponentialSpinLock();
     } else if (strcmp(mutex_name, "bakery") == 0){
         lock = new BakeryMutex();
+    } else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0){
+        lock = new DijkstraNonatomicMutex();
+    } else if (strcmp(mutex_name, "mcs") == 0){
+        lock = new MCSMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
-                "'spin', 'nsync', 'exp_spin', and 'bakery'\n", mutex_name);
+                "'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', and 'mcs'\n", mutex_name);
         return 1;
     }    
     

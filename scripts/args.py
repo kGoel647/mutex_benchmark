@@ -20,7 +20,7 @@ def init_args():
     experiment_type.add_argument('--lock-level', action='store_true')
 
     parser.add_argument('-l', '--log', type=str, default=Constants.Defaults.LOG)
-    parser.add_argument('-s', '--skip', type=int, default=Constants.Defaults.SKIP)
+    parser.add_argument('-s', '--skip', type=int, default=-1)
     parser.add_argument('--data-folder', nargs='?', type=str, default=Constants.Defaults.DATA_FOLDER)
     parser.add_argument('--log-folder', nargs='?', type=str, default=Constants.Defaults.LOGS_FOLDER)
     
@@ -58,7 +58,15 @@ def init_args():
     Constants.multithreaded = args.multithreaded
     Constants.thread_level = args.thread_level
     Constants.scatter = args.scatter
-    Constants.skip = args.skip
+    if args.skip == -1:
+        total_points_plotted = Constants.bench_n_threads * Constants.bench_n_iterations * Constants.n_program_iterations
+        print(f"{total_points_plotted=}")
+        if total_points_plotted >= 10000:
+            Constants.skip = int(total_points_plotted / 10000)
+        else:
+            Constants.skip = 1
+    else:
+        Constants.skip = args.skip
 
     if args.log == "DEBUG":
         Constants.log = logging.DEBUG
