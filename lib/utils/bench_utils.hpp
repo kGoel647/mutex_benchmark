@@ -36,6 +36,7 @@ void print_rusage(struct rusage *usage);
 void init_lock_timer(struct per_thread_stats *stats);
 void start_lock_timer(struct per_thread_stats *stats, size_t index);
 void end_lock_timer(struct per_thread_stats *stats, size_t index);
+void destroy_lock_timer(struct per_thread_stats *stats);
 
 void start_timer(struct per_thread_stats *stats);
 void end_timer(struct per_thread_stats *stats);

@@ -60,12 +60,19 @@ double get_elapsed_time(struct timespec start_time, struct timespec end_time) {
     }
 
     double elapsed = seconds + nanoseconds / 1e9;
+    if (elapsed < 0.0) {
+        return 0.0;
+    }
     return elapsed;
 }
 
 void end_lock_timer(struct per_thread_stats *stats, size_t index) {
     clock_gettime(CLOCK_MONOTONIC, &stats->end_time);
     stats->lock_times[index] = get_elapsed_time(stats->start_time, stats->end_time);
+}
+
+void destroy_lock_timer(struct per_thread_stats *stats) {
+    free((void*)stats->lock_times);
 }
 
 void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread_level) {

@@ -13,6 +13,7 @@
 #include "bakery_mutex.cpp"
 #include "mcs_lock.cpp"
 #include "mcs_volatile_lock.cpp"
+#include "mcs_malloc_lock.cpp"
 
 
 void max_contention_bench(int num_threads, int num_iterations, bool csv, bool thread_level, bool no_output, SoftwareMutex* lock) {
@@ -125,6 +126,7 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
     if (!no_output) {
         for (auto& args : thread_args) {
             report_thread_latency(&args.stats, csv, thread_level); // Report latency for each thread
+            destroy_lock_timer(&args.stats);
         }
     }
 
@@ -192,6 +194,8 @@ int main(int argc, char* argv[]) {
         lock = new MCSMutex();
     } else if (strcmp(mutex_name, "mcs_volatile") == 0){
         lock = new MCSVolatileMutex();
+    } else if (strcmp(mutex_name, "mcs_malloc") == 0){
+        lock = new MCSMallocMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
