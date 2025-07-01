@@ -12,12 +12,20 @@ def finish_plotting_cdf(thread_time_or_lock_time):
         handle._sizes = [30]
     plt.show()
 
-def finish_plotting_graph():
+def finish_plotting_graph(axis):
     print("Finishing plotting...")
-    plt.title(f"# Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-    plt.yscale('log')
+    axis[0].set_title(f"# Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+    axis[0].set_yscale('log')
+
+    axis[1].set_title(f"Std. dev of # Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+    axis[1].set_yscale('log')
     # plt.xscale('log')
-    legend = plt.legend()
+    legend = axis[0].legend()
+    for handle in legend.legend_handles:
+        handle._sizes = [30]
+    
+
+    legend = axis[1].legend()
     for handle in legend.legend_handles:
         handle._sizes = [30]
     plt.show()
@@ -40,13 +48,13 @@ def plot_one_cdf(series, mutex_name, xlabel="", ylabel="", title="", skip=-1, wo
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-def plot_one_graph(x, y, mutex_name, xlabel="", ylabel="", title="", skip=-1, worst_case=-1):
+def plot_one_graph(ax, x, y, mutex_name, xlabel="", ylabel="", title="", skip=-1, worst_case=-1):
     if skip == -1:
         skip = Constants.skip
     logger.info(f"Plotting {mutex_name=}")
     if Constants.scatter:
-        plt.scatter(x, y, label=title, s=0.2)
+        ax.scatter(x, y, label=title, s=0.2)
     else:
-        plt.plot(x, y, label=title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+        ax.plot(x, y, label=title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)

@@ -3,6 +3,7 @@ from .plotter import plot_one_cdf, plot_one_graph, finish_plotting_cdf, finish_p
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 def analyze(data):
     # TODO add more stuff here
@@ -43,16 +44,34 @@ def analyze_lock_level(data):
 def analyze_iter_v_threads(data):
     output=""
     output +="\n"
+    figure, axis = plt.subplots(1, 2)
     for mutex_name in Constants.mutex_names:
-        output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
+        # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
+        mean_values = [thread.mean() for thread in data[mutex_name]]
+        print(mean_values)
         plot_one_graph(
+            axis[0],
             np.array(range(Constants.threads_start, Constants.threads_end, Constants.threads_step)),
-            np.array(data[mutex_name]),
+            mean_values,
             mutex_name,
             xlabel="# of Threads",
             ylabel="# Iterations",
             title=f"{mutex_name}",
             skip=0
         )
-    finish_plotting_graph()
+
+        stdev_values = [np.std(thread) for thread in data[mutex_name]]
+        plot_one_graph(
+            axis[1],
+            np.array(range(Constants.threads_start, Constants.threads_end, Constants.threads_step)),
+            stdev_values,
+            mutex_name,
+            xlabel="# of Threads",
+            ylabel="# Iterations",
+            title=f"{mutex_name}",
+            skip=0
+        )
+
+        
+    finish_plotting_graph(axis)
     return output

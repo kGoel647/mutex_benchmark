@@ -37,6 +37,5 @@ def load_data_iter_v_threads():
                 dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Seconds", "# Iterations"])
                 dataframes.append(dataframe)
             dataframes=pd.concat(dataframes)
-            data[mutex_name].append(dataframes["# Iterations"].mean())
-            print(data[mutex_name])
+            data[mutex_name].append(dataframes["# Iterations"])
     return data
