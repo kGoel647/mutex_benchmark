@@ -21,12 +21,19 @@ def run_experiment_thread_level():
     data = load_data()
     output = analyze(data)
     print(output)
-    log(output)
+    logger.info(output)
 
 def run_experiment_lock_level():
     run_experiment_lock_level_single_threaded()
     data = load_data_lock_level()
     output = analyze_lock_level(data)
+    print(output)
+    logger.info(output)
+
+def run_experiment_iter_v_threads():
+    run_experiment_iter_v_threads_single_threaded()
+    data = load_data_iter_v_threads()
+    output = analyze_iter_v_threads(data)
     print(output)
     logger.info(output)
 
@@ -38,6 +45,8 @@ def main():
     build()
     if Constants.thread_level:
         run_experiment_thread_level()
+    elif Constants.iter_v_threads:
+        run_experiment_iter_v_threads()
     else:
         run_experiment_lock_level()
 

@@ -12,7 +12,7 @@
 #include "bakery_mutex.cpp"
 
 
-void max_contention_bench(int num_threads, int num_iterations, bool csv, bool thread_level, SoftwareMutex* lock) {
+int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, SoftwareMutex* lock) {
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -28,25 +28,23 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
 
     // Create a flag to signal the threads to start
     std::shared_ptr<std::atomic<bool>> start_flag = std::make_shared<std::atomic<bool>>(false);
+    std::shared_ptr<std::atomic<bool>> end_flag = std::make_shared<std::atomic<bool>>(false);
     volatile int *counter = (volatile int*)malloc(sizeof(int));
 
     // Create an array of thread arguments
     std::vector<per_thread_args> thread_args(num_threads);
     for (int i = 0; i < num_threads; ++i) {
         thread_args[i].thread_id = i;
-        thread_args[i].stats.num_iterations = num_iterations;
         thread_args[i].lock = lock; // Pass the lock to each thread
+        thread_args[i].stats.run_time=run_time;
     }
 
     // Create an array of threads
     std::vector<std::thread> threads(num_threads);
     for (int i = 0; i < num_threads; ++i) {
         thread_args[i].start_flag = start_flag; // Share the start flag with each thread
-        // I put the if statement here rather than inside the thread code so that fewer conditionals have to be checked
-        // in the runtime-importants section
-        if (thread_level) {
-            // Measure how long each thread takes to finish
-            threads[i] = std::thread([&thread_args, i, counter]() {
+        thread_args[i].end_flag = end_flag;
+        threads[i] = std::thread([&thread_args, i, counter]() {
 
                 // Record the thread ID
                 thread_args[i].stats.thread_id = thread_args[i].thread_id;
@@ -56,47 +54,24 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
                     // Wait until the start flag is set
                 }
 
-                // Start the timer for this thread
-                start_timer(&thread_args[i].stats);
-
+            while(!*thread_args[i].end_flag){
                 // Perform the locking operations
-                for (int j = 0; j < thread_args[i].stats.num_iterations; ++j) {
-                    thread_args[i].lock->lock(thread_args[i].thread_id);
-                    (*counter)++; // Critical section
-                    thread_args[i].lock->unlock(thread_args[i].thread_id);
-                }
-
-                // End the timer for this thread
-                end_timer(&thread_args[i].stats);
-            });
-        } else {
-            // Measure individual lock operations
-            // May be affected by how long the clock takes to read
-            threads[i] = std::thread([&thread_args, i, counter]() {
-
-                // Record the thread ID
-                thread_args[i].stats.thread_id = thread_args[i].thread_id;
-                init_lock_timer(&thread_args[i].stats);
-            
-                // Each thread will run this function
-                while (!*thread_args[i].start_flag) {
-                    // Wait until the start flag is set
-                }
-
-                // Perform the locking operations
-                for (int j = 0; j < thread_args[i].stats.num_iterations; ++j) {
-                    start_lock_timer(&thread_args[i].stats, j);
-                    thread_args[i].lock->lock(thread_args[i].thread_id);
-                    (*counter)++; // Critical section
-                    thread_args[i].lock->unlock(thread_args[i].thread_id);
-                    end_lock_timer(&thread_args[i].stats, j);
-                }
-            });
-        }
+                thread_args[i].lock->lock(thread_args[i].thread_id);
+                thread_args[i].stats.num_iterations++;
+                (*counter)++;
+                // Critical section code goes here
+                thread_args[i].lock->unlock(thread_args[i].thread_id);
+            }
+            thread_args[i].stats.num_iterations--;
+        });
     }
 
     // Start the threads
     *start_flag = true; // Set the start flag to signal the threads to begin
+    std::this_thread::sleep_for(run_time);
+    *end_flag = true;
+
+    
 
     // Wait for all threads to finish
     for (auto& thread : threads) {
@@ -105,9 +80,16 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
         }
     }
 
-    if (*counter != num_threads * num_iterations) {
+    *counter -= num_threads;
+
+    int expectedIterations = 0;
+    for (int i =0; i<num_threads; i++){
+        expectedIterations+=thread_args[i].stats.num_iterations;
+    }
+
+    if (*counter != expectedIterations) {
         // The mutex did not work.
-        fprintf(stderr, "Mutex %s failed; *counter != num_threads * num_iterations (%d!=%d)\n", lock->name().c_str(), *counter, num_threads * num_iterations);
+        fprintf(stderr, "Mutex %s failed; *counter != num_threads * num_iterations (%d!=%d)\n", lock->name().c_str(), *counter, expectedIterations);
         return 1;
     }
 
@@ -121,7 +103,7 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
     // Output benchmark results
 
     for (auto& args : thread_args) {
-        report_thread_latency(&args.stats, csv, thread_level); // Report latency for each thread
+        report_thread_stats(&args.stats, csv); // Report latency for each thread
     }
 
     // record_rusage(); // Record resource usage
@@ -130,16 +112,16 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s <mutex_name> <num_threads> <num_iterations> [<flags>]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <mutex_name> <num_threads> <run_time> <flags>]\n", argv[0]);
         return 1;
     }
 
     // First, take in command line arguments
     char *mutex_name = nullptr;
     int num_threads = -1;
-    int num_iterations = -1;
     bool csv = false;
     bool thread_level = false;
+    int run_time =-1;
 
     for (int i = 1; i < argc; i++) 
     {
@@ -152,8 +134,8 @@ int main(int argc, char* argv[]) {
             mutex_name = argv[i];
         } else if (num_threads == -1) {
             num_threads = atoi(argv[i]);
-        } else if (num_iterations == -1) {
-            num_iterations = atoi(argv[i]);
+        } else if (run_time == -1){
+            run_time = atoi(argv[i]);
         } else {
             fprintf(stderr, "Unrecognized command line argument: %s\n", argv[i]);
             return 1;
@@ -187,7 +169,5 @@ int main(int argc, char* argv[]) {
     }    
     
     // Run the max contention benchmark
-    max_contention_bench(num_threads, num_iterations, csv, thread_level, lock);
-
-    return 0;
+    return max_contention_bench(num_threads, std::chrono::seconds(run_time), csv, lock);
 }
