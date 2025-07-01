@@ -8,7 +8,7 @@ def analyze(data):
     output = ""
     output += "\n"
     for mutex_name in Constants.mutex_names:
-        output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.7f} standard deviation: {data[mutex_name]['Time Spent'].std():.7f}\n"
+        output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.9f} standard deviation: {data[mutex_name]['Time Spent'].std():.9f}\n"
         plot_one_cdf(
             data[mutex_name]["Time Spent"], 
             mutex_name,
@@ -25,7 +25,7 @@ def analyze_lock_level(data):
     output = ""
     output += "\n"
     for mutex_name in Constants.mutex_names:
-        output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.7f} standard deviation: {data[mutex_name]['Time Spent'].std():.7f}\n"
+        output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.9f} standard deviation: {data[mutex_name]['Time Spent'].std():.9f}\n"
         plot_one_cdf(
             data[mutex_name]["Time Spent"], 
             mutex_name,

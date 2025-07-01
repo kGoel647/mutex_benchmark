@@ -13,9 +13,9 @@ void record_rusage() {
 }
 
 void print_rusage(struct rusage *usage) {
-    printf("User CPU time used: %ld.%06d seconds\n", 
+    printf("User CPU time used: %ld.%06ld seconds\n", 
            usage->ru_utime.tv_sec, usage->ru_utime.tv_usec);
-    printf("System CPU time used: %ld.%06d seconds\n", 
+    printf("System CPU time used: %ld.%06ld seconds\n", 
            usage->ru_stime.tv_sec, usage->ru_stime.tv_usec);
     printf("Maximum resident set size: %ld KB\n", usage->ru_maxrss);
     printf("Integral shared memory size: %ld KB\n", usage->ru_ixrss);
@@ -84,7 +84,7 @@ void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread
         if (csv) {
             for (int i = 0; i < stats->num_iterations; i++) {
                 // Thread ID, Iteration #, Time to lock
-                printf("%d,%d,%.9f\n", stats->thread_id, i, stats->lock_times[i]);
+                printf("%d,%d,%.10f\n", stats->thread_id, i, stats->lock_times[i]);
             }
         }
         else {
@@ -92,7 +92,7 @@ void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread
                 stats->thread_id, stats->num_iterations, elapsed);
             for (int i = 0; i < stats->num_iterations; i++) {
                 // Thread ID, Iteration #, Time to lock
-                printf("    #%d: iteration %d took %.9f seconds\n", stats->thread_id, i, stats->lock_times[i]);
+                printf("    #%d: iteration %d took %.10f seconds\n", stats->thread_id, i, stats->lock_times[i]);
             }
         }
     }

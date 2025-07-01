@@ -3,16 +3,19 @@
 #include <atomic>
 #include <stdio.h>
 
+// This file was made to investigate whether adding the "volatile" keyword was slowing MCS down.
+// MCSVolatileMutex seems slightly faster than MCSMutex.
+
 // TODO: explicit memory ordering.
 // NOTE: Because of the limitations of `thread_local`,
 // this class MUST be singleton. TODO: This is not yet explicitly enforced.
 
-struct QNode {
-    std::atomic<QNode*> next;
+struct VolatileQNode {
+    std::atomic<volatile VolatileQNode*> next;
     std::atomic_bool locked;
 };
 
-class MCSMutex : public virtual SoftwareMutex {
+class MCSVolatileMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
         (void)num_threads; // Unused
@@ -25,7 +28,7 @@ public:
         // my_node.locked may remain uninitialized. 
         // This is fine because if we have the lock we will never
         // access my_node.locked.
-        QNode* predecessor = lock_.exchange(&my_node);
+        volatile VolatileQNode* predecessor = lock_.exchange(&my_node);
         // Once the lock._next is swapped, won't be modified
         if (predecessor != nullptr) {
             my_node.locked.store(true);
@@ -36,13 +39,23 @@ public:
                 // Busy wait
             }
         }
+        // printf("%ld: Locked\n", thread_id);
     }
 
     void unlock(size_t thread_id) override {
         (void)thread_id; // Unused
 
         if (my_node.next.load() == nullptr) {
-            QNode* my_node_p = &my_node;
+            // printf("std::atomic_compare_exchange_strong(\n"
+            //         "    %p,\n"
+            //         "    %p,\n"
+            //         "    %p\n"
+            //         ")\n",
+            //         &lock_,
+            //         (volatile QNode**)&my_node,
+            //         (volatile QNode*)nullptr
+            // );
+            volatile VolatileQNode* my_node_p = &my_node;
             if (std::atomic_compare_exchange_strong(
                     &lock_,
                     // We need to get the address of my_node, but the addressing operation
@@ -56,7 +69,9 @@ public:
             // If MCSMutex::lock_ is not pointing to this node, but this node's pointer in null,
             // that can only mean there is another node in the process of setting (between lock_.exchange and predecessor->next.store)
             // This almost never happens.
+            // printf("Waiting for successor...\n");
             while (my_node.next.load() == nullptr) {
+                // printf(".");
                 // Busy wait (should this return to the start?)
             }
         }
@@ -69,13 +84,13 @@ public:
     }
 
     std::string name() override {
-        return "mcs";
+        return "mcs_volatile";
     }
 private:
     // Do these need to be volatile?
-    static thread_local QNode my_node;
-    static volatile std::atomic<QNode*> lock_;
+    static volatile thread_local VolatileQNode my_node;
+    static volatile std::atomic<volatile VolatileQNode*> lock_;
 };
 
-thread_local QNode MCSMutex::my_node;
-volatile std::atomic<QNode*> MCSMutex::lock_ = nullptr;
+volatile thread_local VolatileQNode MCSVolatileMutex::my_node;
+volatile std::atomic<volatile VolatileQNode*> MCSVolatileMutex::lock_ = nullptr;

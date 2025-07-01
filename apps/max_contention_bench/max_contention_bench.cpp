@@ -12,9 +12,10 @@
 #include "exp_spin_lock.cpp"
 #include "bakery_mutex.cpp"
 #include "mcs_lock.cpp"
+#include "mcs_volatile_lock.cpp"
 
 
-void max_contention_bench(int num_threads, int num_iterations, bool csv, bool thread_level, SoftwareMutex* lock) {
+void max_contention_bench(int num_threads, int num_iterations, bool csv, bool thread_level, bool no_output, SoftwareMutex* lock) {
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -121,8 +122,10 @@ void max_contention_bench(int num_threads, int num_iterations, bool csv, bool th
 
     // Output benchmark results
 
-    for (auto& args : thread_args) {
-        report_thread_latency(&args.stats, csv, thread_level); // Report latency for each thread
+    if (!no_output) {
+        for (auto& args : thread_args) {
+            report_thread_latency(&args.stats, csv, thread_level); // Report latency for each thread
+        }
     }
 
     // record_rusage(); // Record resource usage
@@ -141,6 +144,7 @@ int main(int argc, char* argv[]) {
     int num_iterations = -1;
     bool csv = false;
     bool thread_level = false;
+    bool no_output = false;
 
     for (int i = 1; i < argc; i++) 
     {
@@ -149,6 +153,8 @@ int main(int argc, char* argv[]) {
             csv = true;
         } else if (strcmp(argv[i], "--thread-level") == 0 || strcmp(argv[i], "-t") == 0) {
             thread_level = true;
+        } else if (strcmp(argv[i], "--no-output") == 0 || strcmp(argv[i], "-n") == 0) {
+            no_output = true;
         } else if (mutex_name == nullptr) {
             mutex_name = argv[i];
         } else if (num_threads == -1) {
@@ -184,6 +190,8 @@ int main(int argc, char* argv[]) {
         lock = new DijkstraNonatomicMutex();
     } else if (strcmp(mutex_name, "mcs") == 0){
         lock = new MCSMutex();
+    } else if (strcmp(mutex_name, "mcs_volatile") == 0){
+        lock = new MCSVolatileMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
@@ -192,7 +200,7 @@ int main(int argc, char* argv[]) {
     }    
     
     // Run the max contention benchmark
-    max_contention_bench(num_threads, num_iterations, csv, thread_level, lock);
+    max_contention_bench(num_threads, num_iterations, csv, thread_level, no_output, lock);
 
     return 0;
 }

@@ -1,7 +1,7 @@
 #include "lock.hpp"
 #include <atomic>
 #include <time.h>
-#include <string.h>
+#include <stdexcept>
 
 class ExponentialSpinLock : public virtual SoftwareMutex {
 public:
