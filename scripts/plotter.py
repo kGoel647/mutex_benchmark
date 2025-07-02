@@ -59,8 +59,6 @@ def plot_one_cdf(series, mutex_name, xlabel="", ylabel="", title="", skip=-1, wo
     plt.ylabel(ylabel)
 
 def plot_one_graph(ax, x, y, mutex_name, xlabel="", ylabel="", title="", skip=-1, worst_case=-1):
-    if skip == -1:
-        skip = Constants.skip
     logger.info(f"Plotting {mutex_name=}")
     if Constants.scatter:
         ax.scatter(x, y, label=title, s=0.2)
