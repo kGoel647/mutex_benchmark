@@ -15,4 +15,5 @@ class Constants:
         SCATTER = False
         LOG = logging.INFO
         SKIP = 1
+        MAX_N_POINTS = 1000
     

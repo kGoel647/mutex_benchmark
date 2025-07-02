@@ -34,7 +34,7 @@ def analyze_lock_level(data):
             xlabel="Lock time (seconds)",
             ylabel="% of iterations under",
             title=f"{mutex_name}",
-            # worst_case=worst_case
+            average_lock_time=data[mutex_name]['Time Spent'].mean(),
         )
     finish_plotting_cdf("Lock time")
     return output
@@ -55,7 +55,7 @@ def analyze_iter_v_threads(data):
             xlabel="# of Threads",
             ylabel="# Iterations",
             title=f"{mutex_name}",
-            skip=1
+            skip=-1,
         )
 
         stdev_values = [np.std(thread) for thread in data[mutex_name]]
@@ -67,7 +67,7 @@ def analyze_iter_v_threads(data):
             xlabel="# of Threads",
             ylabel="# Iterations Standard Deviation",
             title=f"{mutex_name}",
-            skip=1
+            skip=-1
         )
 
         

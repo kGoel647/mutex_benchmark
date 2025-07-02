@@ -24,7 +24,6 @@ def init_args():
     experiment_type.add_argument('--iter-v-threads', type=int, nargs=3)
 
     parser.add_argument('-l', '--log', type=str, default=Constants.Defaults.LOG)
-    parser.add_argument('-s', '--skip', type=int, default=1)
     parser.add_argument('--data-folder', nargs='?', type=str, default=Constants.Defaults.DATA_FOLDER)
     parser.add_argument('--log-folder', nargs='?', type=str, default=Constants.Defaults.LOGS_FOLDER)
     
@@ -35,6 +34,7 @@ def init_args():
     
     parser.add_argument('--scatter', action='store_true', default=False)
     parser.add_argument('-m', '--multithreaded', action='store_true')
+    parser.add_argument('-p', '--max-n-points', type=int, default=Constants.Defaults.MAX_N_POINTS, nargs='?')
 
     log = parser.add_mutually_exclusive_group()
     log.add_argument('-d', '--debug', action='store_const', dest='log', const='DEBUG', default='DEBUG')
@@ -68,7 +68,7 @@ def init_args():
     Constants.thread_level = args.thread_level
     Constants.iter_v_threads = args.iter_v_threads
     Constants.scatter = args.scatter
-    Constants.skip = args.skip
+    Constants.max_n_points = args.max_n_points
 
     if args.log == "DEBUG":
         Constants.log = logging.DEBUG
