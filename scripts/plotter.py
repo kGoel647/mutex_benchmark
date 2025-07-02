@@ -26,7 +26,6 @@ def finish_plotting_graph(axis):
     legend = axis[0].legend()
     for handle in legend.legend_handles:
         handle._sizes = [30]
-    
 
     legend = axis[1].legend()
     for handle in legend.legend_handles:

@@ -65,7 +65,7 @@ def analyze_iter_v_threads(data):
             stdev_values,
             mutex_name,
             xlabel="# of Threads",
-            ylabel="# Iterations",
+            ylabel="# Iterations Standard Deviation",
             title=f"{mutex_name}",
             skip=1
         )
