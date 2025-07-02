@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "max_contention_bench.hpp"
 #include "bench_utils.hpp"
 
@@ -18,7 +20,7 @@
 #include "peterson_lock.cpp"
 
 
-int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, bool thread_level, bool no_output, SoftwareMutex* lock) {
+int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, bool thread_level, bool no_output, int max_noncritical_delay_ns, SoftwareMutex* lock) {
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -36,7 +38,6 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
     std::shared_ptr<std::atomic<bool>> start_flag = std::make_shared<std::atomic<bool>>(false);
     std::shared_ptr<std::atomic<bool>> end_flag = std::make_shared<std::atomic<bool>>(false);
     volatile int *counter = (volatile int*)malloc(sizeof(int));
-
     // Create an array of thread arguments
     std::vector<per_thread_args> thread_args(num_threads);
     for (int i = 0; i < num_threads; ++i) {
@@ -75,7 +76,7 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
         } else {
             // Measure individual lock operations
             // May be affected by how long the clock takes to read
-            threads[i] = std::thread([&thread_args, i, counter]() {
+            threads[i] = std::thread([&thread_args, i, counter, max_noncritical_delay_ns]() {
 
                 // Record the thread ID
                 thread_args[i].stats.thread_id = thread_args[i].thread_id;
@@ -86,14 +87,21 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
                     // Wait until the start flag is set
                 }
 
+                struct timespec delay = { 0, 0 };
+                struct timespec _remaining;
+
                 // Perform the locking operations
                 while (!*thread_args[i].end_flag) {
                     start_lock_timer(&thread_args[i].stats);
                     thread_args[i].lock->lock(thread_args[i].thread_id);
-                    thread_args[i].stats.num_iterations++;
                     (*counter)++; // Critical section
                     thread_args[i].lock->unlock(thread_args[i].thread_id);
                     end_lock_timer(&thread_args[i].stats);
+                    
+                    // Noncritical section
+                    delay.tv_nsec = rand() % max_noncritical_delay_ns;
+                    nanosleep(&delay, &_remaining);
+                    thread_args[i].stats.num_iterations++;
                 }
             });
         }
@@ -155,6 +163,7 @@ int main(int argc, char* argv[]) {
     char *mutex_name = nullptr;
     int num_threads = -1;
     int run_time = -1;
+    int max_noncritical_delay_ns = -1;
     bool csv = false;
     bool thread_level = false;
     bool no_output = false;
@@ -174,10 +183,19 @@ int main(int argc, char* argv[]) {
             num_threads = atoi(argv[i]);
         } else if (run_time == -1) {
             run_time = atoi(argv[i]);
+        } else if (run_time == -1) {
+            run_time = atoi(argv[i]);
+        } else if (max_noncritical_delay_ns == -1) {
+            max_noncritical_delay_ns = atoi(argv[i]);
         } else {
             fprintf(stderr, "Unrecognized command line argument: %s\n", argv[i]);
             return 1;
         }
+    }
+
+    // Default arguments
+    if (max_noncritical_delay_ns <= 0) {
+        max_noncritical_delay_ns = 1;
     }
 
     // Create a lock instance (using Pthread lock as an example)
@@ -219,7 +237,7 @@ int main(int argc, char* argv[]) {
     }    
     
     // Run the max contention benchmark
-    max_contention_bench(num_threads, std::chrono::seconds(run_time), csv, thread_level, no_output, lock);
+    max_contention_bench(num_threads, std::chrono::seconds(run_time), csv, thread_level, no_output, max_noncritical_delay_ns, lock);
 
     return 0;
 }

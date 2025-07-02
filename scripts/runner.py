@@ -10,7 +10,7 @@ def get_data_file_name(mutex_name, i, threads):
 
 def get_command(mutex_name, threads, *, csv=True, thread_level=False):
     args = [Constants.Defaults.EXECUTABLE, mutex_name, 
-        str(threads), str(Constants.bench_n_seconds)]
+        str(threads), str(Constants.bench_n_seconds), str(Constants.noncritical_delay)]
     if csv:
         args.append("--csv")
     if thread_level:

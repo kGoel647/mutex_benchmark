@@ -35,6 +35,7 @@ def init_args():
     parser.add_argument('--scatter', action='store_true', default=False)
     parser.add_argument('-m', '--multithreaded', action='store_true')
     parser.add_argument('-p', '--max-n-points', type=int, default=Constants.Defaults.MAX_N_POINTS, nargs='?')
+    parser.add_argument('-n', '--noncritical-delay', type=int, default=1, nargs='?')
 
     log = parser.add_mutually_exclusive_group()
     log.add_argument('-d', '--debug', action='store_const', dest='log', const='DEBUG', default='DEBUG')
@@ -69,6 +70,7 @@ def init_args():
     Constants.iter_v_threads = args.iter_v_threads
     Constants.scatter = args.scatter
     Constants.max_n_points = args.max_n_points
+    Constants.noncritical_delay = args.noncritical_delay
 
     if args.log == "DEBUG":
         Constants.log = logging.DEBUG

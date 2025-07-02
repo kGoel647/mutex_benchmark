@@ -8,10 +8,12 @@ from .logger import logger
 
 def finish_plotting_cdf(thread_time_or_lock_time):
     print("Finishing plotting...")
-    title = f"{thread_time_or_lock_time} CDF for {Constants.bench_n_threads} threads and {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)"
+    title = f"{thread_time_or_lock_time} CDF for {Constants.bench_n_threads} threads and {Constants.bench_n_seconds} second(s) ({Constants.n_program_iterations}x)"
     # Removed this because skip changes based on number of points now.
     # if Constants.scatter:
     #     title += f"\nEach dot represents the average of {Constants.skip} operations"
+    if Constants.noncritical_delay != 1:
+        title += f"\nContention mitigation: Delay in noncritical section of {Constants.noncritical_delay:,} ns ({Constants.noncritical_delay:.2e}) applied."
     plt.title(title)
     plt.xscale('log')
     legend = plt.legend()
@@ -45,8 +47,7 @@ def plot_one_cdf(series, mutex_name, xlabel="", ylabel="", title="", skip=-1, wo
     if average_lock_time:
         title += f" ({average_lock_time=:.2e})"
     # Skip some values to save time
-    if skip == -1:
-        skip = int(ceil(x_values.size / Constants.max_n_points))
+    skip = int(ceil(x_values.size / Constants.max_n_points))
 
     x = [x_values[i] for i in range(0, x_values.size, skip)]
     y = [y_values[i] for i in range(0, x_values.size, skip)]
