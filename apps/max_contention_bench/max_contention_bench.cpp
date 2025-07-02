@@ -14,6 +14,7 @@
 #include "mcs_lock.cpp"
 #include "mcs_volatile_lock.cpp"
 #include "mcs_malloc_lock.cpp"
+#include "knuth_lock.cpp"
 
 
 int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, bool thread_level, bool no_output, SoftwareMutex* lock) {
@@ -205,10 +206,12 @@ int main(int argc, char* argv[]) {
         lock = new MCSVolatileMutex();
     } else if (strcmp(mutex_name, "mcs_malloc") == 0){
         lock = new MCSMallocMutex();
+    } else if (strcmp(mutex_name, "knuth") == 0){
+        lock = new KnuthMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
-                "'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', and 'mcs'\n", mutex_name);
+                "'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', 'mcs', and 'knuth'\n", mutex_name);
         return 1;
     }    
     

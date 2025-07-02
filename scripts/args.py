@@ -58,7 +58,8 @@ def init_args():
     # Constants.threads_start = args.threads_start
     # Constants.threads_end = args.threads_end
     # Constants.threads_step = args.threads_step
-    Constants.threads_start, Constants.threads_end, Constants.threads_step = args.iter_v_threads
+    if args.iter_v_threads is not None:
+        Constants.threads_start, Constants.threads_end, Constants.threads_step = args.iter_v_threads
     Constants.data_folder = args.data_folder
     logger.debug(Constants.data_folder)
     Constants.logs_folder = args.log_folder
