@@ -11,6 +11,7 @@
 #include "exp_spin_lock.cpp"
 #include "bakery_mutex.cpp"
 
+#include <iostream>
 
 int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time, int num_groups, bool csv, SoftwareMutex* lock) {
 
@@ -49,26 +50,30 @@ int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time,
     for (int i = 0; i < num_threads; ++i) {
         thread_args[i].start_flags = start_flags; // Share the start flag with each thread
         thread_args[i].end_flags = end_flags;
-        int group_num = num_threads/num_groups;
-        threads[i] = std::thread([&thread_args, i, counter, group_num]() {
+        threads[i] = std::thread([&thread_args, i, counter, &num_groups, &num_threads]() {
 
                 // Record the thread ID
                 thread_args[i].stats.thread_id = thread_args[i].thread_id;
             
                 // Each thread will run this function
+
+                int group_num = num_groups*(((double)thread_args[i].thread_id)/((double)num_threads));
+                // std::cout<<group_num<<std::endl;
                 while (!(*thread_args[i].start_flags)[group_num]) {
                     // Wait until the start flag is set
+                    // std::cout<<"what is up"<<std::endl;
                 }
+                while(!(*thread_args[i].end_flags)[group_num]){
+                    // Perform the locking operations
+                    thread_args[i].lock->lock(thread_args[i].thread_id);
+                    thread_args[i].stats.num_iterations++;
+                    (*counter)++;
+                    // Critical section code goes here
+                    thread_args[i].lock->unlock(thread_args[i].thread_id);
 
-            while(!(*thread_args[i].end_flags)[group_num]){
-                // Perform the locking operations
-                thread_args[i].lock->lock(thread_args[i].thread_id);
-                thread_args[i].stats.num_iterations++;
-                (*counter)++;
-                // Critical section code goes here
-                thread_args[i].lock->unlock(thread_args[i].thread_id);
-            }
-            thread_args[i].stats.num_iterations--;
+                }
+                // std::cout<<"id "<<thread_args[i].thread_id<< " has endedwhat is up"<<std::endl;
+                thread_args[i].stats.num_iterations--;
         });
     }
 
@@ -113,10 +118,17 @@ int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time,
 
 void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared_ptr<std::atomic<bool>*> end_flags, std::chrono::nanoseconds run_time, int num_groups){
     for (int i=0; i<num_groups; i++){
+
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+        // std::cout<<"whats up "<<std::endl;
         (*start_flags)[i]=true;
         std::this_thread::sleep_for(run_time);
         (*end_flags)[i]=true;
+
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+        std::cout<<"group "<<i<<" has ended"<<std::endl;
     }
+    
 }
 
 int main(int argc, char* argv[]) {
