@@ -74,6 +74,7 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
                     thread_args[i].lock->lock(thread_args[i].thread_id);
                     thread_args[i].stats.num_iterations++;
                     (*counter)++; // Critical section
+                    Fence(); //ensure that counter was updated before unlocking; required for any impl.
                     thread_args[i].lock->unlock(thread_args[i].thread_id);
                 }
             });
