@@ -49,4 +49,5 @@ void report_run_latency(struct run_stats *stats);
 
 void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread_level);
 
+void Fence();
 #endif // __BENCH_UTILS_HPP_
