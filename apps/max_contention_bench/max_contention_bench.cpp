@@ -19,6 +19,7 @@
 #include "mcs_malloc_lock.cpp"
 #include "knuth_lock.cpp"
 #include "peterson_lock.cpp"
+#include "boulangerie.cpp"
 
 
 int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, bool thread_level, bool no_output, int max_noncritical_delay_ns, SoftwareMutex* lock) {
@@ -233,6 +234,8 @@ int main(int argc, char* argv[]) {
         lock = new KnuthMutex();
     } else if (strcmp(mutex_name, "peterson") == 0){
         lock = new PetersonMutex();
+    } else if (strcmp(mutex_name, "boulangerie") == 0) {
+        lock = new Boulangerie();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
