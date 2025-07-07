@@ -20,7 +20,7 @@ struct per_thread_stats {
     // Vector reallocation could waste some thread time.
     std::vector<double> lock_times;
 
-    std::chrono::seconds run_time;
+    double run_time;
 };
 
 

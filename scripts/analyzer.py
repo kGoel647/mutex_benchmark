@@ -73,3 +73,26 @@ def analyze_iter_v_threads(data):
         
     finish_plotting_graph(axis)
     return output
+
+def analyze_iter(data, iter_variable_name, iter_range):
+    output=""
+    output +="\n"
+    axis = plt.axes()
+    for mutex_name in Constants.mutex_names:
+        # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
+        mean_values = [thread.mean() for thread in data[mutex_name]]
+        print(mean_values)
+        plot_one_graph(
+            axis,
+            np.array(range(*iter_range)),
+            mean_values,
+            mutex_name,
+            xlabel="# of Locks",
+            ylabel="Time Spent",
+            title=f"{mutex_name}",
+            skip=-1,
+        )
+
+        
+    finish_plotting_cdf(axis)
+    return output

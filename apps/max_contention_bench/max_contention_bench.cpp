@@ -20,7 +20,7 @@
 #include "peterson_lock.cpp"
 
 
-int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, bool thread_level, bool no_output, int max_noncritical_delay_ns, SoftwareMutex* lock) {
+int max_contention_bench(int num_threads, double run_time, bool csv, bool thread_level, bool no_output, int max_critical_delay_ns, int max_noncritical_delay_ns, SoftwareMutex* lock) {
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -76,7 +76,7 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
         } else {
             // Measure individual lock operations
             // May be affected by how long the clock takes to read
-            threads[i] = std::thread([&thread_args, i, counter, max_noncritical_delay_ns]() {
+            threads[i] = std::thread([&thread_args, i, counter, max_critical_delay_ns, max_noncritical_delay_ns]() {
 
                 // Record the thread ID
                 thread_args[i].stats.thread_id = thread_args[i].thread_id;
@@ -87,20 +87,28 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
                     // Wait until the start flag is set
                 }
 
-                struct timespec delay = { 0, 0 };
+                struct timespec delay_critical = { 0, 0 };
+                struct timespec delay_noncritical = { 0, 0 };
                 struct timespec _remaining;
 
                 // Perform the locking operations
                 while (!*thread_args[i].end_flag) {
+                    // Lock
                     start_lock_timer(&thread_args[i].stats);
                     thread_args[i].lock->lock(thread_args[i].thread_id);
-                    (*counter)++; // Critical section
+
+                    // Critical section
+                    (*counter)++; // Nonatomic work
+                    delay_critical.tv_nsec = rand() % max_critical_delay_ns;
+                    nanosleep(&delay_critical, &_remaining); // Delay
+
+                    // Unlock
                     thread_args[i].lock->unlock(thread_args[i].thread_id);
                     end_lock_timer(&thread_args[i].stats);
                     
                     // Noncritical section
-                    delay.tv_nsec = rand() % max_noncritical_delay_ns;
-                    nanosleep(&delay, &_remaining);
+                    delay_noncritical.tv_nsec = rand() % max_noncritical_delay_ns;
+                    nanosleep(&delay_noncritical, &_remaining);
                     thread_args[i].stats.num_iterations++;
                 }
             });
@@ -109,7 +117,7 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
 
     // Start the threads
     *start_flag = true; // Set the start flag to signal the threads to begin
-    std::this_thread::sleep_for(run_time);
+    std::this_thread::sleep_for(std::chrono::duration<double>(run_time));
     *end_flag = true;
 
     // Wait for all threads to finish
@@ -163,6 +171,7 @@ int main(int argc, char* argv[]) {
     char *mutex_name = nullptr;
     int num_threads = -1;
     int run_time = -1;
+    int max_critical_delay_ns = -1;
     int max_noncritical_delay_ns = -1;
     bool csv = false;
     bool thread_level = false;
@@ -182,9 +191,9 @@ int main(int argc, char* argv[]) {
         } else if (num_threads == -1) {
             num_threads = atoi(argv[i]);
         } else if (run_time == -1) {
-            run_time = atoi(argv[i]);
-        } else if (run_time == -1) {
-            run_time = atoi(argv[i]);
+            run_time = atof(argv[i]);
+        } else if (max_critical_delay_ns == -1) {
+            max_critical_delay_ns = atoi(argv[i]);
         } else if (max_noncritical_delay_ns == -1) {
             max_noncritical_delay_ns = atoi(argv[i]);
         } else {
@@ -194,6 +203,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Default arguments
+    assert(max_critical_delay_ns < 100000000);
+    assert(max_noncritical_delay_ns < 100000000);
+    if (max_critical_delay_ns <= 0) {
+        max_critical_delay_ns = 1;
+    }
     if (max_noncritical_delay_ns <= 0) {
         max_noncritical_delay_ns = 1;
     }
@@ -237,7 +251,7 @@ int main(int argc, char* argv[]) {
     }    
     
     // Run the max contention benchmark
-    max_contention_bench(num_threads, std::chrono::seconds(run_time), csv, thread_level, no_output, max_noncritical_delay_ns, lock);
+    max_contention_bench(num_threads, run_time, csv, thread_level, no_output, max_critical_delay_ns, max_noncritical_delay_ns, lock);
 
     return 0;
 }

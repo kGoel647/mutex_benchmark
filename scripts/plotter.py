@@ -13,7 +13,9 @@ def finish_plotting_cdf(thread_time_or_lock_time):
     # if Constants.scatter:
     #     title += f"\nEach dot represents the average of {Constants.skip} operations"
     if Constants.noncritical_delay != 1:
-        title += f"\nContention mitigation: Delay in noncritical section of {Constants.noncritical_delay:,} ns ({Constants.noncritical_delay:.2e}) applied."
+        title += f"\nContention mitigation: Delay in noncritical section of {Constants.noncritical_delay:,} ns ({Constants.noncritical_delay/(10**9):.2e} s) applied."
+    if Constants.critical_delay != 1:
+        title += f"\nContention exacerbation: Delay in critical section of {Constants.critical_delay:,} ns ({Constants.critical_delay/(10**9):.2e} s) applied."
     plt.title(title)
     plt.xscale('log')
     legend = plt.legend()

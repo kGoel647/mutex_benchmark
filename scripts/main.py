@@ -15,7 +15,7 @@ def setup():
 
 def run_experiment_thread_level():
     if Constants.multithreaded:
-        run_experiment_multi_threaded()
+        raise NotImplementedError()
     else:
         run_experiment_single_threaded()
     data = load_data()
@@ -37,6 +37,13 @@ def run_experiment_iter_v_threads():
     print(output)
     logger.info(output)
 
+def run_experiment_iter(iter_variable_name, iter_range):
+    iter_range[1] += 1 # To make the range inclusive, we need to add one to the end value. ([start, end, step])
+    run_experiment_iter_single_threaded(iter_variable_name, iter_range)
+    data = load_data_iter(iter_variable_name, iter_range)
+    output = analyze_iter(data, iter_variable_name, iter_range)
+    print(output)
+    logger.info(output)
 
 def main():
     init_args()
@@ -45,8 +52,13 @@ def main():
     build()
     if Constants.thread_level:
         run_experiment_thread_level()
-    elif Constants.iter_v_threads:
+    elif Constants.iter_threads is not None:
         run_experiment_iter_v_threads()
+    elif Constants.iter_noncritical_delay is not None:
+        run_experiment_iter("noncritical_delay", iter_range=Constants.iter_noncritical_delay)
+    elif Constants.iter_critical_delay is not None:
+        run_experiment_iter("critical_delay", iter_range=Constants.iter_critical_delay)
+
     else:
         run_experiment_lock_level()
 
