@@ -13,6 +13,7 @@
 #include "nsync_lock.cpp"
 #include "exp_spin_lock.cpp"
 #include "bakery_mutex.cpp"
+#include "bakery_nonatomic_mutex.cpp"
 #include "lamport_lock.cpp"
 #include "mcs_lock.cpp"
 #include "mcs_volatile_lock.cpp"
@@ -220,6 +221,8 @@ int main(int argc, char* argv[]) {
         lock = new ExponentialSpinLock();
     } else if (strcmp(mutex_name, "bakery") == 0){
         lock = new BakeryMutex();
+    } else if (strcmp(mutex_name, "bakery_nonatomic") == 0){
+        lock = new BakeryNonAtomicMutex();
     } else if (strcmp(mutex_name, "lamport") ==0){
         lock = new LamportLock();
     } else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0){
