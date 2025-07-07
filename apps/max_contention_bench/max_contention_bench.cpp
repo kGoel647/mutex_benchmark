@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }    
     
-    // Run the max contention benchmark
+    //Run the max contention benchmark
     max_contention_bench(num_threads, std::chrono::seconds(run_time), csv, thread_level, no_output, max_noncritical_delay_ns, lock);
 
     return 0;
