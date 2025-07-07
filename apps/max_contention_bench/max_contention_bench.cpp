@@ -22,6 +22,7 @@
 
 int max_contention_bench(int num_threads, double run_time, bool csv, bool thread_level, bool no_output, int max_critical_delay_ns, int max_noncritical_delay_ns, SoftwareMutex* lock) {
 
+
     // Create run args structure to hold thread arguments
     // struct run_args args;
     // args.num_threads = num_threads;
