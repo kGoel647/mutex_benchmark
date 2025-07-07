@@ -27,7 +27,7 @@ public:
         number[thread_id] = max_number + 1;
         choosing[thread_id] = 0;
         
-        //limit the number of threads to check
+        //limit the number of thread to check
         size_t limit;
         if (number[thread_id] == 1 && thread_id > 0) {limit = thread_id;}
         else {limit = num_threads;}
