@@ -8,6 +8,7 @@ struct per_thread_args {
     struct per_thread_stats stats;
 
     std::shared_ptr<std::atomic<bool>> start_flag; // Shared flag to signal the start of the benchmark
+    std::shared_ptr<std::atomic<bool>> end_flag;
     SoftwareMutex *lock; // Pointer to the lock object, type depends on the lock implementation
     
 };
@@ -18,4 +19,4 @@ struct run_args {
     struct rusage usage;
 };
 
-void max_contention_bench(int num_threads, int num_iterations);
+int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, SoftwareMutex* lock);
