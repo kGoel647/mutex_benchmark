@@ -39,13 +39,13 @@ public:
         }
     }
     void unlock(size_t thread_id) override {
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         number[thread_id] = 0;
     }
     void destroy() override {
         free((void*)choosing);
         free((void*)number);
     }
-
 
     std::string name(){return "bakery";}
 private:
