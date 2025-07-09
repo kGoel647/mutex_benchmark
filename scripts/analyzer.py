@@ -59,7 +59,7 @@ def analyze_iter_v_threads(data):
             skip=-1,
         )
 
-        stdev_values = [np.std(thread) for thread in data[mutex_name]]
+        stdev_values = [np.std(thread)/thread.mean() for thread in data[mutex_name]]
         plot_one_graph(
             axis[1],
             np.array(range(Constants.threads_start, Constants.threads_end, Constants.threads_step)),

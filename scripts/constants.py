@@ -2,7 +2,25 @@ import logging
 
 class Constants:
     class Defaults:
-        MUTEX_NAMES = ["dijkstra", "bakery", "spin", "exp_spin", "nsync", "boost", "cpp_std", "pthread", "mcs", "knuth", "peterson", "clh", "hopscotch", 'ticket', 'halfnode']
+        MUTEX_NAMES = [
+            "dijkstra",
+            "bakery",
+            "spin",
+            "exp_spin",
+            "nsync",
+            "boost",
+            "cpp_std", 
+            "pthread",
+            "mcs",
+            "knuth",
+            "peterson",
+            "clh",
+            "hopscotch",
+            "ticket", 
+            "halfnode", 
+            "lamport", 
+            "boulangerie",
+        ]
         EXECUTABLE_NAME = "max_contention_bench"
         BENCH_N_THREADS = "10"
         BENCH_N_SECONDS = "1"

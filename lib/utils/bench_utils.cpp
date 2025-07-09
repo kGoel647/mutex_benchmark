@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <vector>
 
+
+
 void record_rusage() {
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage) == 0) {
@@ -99,3 +101,5 @@ void report_run_latency(struct run_args *stats){
     printf("Run statistics:\n");
     (void)stats;
 }
+
+

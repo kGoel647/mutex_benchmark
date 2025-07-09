@@ -13,11 +13,14 @@
 #include "nsync_lock.cpp"
 #include "exp_spin_lock.cpp"
 #include "bakery_mutex.cpp"
+#include "bakery_nonatomic_mutex.cpp"
+#include "lamport_lock.cpp"
 #include "mcs_lock.cpp"
 #include "mcs_volatile_lock.cpp"
 #include "mcs_malloc_lock.cpp"
 #include "knuth_lock.cpp"
 #include "peterson_lock.cpp"
+#include "boulangerie.cpp"
 #include "ticket_lock.cpp"
 #include "threadlocal_ticket_lock.cpp"
 #include "ring_ticket_lock.cpp"
@@ -242,6 +245,10 @@ int main(int argc, char* argv[]) {
         lock = new ExponentialSpinLock();
     } else if (strcmp(mutex_name, "bakery") == 0){
         lock = new BakeryMutex();
+    } else if (strcmp(mutex_name, "bakery_nonatomic") == 0){
+        lock = new BakeryNonAtomicMutex();
+    } else if (strcmp(mutex_name, "lamport") ==0){
+        lock = new LamportLock();
     } else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0){
         lock = new DijkstraNonatomicMutex();
     } else if (strcmp(mutex_name, "mcs") == 0){
@@ -268,6 +275,8 @@ int main(int argc, char* argv[]) {
         lock = new HopscotchMutex();
     } else if (strcmp(mutex_name, "clh") == 0){
         lock = new CLHMutex();
+    } else if (strcmp(mutex_name, "boulangerie") == 0) {
+        lock = new Boulangerie();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
