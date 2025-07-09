@@ -24,6 +24,8 @@ public:
     // Cleanup any resources used by the mutex
     virtual void destroy() = 0;
 
+    std::condition_variable sleeper;
+
     virtual std::string name() =0;
 };
 

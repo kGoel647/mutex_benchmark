@@ -9,6 +9,7 @@
 #include "boost_lock.cpp"
 #include "dijkstra_lock.cpp"
 #include "dijkstra_nonatomic_lock.cpp"
+#include "dijkstra_nonatomic_sleeper_lock.cpp"
 #include "spin_lock.cpp"
 #include "nsync_lock.cpp"
 #include "exp_spin_lock.cpp"
@@ -21,6 +22,7 @@
 #include "knuth_lock.cpp"
 #include "peterson_lock.cpp"
 #include "boulangerie.cpp"
+#include "wait_spin_lock.cpp"
 
 
 int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, bool thread_level, bool no_output, int max_noncritical_delay_ns, SoftwareMutex* lock) {
@@ -52,6 +54,9 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
 
     // Create an array of threads
     std::vector<std::thread> threads(num_threads);
+
+    // std::counting_semaphore<1000> a{0};
+
     for (int i = 0; i < num_threads; ++i) {
         thread_args[i].start_flag = start_flag; // Share the start flag with each thread
         thread_args[i].end_flag = end_flag; // Share the start flag with each thread
@@ -60,7 +65,6 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
         if (thread_level) {
             // Measure how long each thread takes to finish
             threads[i] = std::thread([&thread_args, i, counter]() {
-
                 // Record the thread ID
                 thread_args[i].stats.thread_id = thread_args[i].thread_id;
             
@@ -123,6 +127,8 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
             thread.join();
         }
     }
+
+    // record_rusage();
 
     int expected_iterations = 0;
     for (int i =0; i<num_threads; i++){
@@ -228,6 +234,8 @@ int main(int argc, char* argv[]) {
         lock = new LamportLock();
     } else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0){
         lock = new DijkstraNonatomicMutex();
+    } else if (strcmp(mutex_name, "dijkstra_nonatomic_sleeper") == 0) {
+        lock = new DijkstraNonatomicSleeperMutex();
     } else if (strcmp(mutex_name, "mcs") == 0){
         lock = new MCSMutex();
     } else if (strcmp(mutex_name, "mcs_volatile") == 0){
@@ -240,6 +248,8 @@ int main(int argc, char* argv[]) {
         lock = new PetersonMutex();
     } else if (strcmp(mutex_name, "boulangerie") == 0) {
         lock = new Boulangerie();
+    } else if (strcmp(mutex_name, "wait_spin") == 0) {
+        lock = new WaitSpinLock();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"

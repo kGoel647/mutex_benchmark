@@ -2,8 +2,33 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <iostream>
 #include <vector>
 
+void sleeperScheduler::init(size_t num_threads){
+    waiters = (std::binary_semaphore*)malloc(sizeof(std::binary_semaphore*)*num_threads);
+    for (int i=0; i<num_threads; i++){
+        waiters[i].release();
+    }
+}
+
+void sleeperScheduler::sleep(size_t thread_id){
+    waiter_lock.lock();
+    threads.push(thread_id);
+    waiter_lock.unlock();
+    waiters[thread_id].acquire();
+    return;
+}
+
+void sleeperScheduler::awake(size_t thread_id){
+    waiter_lock.lock();
+    if (!threads.empty()){
+        int id = threads.front();
+        threads.pop();
+        waiters[id].release();
+    }
+    waiter_lock.unlock();
+}
 
 
 void record_rusage() {
