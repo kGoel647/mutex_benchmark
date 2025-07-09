@@ -18,7 +18,13 @@
 #include "mcs_malloc_lock.cpp"
 #include "knuth_lock.cpp"
 #include "peterson_lock.cpp"
-
+#include "ticket_lock.cpp"
+#include "threadlocal_ticket_lock.cpp"
+#include "ring_ticket_lock.cpp"
+#include "null_mutex.cpp"
+#include "halfnode_lock.cpp"
+#include "hopscotch_lock.cpp"
+#include "clh_lock.cpp"
 
 int max_contention_bench(int num_threads, double run_time, bool csv, bool thread_level, bool no_output, int max_critical_delay_ns, int max_noncritical_delay_ns, SoftwareMutex* lock) {
 
@@ -100,16 +106,20 @@ int max_contention_bench(int num_threads, double run_time, bool csv, bool thread
 
                     // Critical section
                     (*counter)++; // Nonatomic work
-                    delay_critical.tv_nsec = rand() % max_critical_delay_ns;
-                    nanosleep(&delay_critical, &_remaining); // Delay
+                    if (max_critical_delay_ns != 1) { // Delay
+                        delay_critical.tv_nsec = rand() % max_critical_delay_ns;
+                        nanosleep(&delay_critical, &_remaining);
+                    }
 
                     // Unlock
                     thread_args[i].lock->unlock(thread_args[i].thread_id);
                     end_lock_timer(&thread_args[i].stats);
                     
                     // Noncritical section
-                    delay_noncritical.tv_nsec = rand() % max_noncritical_delay_ns;
-                    nanosleep(&delay_noncritical, &_remaining);
+                    if (max_noncritical_delay_ns != 1) {
+                        delay_noncritical.tv_nsec = rand() % max_noncritical_delay_ns;
+                        nanosleep(&delay_noncritical, &_remaining);
+                    }
                     thread_args[i].stats.num_iterations++;
                 }
             });
@@ -133,8 +143,8 @@ int max_contention_bench(int num_threads, double run_time, bool csv, bool thread
         expected_iterations+=thread_args[i].stats.num_iterations;
     }
 
-    if (*counter != expected_iterations) {
-        // The mutex did not work.
+    if (*counter != expected_iterations && lock->name() != "null") {
+        // The mutex did not work (null mutex is for testing benchmarking and should always fail.)
         fprintf(stderr, "Mutex %s failed; *counter != num_threads * num_iterations (%d!=%d)\n", lock->name().c_str(), *counter, expected_iterations);
         return 1;
     }
@@ -171,7 +181,7 @@ int main(int argc, char* argv[]) {
     // First, take in command line arguments
     char *mutex_name = nullptr;
     int num_threads = -1;
-    int run_time = -1;
+    double run_time = -1;
     int max_critical_delay_ns = -1;
     int max_noncritical_delay_ns = -1;
     bool csv = false;
@@ -191,7 +201,7 @@ int main(int argc, char* argv[]) {
             mutex_name = argv[i];
         } else if (num_threads == -1) {
             num_threads = atoi(argv[i]);
-        } else if (run_time == -1) {
+        } else if (run_time < 0) {
             run_time = atof(argv[i]);
         } else if (max_critical_delay_ns == -1) {
             max_critical_delay_ns = atoi(argv[i]);
@@ -244,13 +254,28 @@ int main(int argc, char* argv[]) {
         lock = new KnuthMutex();
     } else if (strcmp(mutex_name, "peterson") == 0){
         lock = new PetersonMutex();
+    } else if (strcmp(mutex_name, "ticket") == 0){
+        lock = new TicketMutex();
+    } else if (strcmp(mutex_name, "threadlocal_ticket") == 0){
+        lock = new ThreadlocalTicketMutex();
+    } else if (strcmp(mutex_name, "ring_ticket") == 0){
+        lock = new RingTicketMutex();
+    } else if (strcmp(mutex_name, "null") == 0){
+        lock = new NullMutex();
+    } else if (strcmp(mutex_name, "halfnode") == 0){
+        lock = new HalfnodeMutex();
+    } else if (strcmp(mutex_name, "hopscotch") == 0){
+        lock = new HopscotchMutex();
+    } else if (strcmp(mutex_name, "clh") == 0){
+        lock = new CLHMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
-                "'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', 'mcs', 'knuth', and 'peterson'\n", mutex_name);
+                "'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', 'mcs',"
+                " 'knuth', 'peterson', 'ticket', 'threadlocal_ticket', 'ring_ticket', 'halfnode', 'hopscotch', and 'clh'\n", mutex_name);
         return 1;
     }    
-    
+
     // Run the max contention benchmark
     max_contention_bench(num_threads, run_time, csv, thread_level, no_output, max_critical_delay_ns, max_noncritical_delay_ns, lock);
 

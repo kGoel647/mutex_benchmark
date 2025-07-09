@@ -31,11 +31,12 @@ def run_experiment_lock_level():
     logger.info(output)
 
 def run_experiment_iter_v_threads():
-    run_experiment_iter_v_threads_single_threaded()
-    data = load_data_iter_v_threads()
-    output = analyze_iter_v_threads(data)
-    print(output)
-    logger.info(output)
+    # run_experiment_iter_v_threads_single_threaded()
+    # data = load_data_iter_v_threads()
+    # output = analyze_iter_v_threads(data)
+    # print(output)
+    # logger.info(output)
+    run_experiment_iter("threads", Constants.iter_threads)
 
 def run_experiment_iter(iter_variable_name, iter_range):
     iter_range[1] += 1 # To make the range inclusive, we need to add one to the end value. ([start, end, step])
@@ -46,10 +47,10 @@ def run_experiment_iter(iter_variable_name, iter_range):
     logger.info(output)
 
 def main():
-    init_args()
-    init_logger()
     setup()
     build()
+    init_args()
+    init_logger()
     if Constants.thread_level:
         run_experiment_thread_level()
     elif Constants.iter_threads is not None:

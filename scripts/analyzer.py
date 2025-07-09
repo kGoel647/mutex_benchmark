@@ -4,6 +4,7 @@ from .plotter import plot_one_cdf, plot_one_graph, finish_plotting_cdf, finish_p
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 def analyze(data):
     # TODO add more stuff here
@@ -80,19 +81,23 @@ def analyze_iter(data, iter_variable_name, iter_range):
     axis = plt.axes()
     for mutex_name in Constants.mutex_names:
         # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
-        mean_values = [thread.mean() for thread in data[mutex_name]]
-        print(mean_values)
+        # mean_values = [thread.mean() for thread in data[mutex_name]]
+        # y_values = np.array(range(*iter_range))
+        # df = pd.DataFrame(sum([[y_values[k], ]] for k in range(len(data[mutex_name]))), columns=["# Threads", "Locking time"])
+        # print(mean_values)
         plot_one_graph(
             axis,
             np.array(range(*iter_range)),
-            mean_values,
+            None,
             mutex_name,
-            xlabel="# of Locks",
-            ylabel="Time Spent",
+            error_bars=True,
+            xlabel=f"{iter_variable_name.title()}",
+            ylabel="Average time spent",
             title=f"{mutex_name}",
             skip=-1,
+            data=data[mutex_name],
         )
 
         
-    finish_plotting_cdf(axis)
+    finish_plotting_cdf(axis, log_scale=False)
     return output

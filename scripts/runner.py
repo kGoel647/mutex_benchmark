@@ -61,7 +61,7 @@ def run_experiment_single_threaded():
         # Create program threads
             threads = []
             logger.info(f"{mutex_name=} | {i=}")
-            data_file_name = get_data_file_name(mutex_name, i, Constants.bench_n_threads)
+            data_file_name = get_data_file_name(mutex_name, i)
             subprocess.run(["rm", "-f", data_file_name])
             command = get_command(mutex_name, csv=True, thread_level=True)
             thread = subprocess.run(command, stdout=subprocess.PIPE)
@@ -84,7 +84,7 @@ def run_experiment_lock_level_single_threaded():
 
 def run_experiment_iter_v_threads_single_threaded():
     # TODO replace with generic "run_experiment_iter_single_threaded"
-    for threads in range(Constants.threads_start, Constants.threads_end, Constants.threads_step):
+    for threads in range(*Constants.iter_threads):
         for i in range(Constants.n_program_iterations):
             for mutex_name in Constants.mutex_names:
                 logger.info(f"{mutex_name=} | {threads=} | {i=}")

@@ -25,6 +25,18 @@ public:
     virtual void destroy() = 0;
 
     virtual std::string name() =0;
+
+    inline void spin_delay() {
+        // Same as nsync
+        static size_t attempts = 0;
+        if (attempts < 7) {
+            volatile int i;
+            for (i = 0; i != 1 << attempts; i++);
+        } else {
+            std::this_thread::yield();
+        }
+        attempts++;
+    }
 };
 
 #endif // LOCK_LOCK_HPP

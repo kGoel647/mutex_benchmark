@@ -3,3 +3,6 @@
 subprojects/nsync
 data/generated/*
 data/logs/*
+
+perf.data
+perf.data.old

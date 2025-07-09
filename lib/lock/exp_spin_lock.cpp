@@ -12,12 +12,12 @@ public:
     void lock(size_t thread_id) override {
         (void)thread_id; // This parameter is not used in this implementation
 
+        struct timespec nanosleep_timespec = { 0, 10 };
         while (true) {
             if (!std::atomic_flag_test_and_set_explicit(&lock_, std::memory_order_acquire)) {
                 break;
             }
             // Exponential backoff
-            struct timespec nanosleep_timespec = { 0, 10 };
             nanosleep(&nanosleep_timespec, &remaining);
             nanosleep_timespec.tv_nsec *= 2;
         }
