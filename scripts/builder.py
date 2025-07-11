@@ -9,6 +9,6 @@ def build():
     # Compile
     result = subprocess.run("meson setup build".split())#, stdout=subprocess.DEVNULL)
     assert result.returncode == 0, "Meson build failed."
-    subprocess.run('meson configure build --buildtype debugoptimized -Dc_args="-pg -g"'.split())#, stdout=subprocess.DEVNULL)
+    subprocess.run('meson configure build --buildtype debugoptimized'.split())#, stdout=subprocess.DEVNULL)
     result = subprocess.run("meson compile -C build".split())#, stdout=subprocess.DEVNULL)
     assert result.returncode == 0, "Compilation failed."

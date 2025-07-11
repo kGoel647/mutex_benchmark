@@ -52,7 +52,7 @@ public:
             local_nodes[end.fetch_add(1)&modulo_mask] = &this->has_priority;
         unlock_internal();
         while (!this->has_priority) { // TODO: memory ordering
-            spin_delay(); // Busy wait
+            spin_delay_exponential(); // Busy wait
         }
     }
 

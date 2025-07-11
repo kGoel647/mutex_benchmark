@@ -35,7 +35,7 @@ public:
             local_node.locked = true;
             old_tail->next = &local_node;
             while (local_node.locked) {
-                // spin_delay(); // Busy wait
+                // spin_delay_exponential(); // Busy wait
             }
         }
 
@@ -51,7 +51,7 @@ public:
         }
 
         while (local_node.next == nullptr) {
-            // spin_delay(); // Busy wait
+            // spin_delay_exponential(); // Busy wait
         }
 
         local_node.next.load()->locked.store(false);

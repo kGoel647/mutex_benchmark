@@ -24,7 +24,8 @@ def run_experiment_thread_level():
     logger.info(output)
 
 def run_experiment_lock_level():
-    run_experiment_lock_level_single_threaded()
+    if not Constants.skip_experiment:
+        run_experiment_lock_level_single_threaded()
     data = load_data_lock_level()
     output = analyze_lock_level(data)
     print(output)
@@ -40,7 +41,8 @@ def run_experiment_iter_v_threads():
 
 def run_experiment_iter(iter_variable_name, iter_range):
     iter_range[1] += 1 # To make the range inclusive, we need to add one to the end value. ([start, end, step])
-    run_experiment_iter_single_threaded(iter_variable_name, iter_range)
+    if not Constants.skip_experiment:
+        run_experiment_iter_single_threaded(iter_variable_name, iter_range)
     data = load_data_iter(iter_variable_name, iter_range)
     output = analyze_iter(data, iter_variable_name, iter_range)
     print(output)

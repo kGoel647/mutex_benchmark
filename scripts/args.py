@@ -35,6 +35,7 @@ def init_args():
     mutex_names.add_argument('-a', '--all', action='store_true')
     
     parser.add_argument('--scatter', action='store_true', default=False)
+    parser.add_argument('--skip-experiment', action='store_true', default=False)
     parser.add_argument('-m', '--multithreaded', action='store_true')
     parser.add_argument('-p', '--max-n-points', type=int, default=Constants.Defaults.MAX_N_POINTS, nargs='?')
     parser.add_argument('-n', '--noncritical-delay', type=int, default=1, nargs='?')
@@ -76,6 +77,7 @@ def init_args():
     Constants.max_n_points = args.max_n_points
     Constants.noncritical_delay = args.noncritical_delay
     Constants.critical_delay = args.critical_delay
+    Constants.skip_experiment = args.skip_experiment
 
     if args.log == "DEBUG":
         Constants.log = logging.DEBUG

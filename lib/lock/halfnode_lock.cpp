@@ -34,7 +34,7 @@ public:
 
         if (predecessor != nullptr) {
             while (predecessor->successor_must_wait) {
-                // spin_delay(); // Wait until the predecessor signals that it is done.
+                // spin_delay_exponential(); // Wait until the predecessor signals that it is done.
             }
             predecessor->successor_waiting = false;
         }
@@ -54,7 +54,7 @@ public:
         this->state.successor_must_wait = false;
 
         while (this->state.successor_waiting) {
-            // spin_delay(); // Wait until the successor reads the unlocked state to proceed.
+            // spin_delay_exponential(); // Wait until the successor reads the unlocked state to proceed.
         }
     }
 

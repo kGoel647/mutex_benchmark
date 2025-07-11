@@ -9,7 +9,7 @@
 #include "boost_lock.cpp"
 #include "dijkstra_lock.cpp"
 #include "dijkstra_nonatomic_lock.cpp"
-#include "spin_lock.cpp"
+#include "spin_lock.hpp"
 #include "nsync_lock.cpp"
 #include "exp_spin_lock.cpp"
 #include "bakery_mutex.cpp"
@@ -28,10 +28,19 @@
 #include "halfnode_lock.cpp"
 #include "hopscotch_lock.cpp"
 #include "clh_lock.cpp"
+#include "linear_cas_elevator.cpp"
+#include "tree_cas_elevator.cpp"
 
-int max_contention_bench(int num_threads, double run_time, bool csv, bool thread_level, bool no_output, int max_critical_delay_ns, int max_noncritical_delay_ns, SoftwareMutex* lock) {
-
-
+int max_contention_bench(
+    int num_threads, 
+    double run_time, 
+    bool csv, 
+    bool thread_level, 
+    bool no_output, 
+    int max_critical_delay_iterations, 
+    int max_noncritical_delay_iterations, 
+    SoftwareMutex* lock
+) {
     // Create run args structure to hold thread arguments
     // struct run_args args;
     // args.num_threads = num_threads;
@@ -86,7 +95,7 @@ int max_contention_bench(int num_threads, double run_time, bool csv, bool thread
         } else {
             // Measure individual lock operations
             // May be affected by how long the clock takes to read
-            threads[i] = std::thread([&thread_args, i, counter, max_critical_delay_ns, max_noncritical_delay_ns]() {
+            threads[i] = std::thread([&thread_args, i, counter, max_critical_delay_iterations, max_noncritical_delay_iterations]() {
 
                 // Record the thread ID
                 thread_args[i].stats.thread_id = thread_args[i].thread_id;
@@ -97,9 +106,9 @@ int max_contention_bench(int num_threads, double run_time, bool csv, bool thread
                     // Wait until the start flag is set
                 }
 
-                struct timespec delay_critical = { 0, 0 };
-                struct timespec delay_noncritical = { 0, 0 };
-                struct timespec _remaining;
+                // struct timespec delay_critical = { 0, 0 };
+                // struct timespec delay_noncritical = { 0, 0 };
+                // struct timespec _remaining;
 
                 // Perform the locking operations
                 while (!*thread_args[i].end_flag) {
@@ -109,20 +118,22 @@ int max_contention_bench(int num_threads, double run_time, bool csv, bool thread
 
                     // Critical section
                     (*counter)++; // Nonatomic work
-                    if (max_critical_delay_ns != 1) { // Delay
-                        delay_critical.tv_nsec = rand() % max_critical_delay_ns;
-                        nanosleep(&delay_critical, &_remaining);
-                    }
+                    busy_sleep(rand() % max_critical_delay_iterations);
+                    // if (max_critical_delay_iterations != 1) { // Delay
+                    //     delay_critical.tv_nsec = rand() % max_critical_delay_iterations;
+                    //     nanosleep(&delay_critical, &_remaining);
+                    // }
 
                     // Unlock
                     thread_args[i].lock->unlock(thread_args[i].thread_id);
                     end_lock_timer(&thread_args[i].stats);
                     
                     // Noncritical section
-                    if (max_noncritical_delay_ns != 1) {
-                        delay_noncritical.tv_nsec = rand() % max_noncritical_delay_ns;
-                        nanosleep(&delay_noncritical, &_remaining);
-                    }
+                    // if (max_noncritical_delay_iterations != 1) {
+                    //     delay_noncritical.tv_nsec = rand() % max_noncritical_delay_iterations;
+                    //     nanosleep(&delay_noncritical, &_remaining);
+                    // }
+                    busy_sleep(rand() % max_noncritical_delay_iterations);
                     thread_args[i].stats.num_iterations++;
                 }
             });
@@ -185,8 +196,8 @@ int main(int argc, char* argv[]) {
     char *mutex_name = nullptr;
     int num_threads = -1;
     double run_time = -1;
-    int max_critical_delay_ns = -1;
-    int max_noncritical_delay_ns = -1;
+    int max_critical_delay_iterations = -1;
+    int max_noncritical_delay_iterations = -1;
     bool csv = false;
     bool thread_level = false;
     bool no_output = false;
@@ -206,10 +217,10 @@ int main(int argc, char* argv[]) {
             num_threads = atoi(argv[i]);
         } else if (run_time < 0) {
             run_time = atof(argv[i]);
-        } else if (max_critical_delay_ns == -1) {
-            max_critical_delay_ns = atoi(argv[i]);
-        } else if (max_noncritical_delay_ns == -1) {
-            max_noncritical_delay_ns = atoi(argv[i]);
+        } else if (max_critical_delay_iterations == -1) {
+            max_critical_delay_iterations = atoi(argv[i]);
+        } else if (max_noncritical_delay_iterations == -1) {
+            max_noncritical_delay_iterations = atoi(argv[i]);
         } else {
             fprintf(stderr, "Unrecognized command line argument: %s\n", argv[i]);
             return 1;
@@ -217,13 +228,13 @@ int main(int argc, char* argv[]) {
     }
 
     // Default arguments
-    assert(max_critical_delay_ns < 100000000);
-    assert(max_noncritical_delay_ns < 100000000);
-    if (max_critical_delay_ns <= 0) {
-        max_critical_delay_ns = 1;
+    assert(max_critical_delay_iterations < 100000000);
+    assert(max_noncritical_delay_iterations < 100000000);
+    if (max_critical_delay_iterations <= 0) {
+        max_critical_delay_iterations = 1;
     }
-    if (max_noncritical_delay_ns <= 0) {
-        max_noncritical_delay_ns = 1;
+    if (max_noncritical_delay_iterations <= 0) {
+        max_noncritical_delay_iterations = 1;
     }
 
     // Create a lock instance (using Pthread lock as an example)
@@ -277,16 +288,21 @@ int main(int argc, char* argv[]) {
         lock = new CLHMutex();
     } else if (strcmp(mutex_name, "boulangerie") == 0) {
         lock = new Boulangerie();
+    } else if (strcmp(mutex_name, "linear_cas_elevator") == 0) {
+        lock = new LinearCASElevatorMutex();
+    } else if (strcmp(mutex_name, "tree_cas_elevator") == 0) {
+        lock = new TreeCASElevatorMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
-                "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
-                "'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', 'mcs',"
-                " 'knuth', 'peterson', 'ticket', 'threadlocal_ticket', 'ring_ticket', 'halfnode', 'hopscotch', and 'clh'\n", mutex_name);
+                "\nValid names include 'pthread', 'cpp_std', 'boost', 'dijkstra',"
+                " 'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', 'mcs',"
+                " 'knuth', 'peterson', 'ticket', 'threadlocal_ticket', 'ring_ticket',"
+                " 'halfnode', 'hopscotch', 'clh', 'linear_cas_elevator', and 'tree_cas_elevator'\n", mutex_name);
         return 1;
     }    
 
     // Run the max contention benchmark
-    max_contention_bench(num_threads, run_time, csv, thread_level, no_output, max_critical_delay_ns, max_noncritical_delay_ns, lock);
+    max_contention_bench(num_threads, run_time, csv, thread_level, no_output, max_critical_delay_iterations, max_noncritical_delay_iterations, lock);
 
     return 0;
 }

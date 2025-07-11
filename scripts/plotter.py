@@ -54,6 +54,10 @@ def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", titl
     logger.info(x_values.size)
     skip = int(ceil(x_values.size / Constants.max_n_points))
 
+    if (x_values.size == 0):
+        logger.error(f"Failed to plot {mutex_name}: No data.")
+        return
+
     x = [x_values[i] for i in range(0, x_values.size, skip)]
     y = [y_values[i] for i in range(0, x_values.size, skip)]
 

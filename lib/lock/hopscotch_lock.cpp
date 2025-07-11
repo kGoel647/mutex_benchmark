@@ -33,12 +33,12 @@ public:
         node = (struct Node*)((size_t)node^1);
         node->successor_must_wait = true;
         struct Node *predecessor = tail.exchange(node, std::memory_order_relaxed);
-        while (predecessor->successor_must_wait);
+        while (predecessor->successor_must_wait.load(std::memory_order_relaxed));
     }
 
     void unlock(size_t thread_id) override {
         (void)thread_id; // Unused
-        node->successor_must_wait = false;
+        node->successor_must_wait.store(false, std::memory_order_relaxed);
     }
 
     void destroy() override {
@@ -52,6 +52,8 @@ private:
     static std::atomic<struct Node*> tail;
     static thread_local struct Node *node;
 
+    // TODO: if a thread leaves, will its still-used thread locals be reclaimed
+    // and break the algorithm?
     alignas(2) static thread_local struct Node my_nodes[2];
 };
 struct HopscotchMutex::Node HopscotchMutex::default_node;

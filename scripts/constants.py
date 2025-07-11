@@ -3,23 +3,23 @@ import logging
 class Constants:
     class Defaults:
         MUTEX_NAMES = [
-            "dijkstra",
-            "bakery",
+            # "dijkstra",
+            # "bakery",
             "spin",
             "exp_spin",
             "nsync",
-            "boost",
-            "cpp_std", 
             "pthread",
             "mcs",
-            "knuth",
+            # "knuth",
             "peterson",
             "clh",
-            "hopscotch",
+            # "hopscotch",
             "ticket", 
-            "halfnode", 
-            "lamport", 
+            # "halfnode", 
+            # "lamport", 
             "boulangerie",
+            "linear_cas_elevator",
+            "tree_cas_elevator",
         ]
         EXECUTABLE_NAME = "max_contention_bench"
         BENCH_N_THREADS = "10"
