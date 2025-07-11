@@ -109,7 +109,7 @@ int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time,
     // Output benchmark results
 
     for (auto& args : thread_args) {
-        report_thread_stats(&args.stats, csv); // Report latency for each thread
+        report_thread_latency(&args.stats, csv, true); // Report latency for each thread
     }
 
     // record_rusage(); // Record resource usage

@@ -70,7 +70,6 @@ def init_args():
     Constants.thread_level = args.thread_level
     Constants.iter_v_threads = args.iter_v_threads
     Constants.scatter = args.scatter
-    Constants.skip = args.skip
     Constants.bench = args.bench
     Constants.groups = args.groups
 
