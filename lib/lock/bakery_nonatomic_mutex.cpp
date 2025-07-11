@@ -2,11 +2,11 @@
 #include <stdexcept>
 #include <atomic>
 
-class BakeryMutex : public virtual SoftwareMutex {
+class BakeryNonAtomicMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        this->choosing = (volatile std::atomic_bool*)malloc(sizeof(std::atomic_bool) * num_threads);
-        this->number = (volatile std::atomic<size_t>*)malloc(sizeof(std::atomic<size_t>) * num_threads);
+        this->choosing = (volatile bool*)malloc(sizeof(bool) * num_threads);
+        this->number = (volatile size_t*)malloc(sizeof(size_t) * num_threads);
         for (size_t i = 0; i < num_threads; i++) {
             choosing[i] = false;
             number[i] = 0;
@@ -25,6 +25,7 @@ public:
             }
         }
         number[thread_id] = my_bakery_number;
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         choosing[thread_id] = false;
         // Lock waiting part
         for (size_t j = 0; j < num_threads; j++) {
@@ -49,15 +50,15 @@ public:
     }
 
     std::string name() override {
-        return "bakery";
+        return "bakery_nonatomic";
     }
 
 private:
-    volatile std::atomic_bool *choosing;
+    volatile bool *choosing;
     // Note: Mutex will fail if this number overflows,
     // which happens if the "bakery" remains full for
     // a long time.
-    volatile std::atomic<size_t> *number;
+    volatile size_t *number;
     struct timespec remaining;
     size_t num_threads;
 };
