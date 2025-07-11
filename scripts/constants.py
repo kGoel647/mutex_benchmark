@@ -6,7 +6,7 @@ class Constants:
     class Defaults:
         MUTEX_NAMES          = [
             "dijkstra", "bakery", "spin", "exp_spin", "nsync", "pthread",
-            "mcs", "knuth", "peterson", "lamport", "boulangerie", "szymanski", "ticket"
+            "mcs", "knuth", "peterson", "lamport", "boulangerie", "szymanski"
         ]
         EXECUTABLE_NAME      = "max_contention_bench"
         BENCH_N_THREADS      = "10"

@@ -12,6 +12,7 @@ def init_args():
         description='Run contention benchmarks on various mutex algorithms',
     )
 
+
     parser.add_argument('threads',            type=int,
                         help='number of threads to spawn')
     parser.add_argument('seconds',            type=int,
@@ -72,6 +73,10 @@ def init_args():
     logg.add_argument('--critical',      action='store_const', dest='log', const='CRITICAL',
                       help='set log level to CRITICAL')
 
+    parser.add_argument('-groups', type=int)
+
+    parser.add_argument('-bench', type=str, default='max')
+
     args = parser.parse_args()
 
     if args.all:
@@ -98,6 +103,18 @@ def init_args():
     Constants.thread_level      = args.thread_level
     Constants.scatter           = args.scatter
     Constants.max_n_points      = args.max_n_points
+
+    Constants.scatter = args.scatter
+    Constants.bench = args.bench
+    Constants.groups = args.groups
+
+    if (args.bench=='max'):
+        Constants.executable = "./build/apps/max_contention_bench/max_contention_bench"
+    elif (args.bench=='grouped'):
+        Constants.executable = "./build/apps/grouped_contention_bench/grouped_contention_bench"
+    
+    Constants.max_n_points = args.max_n_points
+
     Constants.noncritical_delay = args.noncritical_delay
 
     Constants.low_contention = args.low_contention
