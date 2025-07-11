@@ -9,7 +9,7 @@ def get_data_file_name(mutex_name, i, threads):
 
 def get_command(mutex_name, threads, *, csv=True, thread_level=False):
     cmd = [
-        Constants.Defaults.EXECUTABLE,
+        Constants.executable,
         mutex_name,
         str(threads),
         str(Constants.bench_n_seconds),
@@ -107,3 +107,17 @@ def run_experiment_iter_v_threads_single_threaded():
                 )
                 with open(fname, "wb") as f:
                     f.write(proc.stdout)
+
+def run_grouped_experiment_iter_v_threads_single_threaded():
+    for threads in range(Constants.threads_start, Constants.threads_end, Constants.threads_step):
+        for i in range(Constants.n_program_iterations):
+            for mutex_name in Constants.mutex_names:
+                logger.info(f"{mutex_name=} | {threads=} | {i=}")
+                data_file_name = get_data_file_name(mutex_name, i, threads)
+                subprocess.run(["rm", "-f", data_file_name])
+                command = get_command(mutex_name, threads, csv=True)
+                print(command[0])
+                thread=subprocess.run(command, stdout=subprocess.PIPE)
+                csv_data = thread.stdout
+                with open(data_file_name, "wb") as data_file:
+                    data_file.write(csv_data)
