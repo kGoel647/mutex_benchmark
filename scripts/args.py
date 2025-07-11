@@ -14,9 +14,10 @@ def init_args():
     parser.add_argument('threads', type=int)
     parser.add_argument('seconds', type=int)
     parser.add_argument('program_iterations', type=int)
-    # parser.add_argument('threads_start', type=int, default=0, nargs='?')
-    # parser.add_argument('threads_end',   type=int, default=0, nargs='?')
-    # parser.add_argument('threads_step',  type=int, default=0, nargs='?')
+
+    parser.add_argument('-groups', type=int)
+
+    parser.add_argument('-bench', type=str, default='max')
 
     experiment_type = parser.add_mutually_exclusive_group()
     experiment_type.add_argument('--thread-level', action='store_true')
@@ -69,6 +70,15 @@ def init_args():
     Constants.thread_level = args.thread_level
     Constants.iter_v_threads = args.iter_v_threads
     Constants.scatter = args.scatter
+    Constants.skip = args.skip
+    Constants.bench = args.bench
+    Constants.groups = args.groups
+
+    if (args.bench=='max'):
+        Constants.executable = "./build/apps/max_contention_bench/max_contention_bench"
+    elif (args.bench=='grouped'):
+        Constants.executable = "./build/apps/grouped_contention_bench/grouped_contention_bench"
+    
     Constants.max_n_points = args.max_n_points
     Constants.noncritical_delay = args.noncritical_delay
 
