@@ -117,17 +117,17 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
     std::this_thread::sleep_for(run_time);
     *end_flag = true;
 
-
-    if (rusage && !no_output){
-        record_rusage(csv);
-    }
-
     // Wait for all threads to finish
     for (auto& thread : threads) {
         if (thread.joinable()) {
             thread.join();
         }
     }
+
+    if (rusage && !no_output){
+        record_rusage(csv);
+    }
+
 
     int expected_iterations = 0;
     for (int i =0; i<num_threads; i++){
