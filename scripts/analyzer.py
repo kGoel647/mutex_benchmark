@@ -6,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def analyze(data):
-    # TODO add more stuff here
     output = ""
     output += "\n"
     for mutex_name in Constants.mutex_names:
@@ -17,13 +16,11 @@ def analyze(data):
             xlabel="Thread iterations (counts)",
             ylabel="% of threads under",
             title=f"{mutex_name}",
-            # worst_case=worst_case
         )
     finish_plotting_cdf("Thread iterations")
     return output
 
 def analyze_lock_level(data):
-    # TODO add more stuff here
     output = ""
     output += "\n"
     for mutex_name in Constants.mutex_names:
@@ -44,7 +41,6 @@ def analyze_iter_v_threads(data):
     output +="\n"
     figure, axis = plt.subplots(1, 2)
     for mutex_name in Constants.mutex_names:
-        # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
         mean_values = [thread.mean() for thread in data[mutex_name]]
         print(mean_values)
         plot_one_graph(
