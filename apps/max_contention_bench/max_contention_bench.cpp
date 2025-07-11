@@ -31,7 +31,6 @@
 #include "peterson_lock.cpp"
 #include "boulangerie.cpp"
 #include "szymanski.cpp"
-#include "ticket_lock.cpp"
 
 int max_contention_bench(
     int num_threads,
