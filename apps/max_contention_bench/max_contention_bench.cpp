@@ -75,7 +75,8 @@ int max_contention_bench(
                 while (!*end_flag) {
                     lock->lock(i);
                     thread_args[i].stats.num_iterations++;
-                    (*counter)++;
+                    (*counter)++; // Critical section
+                    Fence(); //ensure that counter was updated before unlocking; required for any impl.
                     lock->unlock(i);
                 }
             });
