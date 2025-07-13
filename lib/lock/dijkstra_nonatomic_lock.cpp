@@ -5,15 +5,14 @@
 class DijkstraNonatomicMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        this->unlocking = (volatile bool*)malloc(sizeof(bool) * num_threads);
-        this->c = (volatile bool*)malloc(sizeof(bool) * num_threads);
-        for (size_t i = 0; i < num_threads; i++) {
+        this->unlocking = (volatile bool*)malloc(sizeof(bool) * (num_threads+1));
+        this->c = (volatile bool*)malloc(sizeof(bool) * (num_threads+1));
+        for (size_t i = 0; i < num_threads+1; i++) {
             unlocking[i] = true;
             c[i] = true;
         }
-        this->k = 0;
+        this->k = num_threads;
         this->num_threads = num_threads;
-        manager.init(num_threads);
     }
 
     void lock(size_t thread_id) override {
@@ -26,27 +25,21 @@ public:
             while (!unlocking[k]) {}
             k = thread_id;
             Fence();
-            goto try_again;
+            // goto try_again; //maybe not needed
         } 
         c[thread_id] = false;
         Fence();
         for (size_t j = 0; j < num_threads; j++) {
             if (j != thread_id && !c[j]) {
-                // manager.sleep(thread_id);
-                int a=1;
-                if (std::atomic_compare_exchange_strong(&waitermanager, &a, 1)){
-
-                }
                 goto try_again;
             }
         }
 
     }
     void unlock(size_t thread_id) override {
+        k=num_threads;
         unlocking[thread_id] = true;
         c[thread_id] = true;
-        Fence();
-        manager.awake(thread_id);
     }
     void destroy() override {
         free((void*)unlocking);
@@ -60,6 +53,4 @@ private:
     volatile bool *c;
     volatile size_t k;
     size_t num_threads;
-    sleeperScheduler manager;
-    volatile std::atomic<int> waitermanager =0;
 };
