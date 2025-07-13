@@ -4,7 +4,6 @@
 #include "bench_utils.hpp"
 
 #include "lock.hpp"
-#include "pthread_lock.cpp"
 #include "cpp_std_mutex.cpp"
 #include "boost_lock.cpp"
 #include "dijkstra_lock.cpp"
@@ -24,7 +23,7 @@
 #include "boulangerie.cpp"
 #include "wait_spin_lock.cpp"
 #include "lamport_sleeper_lock.cpp"
-#include "macos_lock.cpp"
+#include "system_lock.cpp"
 #include "mcs_sleeper_lock.cpp"
 #include "knuth_sleeper_lock.cpp"
 
@@ -206,8 +205,8 @@ int main(int argc, char* argv[]) {
     // Create a lock instance (using Pthread lock as an example)
     // This section is going to be annoying to change every time we add a new mutex.
     SoftwareMutex* lock;
-    if (strcmp(mutex_name, "pthread") == 0) {
-        lock = new Pthread();
+    if (strcmp(mutex_name, "system") == 0) {
+        lock = new System();
     } else if (strcmp(mutex_name, "cpp_std") == 0) {
         lock = new CPPMutex();
     } else if (strcmp(mutex_name, "boost") == 0) {
@@ -246,8 +245,6 @@ int main(int argc, char* argv[]) {
         lock = new WaitSpinLock();
     } else if (strcmp(mutex_name, "lamport_sleeper") == 0) {
         lock = new LamportSleeperLock();
-    } else if (strcmp(mutex_name, "macos") == 0) {
-        lock = new MacMutex();
     } else if (strcmp(mutex_name, "mcs_sleeper") == 0) {
         lock = new MCSSleeperMutex();
     } else if (strcmp(mutex_name, "knuth_sleeper") == 0) {

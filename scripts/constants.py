@@ -2,7 +2,7 @@ import logging
 
 class Constants:
     class Defaults:
-        MUTEX_NAMES = ["dijkstra_nonatomic", "bakery_nonatomic", "exp_spin", "nsync", "mcs", "mcs_sleeper", "knuth", "peterson", "lamport", "macos", "wait_spin", "lamport_sleeper", "dijkstra_nonatomic_sleeper"]
+        MUTEX_NAMES = ["dijkstra_nonatomic", "bakery_nonatomic", "exp_spin", "nsync", "mcs", "mcs_sleeper", "knuth", "peterson", "lamport", "system", "wait_spin", "lamport_sleeper", "dijkstra_nonatomic_sleeper"]
         EXECUTABLE_NAME = "max_contention_bench"
         BENCH_N_THREADS = "10"
         BENCH_N_SECONDS = "1"
