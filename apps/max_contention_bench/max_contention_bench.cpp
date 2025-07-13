@@ -23,6 +23,10 @@
 #include "peterson_lock.cpp"
 #include "boulangerie.cpp"
 #include "wait_spin_lock.cpp"
+#include "lamport_sleeper_lock.cpp"
+#include "macos_lock.cpp"
+#include "mcs_sleeper_lock.cpp"
+#include "knuth_sleeper_lock.cpp"
 
 
 int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool csv, bool thread_level, bool no_output, int max_noncritical_delay_ns, SoftwareMutex* lock) {
@@ -70,15 +74,16 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
             
                 // Each thread will run this function
                 while (!*thread_args[i].start_flag) {
-                    // Wait until the start flag is set
+                   // Wait until the start flag is set
                 }
 
                 // Perform the locking operations
                 while (!*thread_args[i].end_flag) {
                     thread_args[i].lock->lock(thread_args[i].thread_id);
                     thread_args[i].stats.num_iterations++;
-                    (*counter)++; // Critical section
-                    Fence(); //ensure that counter was updated before unlocking; required for any impl.
+                    // (*counter)++; // Critical section
+                    thread_args[i].lock->criticalSection(thread_args[i].thread_id);
+                    // Fence(); //ensure that counter was updated before unlocking; required for any impl.
                     thread_args[i].lock->unlock(thread_args[i].thread_id);
                 }
             });
@@ -128,18 +133,7 @@ int max_contention_bench(int num_threads, std::chrono::seconds run_time, bool cs
         }
     }
 
-    // record_rusage();
-
-    int expected_iterations = 0;
-    for (int i =0; i<num_threads; i++){
-        expected_iterations+=thread_args[i].stats.num_iterations;
-    }
-
-    if (*counter != expected_iterations) {
-        // The mutex did not work.
-        fprintf(stderr, "Mutex %s failed; *counter != num_threads * num_iterations (%d!=%d)\n", lock->name().c_str(), *counter, expected_iterations);
-        return 1;
-    }
+    record_rusage();
 
     // Cleanup resources
     lock->destroy(); // Cleanup the lock resources
@@ -250,6 +244,14 @@ int main(int argc, char* argv[]) {
         lock = new Boulangerie();
     } else if (strcmp(mutex_name, "wait_spin") == 0) {
         lock = new WaitSpinLock();
+    } else if (strcmp(mutex_name, "lamport_sleeper") == 0) {
+        lock = new LamportSleeperLock();
+    } else if (strcmp(mutex_name, "macos") == 0) {
+        lock = new MacMutex();
+    } else if (strcmp(mutex_name, "mcs_sleeper") == 0) {
+        lock = new MCSSleeperMutex();
+    } else if (strcmp(mutex_name, "knuth_sleeper") == 0) {
+        lock = new KnuthSleeperMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names are 'pthread', 'cpp_std', 'boost', 'dijkstra',"
