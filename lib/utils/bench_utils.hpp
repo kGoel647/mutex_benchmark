@@ -27,12 +27,12 @@ struct per_thread_stats {
     int thread_id;
     int num_iterations;
 
+    std::chrono::nanoseconds run_time;
     struct timespec start_time;
     struct timespec end_time;
     // Vector reallocation could waste some thread time.
     std::vector<double> lock_times;
 
-    std::chrono::seconds run_time;
 };
 
 
