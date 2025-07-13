@@ -16,7 +16,7 @@ public:
     start:
         b[thread_id] = true; //trying to grab the lock
         *x = thread_id+1; //first confirmation
-        std::atomic_thread_fence(std::memory_order_seq_cst);
+        Fence();
 
         if (*y!=0){
             b[thread_id] = false; //no longer going for the lock
@@ -25,12 +25,12 @@ public:
         }
 
         *y = thread_id + 1; //second confirmation
-        std::atomic_thread_fence(std::memory_order_seq_cst);
+        Fence();
 
         if (*x!=thread_id+1){ //someone started going for the lock
             b[thread_id] = false; //not longer going for the lock
             for (int j=0; j<num_threads; j++){while(b[j]){}} //wait for contention to go down
-            std::atomic_thread_fence(std::memory_order_seq_cst);
+            Fence();
             if (*y!=thread_id+1){ //while waiting, someone messed with second confirmation
                 while(*y!=0){} //wait for the person to unlock
                 goto start;
@@ -39,9 +39,8 @@ public:
     }
     
     void unlock(size_t thread_id) override {
-        std::atomic_thread_fence(std::memory_order_seq_cst);
         *y=0;
-        std::atomic_thread_fence(std::memory_order_seq_cst);
+        // Fence();
         b[thread_id] = false;
     }
 
