@@ -13,7 +13,7 @@ def setup():
     parent_directory = os.path.dirname(absolute_path)
     os.chdir(parent_directory + "/..")
 
-def run_experiment_thread_level():
+def run_experiment_thread_level(): #no longer needed
     if Constants.multithreaded:
         run_experiment_multi_threaded()
     else:
@@ -38,7 +38,7 @@ def run_experiment_iter_v_threads():
         print(output)
         logger.info(output)
     else: 
-        # run_experiment_iter_v_threads_single_threaded(rusageGet=True)
+        run_experiment_iter_v_threads_single_threaded(rusageGet=True)
         data = load_data_iter_v_threads(rusage=True)
         output = analyze_iter_v_threads_rusage(data)
         print(output)
@@ -53,16 +53,23 @@ def run_grouped_experiment_thread_level():
     logger.info(output)
 
 def run_grouped_experiment_iter_v_threads():
-    run_grouped_experiment_iter_v_threads_single_threaded()
-    data = load_data_iter_v_threads()
-    output = analyze_iter_v_threads(data)
-    print(output)
-    logger.info(output)
+    if not(Constants.rusage):
+        run_grouped_experiment_iter_v_threads_single_threaded()
+        data = load_data_iter_v_threads()
+        output = analyze_iter_v_threads(data)
+        print(output)
+        logger.info(output)
+    else:
+        run_grouped_experiment_iter_v_threads_single_threaded(rusageGet=True)
+        data = load_data_iter_v_threads(rusage=True)
+        output = analyze_iter_v_threads_rusage(data)
+        print(output)
+        logger.info(output)
 
 def main():
     init_args()
-    init_logger()
     setup()
+    init_logger()
     build()
     if Constants.bench == 'max':
         if Constants.thread_level:

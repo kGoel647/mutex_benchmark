@@ -14,13 +14,20 @@ def get_data_file_name(mutex_name, i, threads, rusage=False):
         return f"{Constants.data_folder}/{mutex_name}-{threads}-{i}-rusage.csv"
 
 def get_command(mutex_name, threads, *, csv=True, thread_level=False, rusage=False):
-    cmd = [
-        Constants.executable,
-        mutex_name,
-        str(threads),
-        str(Constants.bench_n_seconds),
-        str(Constants.noncritical_delay)
-    ]
+    if Constants.bench=="max":
+        cmd = [
+            Constants.executable,
+            mutex_name,
+            str(threads),
+            str(Constants.bench_n_seconds),
+            str(Constants.noncritical_delay)
+        ]
+    else:
+        cmd = [Constants.executable,
+            mutex_name,
+            str(threads),
+            str(Constants.bench_n_seconds),
+            str(Constants.groups)]
     if csv:
         cmd.append("--csv")
     if thread_level:
@@ -112,9 +119,9 @@ def run_experiment_iter_v_threads_single_threaded(rusageGet=False):
                 fname = get_data_file_name(mutex_name, i, threads, rusage=rusageGet)
                 subprocess.run(["rm", "-f", fname])
                 proc = subprocess.run(
-                    command = get_command(mutex_name, threads, 
+                    get_command(mutex_name, threads, 
                                           csv=True, thread_level=True, 
-                                          rusage=rusageGet)
+                                          rusage=rusageGet),
                     stdout=subprocess.PIPE
                 )
                 with open(fname, "wb") as f:
@@ -129,7 +136,7 @@ def run_grouped_experiment_iter_v_threads_single_threaded(rusageGet=False):
                 subprocess.run(["rm", "-f", data_file_name])
                 
                 command = get_command(mutex_name, threads, csv=True, thread_level=True, rusage=rusageGet)
-
+                print(command)
                 thread=subprocess.run(command, stdout=subprocess.PIPE)
                 csv_data = thread.stdout
                 with open(data_file_name, "wb") as data_file:
