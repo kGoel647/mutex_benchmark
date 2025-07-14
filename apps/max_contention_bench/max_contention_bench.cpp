@@ -22,6 +22,7 @@
 #include "exp_spin_lock.cpp"
 #include "nsync_lock.cpp"
 #include "bakery_mutex.cpp"
+#include "yang_lock.cpp"
 #include "bakery_nonatomic_mutex.cpp"
 #include "lamport_lock.cpp"
 #include "mcs_lock.cpp"
@@ -173,6 +174,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+
     if (max_noncrit_delay_ns <= 0) {
         max_noncrit_delay_ns = 1;
     }
@@ -201,10 +203,12 @@ int main(int argc, char* argv[]) {
     else if (strcmp(mutex_name, "peterson") == 0)                   lock = new PetersonMutex();
     else if (strcmp(mutex_name, "boulangerie") == 0)                lock = new Boulangerie();
     else if (strcmp(mutex_name, "szymanski") == 0)                  lock = new SzymanskiLock();
+    else if (strcmp(mutex_name, "yang") == 0)                       lock = new YangMutex();
     else {
         fprintf(stderr,
             "Unrecognized mutex '%s'\n", mutex_name
         );
+
         return 1;
     }
 
