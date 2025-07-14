@@ -96,6 +96,7 @@ def analyze_iter(data, iter_variable_name, iter_range):
             title=f"{mutex_name}",
             skip=-1,
             data=data[mutex_name],
+            iter_variable_name=iter_variable_name,
         )
 
         

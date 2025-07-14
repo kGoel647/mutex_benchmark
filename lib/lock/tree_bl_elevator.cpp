@@ -4,9 +4,9 @@
 #include <math.h>
 #include <string.h>
 
-#include "spin_lock.hpp"
+#include "burns_lamport_lock.hpp"
 
-class TreeCASElevatorMutex : public virtual SoftwareMutex {
+class TreeBLElevatorMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
         // TODO organize this function.
@@ -131,10 +131,10 @@ public:
     }
 
     std::string name() override {
-        return "tree_cas_elevator";
+        return "tree_bl_elevator";
     }
 private:
-    SpinLock designated_waker_lock;
+    BurnsLamportMutex designated_waker_lock;
     std::atomic_size_t *val; // TODO: test atomic_int performance instead
     volatile bool *flag;
     size_t num_threads;

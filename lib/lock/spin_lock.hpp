@@ -20,6 +20,7 @@ public:
 
         while (lock_.test_and_set(std::memory_order_acquire)) {
             // Busy wait
+            spin_delay_sched_yield();
         }
     }
 

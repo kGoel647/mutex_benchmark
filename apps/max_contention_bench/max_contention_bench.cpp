@@ -30,6 +30,11 @@
 #include "clh_lock.cpp"
 #include "linear_cas_elevator.cpp"
 #include "tree_cas_elevator.cpp"
+#include "linear_bl_elevator.cpp"
+#include "tree_bl_elevator.cpp"
+#include "burns_lamport_lock.hpp"
+#include "futex_mutex.cpp"
+#include "elevator_mutex.hpp"
 
 int max_contention_bench(
     int num_threads, 
@@ -292,12 +297,23 @@ int main(int argc, char* argv[]) {
         lock = new LinearCASElevatorMutex();
     } else if (strcmp(mutex_name, "tree_cas_elevator") == 0) {
         lock = new TreeCASElevatorMutex();
+    } else if (strcmp(mutex_name, "linear_bl_elevator") == 0) {
+        lock = new LinearBLElevatorMutex();
+    } else if (strcmp(mutex_name, "tree_bl_elevator") == 0) {
+        lock = new TreeBLElevatorMutex();
+    } else if (strcmp(mutex_name, "burns_lamport") == 0) {
+        lock = new BurnsLamportMutex();
+    } else if (strcmp(mutex_name, "futex") == 0) {
+        lock = new FutexLock();
+    } else if (strcmp(mutex_name, "elevator") == 0) {
+        lock = new ElevatorMutex();
     } else {
         fprintf(stderr, "Unrecognized mutex name: %s"
                 "\nValid names include 'pthread', 'cpp_std', 'boost', 'dijkstra',"
                 " 'spin', 'nsync', 'exp_spin', 'bakery', 'dijkstra_nonatomic', 'mcs',"
                 " 'knuth', 'peterson', 'ticket', 'threadlocal_ticket', 'ring_ticket',"
-                " 'halfnode', 'hopscotch', 'clh', 'linear_cas_elevator', and 'tree_cas_elevator'\n", mutex_name);
+                " 'halfnode', 'hopscotch', 'clh', 'linear_cas_elevator', 'tree_cas_elevator',"
+                " 'linear_bl_elevator', 'tree_bl_elevator', 'burns_lamport', 'futex'\n", mutex_name);
         return 1;
     }    
 

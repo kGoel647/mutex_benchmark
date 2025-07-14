@@ -14,7 +14,7 @@ public:
         (void)thread_id;
         size_t my_ticket = next_ticket.fetch_add(1, std::memory_order_relaxed);
         while (now_serving.load(std::memory_order_acquire) != my_ticket) {
-            // Busy wait
+            spin_delay_sched_yield();
         }
     }
 

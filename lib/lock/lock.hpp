@@ -6,6 +6,7 @@
 #include <atomic>
 #include <thread>
 #include <vector>
+#include <sched.h>
 
 class SoftwareMutex {
 public:
@@ -25,6 +26,10 @@ public:
     virtual void destroy() = 0;
 
     virtual std::string name() =0;
+
+    inline void spin_delay_sched_yield() {
+        sched_yield();
+    }
 
     inline void spin_delay_exponential() {
         // Same as nsync
