@@ -1,70 +1,78 @@
 #include "lock.hpp"
 #include <stdexcept>
-#include <iostream>
+#include <mutex>
 
 class YangMutexHelper
 {
 public:
-    void init(size_t num_threads, size_t starting_thread_id, volatile size_t *spinners)
+    bool getSetup(){
+        return setup;
+    }
+
+    void init(size_t num_threads, size_t starting_thread_id)
     {
-        this->spinners = spinners;
+        this->spinners = (std::atomic<size_t> *)malloc(sizeof(std::atomic<size_t>) * num_threads);
 
         this->competitors = (std::atomic<int> *)malloc(sizeof(std::atomic<int>) * 2);
         (competitors)[0] = -1;
         (competitors)[1] = -1;
-        tiebreaker= new std::atomic<size_t>(0);
+        tiebreaker= new std::atomic<int>(-1);
+        this->setup=true;
 
         this->num_threads = num_threads;
         this->starting_thread_id = starting_thread_id;
-
+        
+        right = new YangMutexHelper();
+        left = new YangMutexHelper();
         if (num_threads - (int)(num_threads / 2) > 1)
         {
-            right = new YangMutexHelper();
-            right->init(num_threads - (int)(num_threads / 2), starting_thread_id + num_threads / 2, spinners);
+            right->init(num_threads - (int)(num_threads / 2), starting_thread_id + num_threads / 2);
         }
 
         if (num_threads / 2 > 1)
         {
-            left = new YangMutexHelper();
-            left->init(num_threads / 2, starting_thread_id, spinners);
+            left->init(num_threads / 2, starting_thread_id);
         }
     }
     void lock(size_t thread_id)
     {
 
         // lock all subtrees
-        if (side(thread_id) && right)
+        if (side(thread_id) && right->getSetup())
         {
+            // right->lock(thread_id);
             right->lock(thread_id);
         }
-        else if (!side(thread_id) && left)
+        if (!side(thread_id) && left->getSetup())
         {
+            // left->lock(thread_id);
             left->lock(thread_id);
         }
         // do the main locking sequence
         (competitors)[side(thread_id)] = thread_id;
         *tiebreaker = thread_id;
-        spinners[thread_id] = 0;
+        spinners[thread_id-starting_thread_id] = 0;
         int rival = (competitors)[1 - side(thread_id)];
         if (rival != -1)
         { // there is someone competing
             if (*tiebreaker == thread_id)
             { // this thread_id either set the tiebreaker after the rival, or the rival has yet to set
-                if (spinners[rival] == 0)
+                if (spinners[rival-starting_thread_id] == 0)
                 {
-                    spinners[rival] = 1; // tell the rival that we have updated the tiebreaker
+                    spinners[rival-starting_thread_id] = 1; // tell the rival that we have updated the tiebreaker
                 }
 
-                while (spinners[thread_id] == 0)
+                while (spinners[thread_id-starting_thread_id] == 0)
                 {
                 } // wait until rival either says they updated tiebreaker or they have finished crit section
 
                 if (*tiebreaker == thread_id)
                 { // we were later in setting tiebreaker
-                    while (spinners[thread_id] <= 1)
+                    while (spinners[thread_id-starting_thread_id].load()!=2)
                     {
                         
                     } // wait for rival to unlock
+
                 }
             }
         }
@@ -77,13 +85,13 @@ public:
 
         if (rival != thread_id)
         {                        // you have a competitor who is waiting
-            spinners[rival] = 2; // free the competitor
+            spinners[rival-starting_thread_id] = 2; // free the competitor
         }
-        if (side(thread_id) && right)
+        if (side(thread_id) && right->getSetup())
         {
             right->unlock(thread_id);
         }
-        else if (!side(thread_id) && left)
+        if (!side(thread_id) && left->getSetup())
         {
             left->unlock(thread_id);
         }
@@ -107,14 +115,19 @@ private:
         return 1;
     }
 
-    volatile size_t *spinners;
+    std::atomic<size_t> *spinners;
     std::atomic<int> *competitors;
-    std::atomic<size_t> *tiebreaker;
+    std::atomic<int> *tiebreaker;
+
+
+    std::mutex mutex_left_;
+    std::mutex mutex_right_;
 
     size_t num_threads;
     size_t starting_thread_id;
     YangMutexHelper *left;
     YangMutexHelper *right;
+    bool setup;
 };
 
 class YangMutex : public virtual SoftwareMutex
@@ -123,10 +136,10 @@ public:
     void init(size_t num_threads) override
     {
         //maybe use something of smaller size
-        this->spinners = (volatile size_t *)malloc(sizeof(size_t) * num_threads);
+        this->spinners = (std::atomic<size_t> *)malloc(sizeof(std::atomic<size_t>) * num_threads);
         this->num_threads = num_threads;
         helper_ = new YangMutexHelper();
-        helper_->init(num_threads, 0, spinners);
+        helper_->init(num_threads, 0);
     }
 
     void lock(size_t thread_id) override
@@ -146,7 +159,7 @@ public:
     std::string name() { return "yang"; };
 
 private:
-    volatile size_t *spinners;
+    std::atomic<size_t> *spinners;
     size_t num_threads;
     YangMutexHelper* helper_;
 };
