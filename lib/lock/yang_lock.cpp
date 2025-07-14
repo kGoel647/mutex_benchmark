@@ -11,12 +11,13 @@ public:
 
     void init(size_t num_threads, size_t starting_thread_id)
     {
-        this->spinners = (std::atomic<size_t> *)malloc(sizeof(std::atomic<size_t>) * num_threads);
+        this->spinners = (volatile size_t *)malloc(sizeof(size_t) * num_threads);
 
-        this->competitors = (std::atomic<int> *)malloc(sizeof(std::atomic<int>) * 2);
+        this->competitors = (volatile int *)malloc(sizeof(volatile int) * 2);
         (competitors)[0] = -1;
         (competitors)[1] = -1;
-        tiebreaker= new std::atomic<int>(-1);
+        tiebreaker= (volatile int *)malloc(sizeof(volatile int));
+        *tiebreaker=-1;
         this->setup=true;
 
         this->num_threads = num_threads;
@@ -49,9 +50,12 @@ public:
             left->lock(thread_id);
         }
         // do the main locking sequence
-        (competitors)[side(thread_id)] = thread_id;
+        (competitors)[side(thread_id)] = thread_id;     
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         *tiebreaker = thread_id;
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         spinners[thread_id-starting_thread_id] = 0;
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         int rival = (competitors)[1 - side(thread_id)];
         if (rival != -1)
         { // there is someone competing
@@ -60,6 +64,7 @@ public:
                 if (spinners[rival-starting_thread_id] == 0)
                 {
                     spinners[rival-starting_thread_id] = 1; // tell the rival that we have updated the tiebreaker
+                    std::atomic_thread_fence(std::memory_order_seq_cst);
                 }
 
                 while (spinners[thread_id-starting_thread_id] == 0)
@@ -68,7 +73,7 @@ public:
 
                 if (*tiebreaker == thread_id)
                 { // we were later in setting tiebreaker
-                    while (spinners[thread_id-starting_thread_id].load()!=2)
+                    while (spinners[thread_id-starting_thread_id] !=2)
                     {
                         
                     } // wait for rival to unlock
@@ -80,12 +85,15 @@ public:
 
     void unlock(size_t thread_id)
     {                                      // unlike other locks, this takes a good amount of read/writes
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         (competitors)[side(thread_id)]=-1; // this side is no longer competing
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         int rival = *tiebreaker;           // find out if you have a rival
 
         if (rival != thread_id)
         {                        // you have a competitor who is waiting
             spinners[rival-starting_thread_id] = 2; // free the competitor
+            std::atomic_thread_fence(std::memory_order_seq_cst);
         }
         if (side(thread_id) && right->getSetup())
         {
@@ -99,6 +107,7 @@ public:
     void destroy() {
         free((void *)competitors);
         free((void *)tiebreaker);
+        free((void *)spinners);
         if (left){left->destroy();}
         if (right){right->destroy();}
         free((void *)left);
@@ -115,9 +124,9 @@ private:
         return 1;
     }
 
-    std::atomic<size_t> *spinners;
-    std::atomic<int> *competitors;
-    std::atomic<int> *tiebreaker;
+    volatile size_t *spinners;
+    volatile int *competitors;
+    volatile int *tiebreaker;
 
 
     std::mutex mutex_left_;
@@ -136,7 +145,6 @@ public:
     void init(size_t num_threads) override
     {
         //maybe use something of smaller size
-        this->spinners = (std::atomic<size_t> *)malloc(sizeof(std::atomic<size_t>) * num_threads);
         this->num_threads = num_threads;
         helper_ = new YangMutexHelper();
         helper_->init(num_threads, 0);
@@ -152,14 +160,12 @@ public:
     }
     void destroy() override
     {
-        free((void *)spinners);
         helper_->destroy();
     }
 
     std::string name() { return "yang"; };
 
 private:
-    std::atomic<size_t> *spinners;
     size_t num_threads;
     YangMutexHelper* helper_;
 };
