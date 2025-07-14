@@ -52,12 +52,13 @@ def run_grouped_experiment_iter_v_threads():
     print(output)
     logger.info(output)
 
+
 def main():
     init_args()
     init_logger()
     setup()
     build()
-    if Constants.bench == 'max':
+    if Constants.bench == 'max' or Constants.bench=='min':
         if Constants.thread_level:
             run_experiment_thread_level()
         elif Constants.iter_v_threads:
