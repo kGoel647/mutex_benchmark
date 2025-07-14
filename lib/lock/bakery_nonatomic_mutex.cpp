@@ -1,12 +1,12 @@
 #include "lock.hpp"
 #include <stdexcept>
-#include <atomic>
+#include "../utils/bench_utils.hpp"
 
-class BakeryMutex : public virtual SoftwareMutex {
+class BakeryNonAtomicMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        this->choosing = (volatile std::atomic_bool*)malloc(sizeof(std::atomic_bool) * num_threads);
-        this->number = (volatile std::atomic<size_t>*)malloc(sizeof(std::atomic<size_t>) * num_threads);
+        this->choosing = (volatile bool*)malloc(sizeof(bool) * num_threads);
+        this->number = (volatile size_t*)malloc(sizeof(size_t) * num_threads);
         for (size_t i = 0; i < num_threads; i++) {
             choosing[i] = false;
             number[i] = 0;
@@ -18,14 +18,19 @@ public:
         // struct timespec nanosleep_timespec = { 0, 10 };
         // Get "bakery number"
         choosing[thread_id] = true;
+        Fence();
         size_t my_bakery_number;
         for (size_t i = 0; i < num_threads; i++) {
             if (number[i] + 1 > my_bakery_number) {
                 my_bakery_number = number[i] + 1;
             }
         }
+        
         number[thread_id] = my_bakery_number;
+        Fence();
         choosing[thread_id] = false;
+        Fence();
+
         // Lock waiting part
         for (size_t j = 0; j < num_threads; j++) {
             while (choosing[j] != 0) {
@@ -38,9 +43,10 @@ public:
                 // nanosleep(&nanosleep_timespec, &remaining);
             }
         }
+        
+        Fence();
     }
     void unlock(size_t thread_id) override {
-        std::atomic_thread_fence(std::memory_order_seq_cst);
         number[thread_id] = 0;
     }
     void destroy() override {
@@ -49,15 +55,15 @@ public:
     }
 
     std::string name() override {
-        return "bakery";
+        return "bakery_nonatomic";
     }
 
 private:
-    volatile std::atomic_bool *choosing;
+    volatile bool *choosing;
     // Note: Mutex will fail if this number overflows,
     // which happens if the "bakery" remains full for
     // a long time.
-    volatile std::atomic<size_t> *number;
+    volatile size_t *number;
     struct timespec remaining;
     size_t num_threads;
 };
