@@ -11,6 +11,7 @@
 
 #include "max_contention_bench.hpp"
 #include "bench_utils.hpp"
+
 #include "lock.hpp"
 #include "cpp_std_mutex.cpp"
 #include "boost_lock.cpp"
@@ -119,8 +120,6 @@ int max_contention_bench(
     for (auto& t : threads) {
         if (t.joinable()) t.join();
     }
-
-    record_rusage();
 
     lock->destroy();
     free((void*)counter);

@@ -101,7 +101,7 @@ void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread
             // Thread ID, Runtime, # Iterations
             printf("%d,%ld,%d\n", stats->thread_id, stats->run_time.count(), stats->num_iterations);
         } else {
-            printf("Thread %d: %d iterations completed in %ld seconds\n",
+            printf("Thread %d: %d iterations completed in %ld nanoseconds\n",
                 stats->thread_id, stats->num_iterations, stats->run_time.count());
         }
     } else {
