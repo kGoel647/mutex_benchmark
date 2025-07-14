@@ -22,7 +22,6 @@
 #include "exp_spin_lock.cpp"
 #include "nsync_lock.cpp"
 #include "bakery_mutex.cpp"
-#include "yang_lock.cpp"
 #include "bakery_nonatomic_mutex.cpp"
 #include "lamport_lock.cpp"
 #include "mcs_lock.cpp"
@@ -36,6 +35,8 @@
 #include "system_lock.cpp"
 #include "mcs_sleeper_lock.cpp"
 #include "knuth_sleeper_lock.cpp"
+#include "yang_lock.cpp"
+#include "yang_sleeper_lock.cpp"
 #include "szymanski.cpp"
 
 int max_contention_bench(
@@ -204,6 +205,7 @@ int main(int argc, char* argv[]) {
     else if (strcmp(mutex_name, "boulangerie") == 0)                lock = new Boulangerie();
     else if (strcmp(mutex_name, "szymanski") == 0)                  lock = new SzymanskiLock();
     else if (strcmp(mutex_name, "yang") == 0)                       lock = new YangMutex();
+    else if (strcmp(mutex_name, "yang_sleeper") == 0)                       lock = new YangSleeperMutex();
     else {
         fprintf(stderr,
             "Unrecognized mutex '%s'\n", mutex_name

@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <mutex>
 
-class YangMutexHelper
+class YangSleeperMutexHelper
 {
 public:
     bool getSetup(){
@@ -12,6 +12,10 @@ public:
     void init(size_t num_threads, size_t starting_thread_id)
     {
         this->spinners = (volatile size_t *)malloc(sizeof(size_t) * num_threads);
+        this->spinnerSleep = (std::binary_semaphore *)malloc(sizeof(std::binary_semaphore)*num_threads);
+        for (int i=0; i<num_threads; i++){
+            spinnerSleep[i].try_acquire();
+        }
 
         this->competitors = (volatile int *)malloc(sizeof(volatile int) * 2);
         (competitors)[0] = -1;
@@ -23,8 +27,8 @@ public:
         this->num_threads = num_threads;
         this->starting_thread_id = starting_thread_id;
         
-        right = new YangMutexHelper();
-        left = new YangMutexHelper();
+        right = new YangSleeperMutexHelper();
+        left = new YangSleeperMutexHelper();
         if (num_threads - (int)(num_threads / 2) > 1)
         {
             right->init(num_threads - (int)(num_threads / 2), starting_thread_id + num_threads / 2);
@@ -64,18 +68,21 @@ public:
                 if (spinners[rival-starting_thread_id] == 0)
                 {
                     spinners[rival-starting_thread_id] = 1; // tell the rival that we have updated the tiebreaker
-                    Fence();
+                    spinnerSleep[rival-starting_thread_id].try_acquire();
+                    spinnerSleep[rival-starting_thread_id].release();
+                    // Fence();
                 }
 
                 while (spinners[thread_id-starting_thread_id] == 0)
                 {
+                    spinnerSleep[thread_id-starting_thread_id].acquire();
                 } // wait until rival either says they updated tiebreaker or they have finished crit section
 
                 if (*tiebreaker == thread_id)
                 { // we were later in setting tiebreaker
                     while (spinners[thread_id-starting_thread_id] !=2)
                     {
-                        
+                        spinnerSleep[thread_id-starting_thread_id].acquire();
                     } // wait for rival to unlock
 
                 }
@@ -93,6 +100,7 @@ public:
         {                        // you have a competitor who is waiting
             spinners[rival-starting_thread_id] = 2; // free the competitor
             Fence();
+            spinnerSleep[rival-starting_thread_id].release();
         }
         if (side(thread_id) && right->getSetup())
         {
@@ -126,6 +134,7 @@ private:
     volatile size_t *spinners;
     volatile int *competitors;
     volatile int *tiebreaker;
+    std::binary_semaphore* spinnerSleep;
 
 
     std::mutex mutex_left_;
@@ -133,19 +142,19 @@ private:
 
     size_t num_threads;
     size_t starting_thread_id;
-    YangMutexHelper *left;
-    YangMutexHelper *right;
+    YangSleeperMutexHelper *left;
+    YangSleeperMutexHelper *right;
     bool setup;
 };
 
-class YangMutex : public virtual SoftwareMutex
+class YangSleeperMutex : public virtual SoftwareMutex
 {
 public:
     void init(size_t num_threads) override
     {
         //maybe use something of smaller size
         this->num_threads = num_threads;
-        helper_ = new YangMutexHelper();
+        helper_ = new YangSleeperMutexHelper();
         helper_->init(num_threads, 0);
     }
 
@@ -166,5 +175,5 @@ public:
 
 private:
     size_t num_threads;
-    YangMutexHelper* helper_;
+    YangSleeperMutexHelper* helper_;
 };
