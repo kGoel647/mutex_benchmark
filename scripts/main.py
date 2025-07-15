@@ -48,22 +48,43 @@ def run_experiment_iter(iter_variable_name, iter_range):
     print(output)
     logger.info(output)
 
+
+def run_grouped_experiment_thread_level():
+    run_grouped_experiment_thread_level_single_threaded()
+    data = load_data()
+    output = analyze(data)
+    print(output)
+    logger.info(output)
+
+def run_grouped_experiment_iter_v_threads():
+    run_grouped_experiment_iter_v_threads_single_threaded()
+    data = load_data_iter_v_threads()
+    output = analyze_iter_v_threads(data)
+    print(output)
+    logger.info(output)
+
 def main():
     setup()
     build()
     init_args()
     init_logger()
-    if Constants.thread_level:
-        run_experiment_thread_level()
-    elif Constants.iter_threads is not None:
-        run_experiment_iter_v_threads()
-    elif Constants.iter_noncritical_delay is not None:
-        run_experiment_iter("noncritical_delay", iter_range=Constants.iter_noncritical_delay)
-    elif Constants.iter_critical_delay is not None:
-        run_experiment_iter("critical_delay", iter_range=Constants.iter_critical_delay)
+    if Constants.bench == 'max':
+        if Constants.thread_level:
+            run_experiment_thread_level()
+        elif Constants.iter_threads is not None:
+            run_experiment_iter_v_threads()
+        elif Constants.iter_noncritical_delay is not None:
+            run_experiment_iter("noncritical_delay", iter_range=Constants.iter_noncritical_delay)
+        elif Constants.iter_critical_delay is not None:
+            run_experiment_iter("critical_delay", iter_range=Constants.iter_critical_delay)
+        else:
+            run_experiment_lock_level()
+    elif Constants.bench == 'grouped':
+        if Constants.thread_level:
+            run_grouped_experiment_thread_level()
+        else:
+            run_grouped_experiment_iter_v_threads()
 
-    else:
-        run_experiment_lock_level()
 
 if __name__ == "__main__":
     main()

@@ -3,20 +3,28 @@ from math import ceil
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from .constants import *
+from .constants import Constants
 from .logger import logger
 
 
-def finish_plotting_cdf(thread_time_or_lock_time, *, log_scale=True):
-    print("Finishing plotting...")
-    title = f"{thread_time_or_lock_time} CDF for {Constants.bench_n_threads} threads and {Constants.bench_n_seconds} second(s) ({Constants.n_program_iterations}x)"
-    # Removed this because skip changes based on number of points now.
-    # if Constants.scatter:
-    #     title += f"\nEach dot represents the average of {Constants.skip} operations"
+def finish_plotting_cdf(thread_time_or_lock_time):
+    """
+    Finalize and show a cumulative distribution (CDF) plot.
+    """
+    print("Finishing plotting CDF...")
+    title = (
+        f"{thread_time_or_lock_time} CDF for "
+        f"{Constants.bench_n_threads} threads, "
+        f"{Constants.bench_n_seconds}s "
+        f"({Constants.n_program_iterations}×)"
+    )
     if Constants.noncritical_delay != 1:
-        title += f"\nContention mitigation: Delay in noncritical section of {Constants.noncritical_delay:,} ns ({Constants.noncritical_delay/(10**9):.2e} s) applied."
-    if Constants.critical_delay != 1:
-        title += f"\nContention exacerbation: Delay in critical section of {Constants.critical_delay:,} ns ({Constants.critical_delay/(10**9):.2e} s) applied."
+        title += (
+            f"\nNoncritical delay: {Constants.noncritical_delay:,} ns "
+            f"({Constants.noncritical_delay:.2e} ns)"
+        )
+    if Constants.low_contention:
+        title += f"\nLow-contention mode: stagger {Constants.stagger_ms} ms/start"
     plt.title(title)
     if log_scale:
         plt.xscale('log')
@@ -25,21 +33,31 @@ def finish_plotting_cdf(thread_time_or_lock_time, *, log_scale=True):
         handle._sizes = [30]
     plt.show()
 
+
 def finish_plotting_graph(axis):
-    print("Finishing plotting...")
-    axis[0].set_title(f"# Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+    """
+    Finalize and show a 2-panel graph: iterations vs threads and std dev vs threads.
+    Expects `axis` to be a tuple/list of two Axes objects.
+    """
+    print("Finishing plotting graph...")
+    # Upper plot: total iterations
+    axis[0].set_title(
+        f"# Iterations vs threads for {Constants.bench_n_seconds}s ({Constants.n_program_iterations}×)"
+    )
     axis[0].set_yscale('log')
 
-    axis[1].set_title(f"Std. dev of # Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+    # Lower plot: standard deviation
+    axis[1].set_title(
+        f"Std. dev of # Iterations vs threads for {Constants.bench_n_seconds}s ({Constants.n_program_iterations}×)"
+    )
     axis[1].set_yscale('log')
-    # plt.xscale('log')
-    legend = axis[0].legend()
-    for handle in legend.legend_handles:
-        handle._sizes = [30]
 
-    legend = axis[1].legend()
-    for handle in legend.legend_handles:
-        handle._sizes = [30]
+    # Legend sizing
+    for ax in axis:
+        legend = ax.legend()
+        for handle in legend.legend_handles:
+            handle._sizes = [30]
+
     plt.show()
 
 def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, average_lock_time=None):
@@ -66,7 +84,7 @@ def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", titl
     elif error_bars is not None:
         plt.errorbar(x, y, error_bars, label=title)
     else:
-        plt.plot(x, y, label=title)
+        plt.plot(x, y, label=title_label)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
