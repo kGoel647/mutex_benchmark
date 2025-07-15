@@ -27,19 +27,20 @@ def load_data_lock_level():
         data[mutex_name] = pd.concat(dataframes)
     return data
 
-def load_data_iter_v_threads():
-    data = {}
-    for mutex_name in Constants.mutex_names:
-        data[mutex_name]=[]
-        for threads in range(*Constants.iter_threads):
-            dataframes=[]
-            for i in range(Constants.n_program_iterations):
-                data_file_name = get_data_file_name(mutex_name, i, threads=threads)
-                dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Seconds", "# Iterations"])
-                dataframes.append(dataframe)
-            dataframes=pd.concat(dataframes)
-            data[mutex_name].append(dataframes["# Iterations"])
-    return data
+# def load_data_iter_v_threads():
+#     if (Constants.iter_threads)
+#     data = {}
+#     for mutex_name in Constants.mutex_names:
+#         data[mutex_name]=[]
+#         for threads in range(*Constants.iter_threads):
+#             dataframes=[]
+#             for i in range(Constants.n_program_iterations):
+#                 data_file_name = get_data_file_name(mutex_name, i, threads=threads)
+#                 dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Seconds", "# Iterations"])
+#                 dataframes.append(dataframe)
+#             dataframes=pd.concat(dataframes)
+#             data[mutex_name].append(dataframes["# Iterations"])
+#     return data
 
 def load_data_iter(iter_variable_name, iter_range):
     data = {}

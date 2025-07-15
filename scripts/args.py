@@ -11,17 +11,17 @@ def init_args():
         prog='MutexTest',
         description='Run contention benchmarks on various mutex algorithms',
     )
-    parser.add_argument('threads', type=int)
-    parser.add_argument('seconds', type=int)
-    parser.add_argument('program_iterations', type=int)
-    # parser.add_argument('threads_start', type=int, default=0, nargs='?')
-    # parser.add_argument('threads_end',   type=int, default=0, nargs='?')
-    # parser.add_argument('threads_step',  type=int, default=0, nargs='?')
+    parser.add_argument('threads', type=int,
+                        help="number of threads in contention")
+    parser.add_argument('seconds', type=float,
+                        help="run duration")
+    parser.add_argument('program_iterations', type=int,
+                        help="number of times to run c++ subscript (more if changing # threads or other parameter)")
 
     experiment_type = parser.add_mutually_exclusive_group()
-    experiment_type.add_argument('--thread-level', action='store_true'
+    experiment_type.add_argument('--thread-level', action='store_true',
                      help='measure per-thread throughput')
-    experiment_type.add_argument('--lock-level', action='store_true'
+    experiment_type.add_argument('--lock-level', action='store_true',
                      help='measure per-lock/unlock latency')
     experiment_type.add_argument('--iter-threads', type=int, nargs=3,
                      help='sweep iterations over a range of thread counts')
@@ -53,8 +53,10 @@ def init_args():
                         default=Constants.max_n_points,
                         help='max points to sample on the CDF')
 
-    parser.add_argument('-n','--noncritical-delay', type=int, default=1, nargs='?',
-                        help='max nanoseconds to sleep outside critical section')
+    parser.add_argument('-n','--noncritical-delay', type=int, default=-1, nargs='?',
+                        help='max iterations to busy sleep outside critical section')
+    parser.add_argument('-c','--critical-delay', type=int, default=-1, nargs='?',
+                        help='max iterations to busy sleep in critical section')
 
     parser.add_argument('--low-contention', action='store_true',
                         help='stagger thread startup to reduce initial contention')
@@ -76,9 +78,9 @@ def init_args():
     logg.add_argument('--critical',      action='store_const', dest='log', const='CRITICAL',
                       help='set log level to CRITICAL')
 
-    parser.add_argument('-groups', type=int)
+    parser.add_argument('--groups', type=int)
 
-    parser.add_argument('-bench', type=str, default='max')
+    parser.add_argument('--bench', type=str, default='max')
 
     args = parser.parse_args()
 
@@ -101,6 +103,7 @@ def init_args():
     Constants.iter_threads = args.iter_threads
     Constants.iter_noncritical_delay = args.iter_noncritical_delay
     Constants.iter_critical_delay = args.iter_critical_delay
+    Constants.iter = args.iter_threads is not None or args.iter_noncritical_delay is not None or args.iter_critical_delay is not None
 
     Constants.data_folder = args.data_folder
     logger.debug(Constants.data_folder)
@@ -116,6 +119,10 @@ def init_args():
         Constants.executable = "./build/apps/max_contention_bench/max_contention_bench"
     elif (args.bench=='grouped'):
         Constants.executable = "./build/apps/grouped_contention_bench/grouped_contention_bench"
+    elif (args.bench=='min'):
+        Constants.executable = "./build/apps/min_contention_bench/min_contention_bench"
+    else:
+        raise NotImplementedError(f"Unknown executable: {args.bench}")
     
     Constants.max_n_points = args.max_n_points
 

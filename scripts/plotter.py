@@ -18,7 +18,7 @@ def finish_plotting_cdf(thread_time_or_lock_time):
         f"{Constants.bench_n_seconds}s "
         f"({Constants.n_program_iterations}×)"
     )
-    if Constants.noncritical_delay != 1:
+    if Constants.noncritical_delay != -1:
         title += (
             f"\nNoncritical delay: {Constants.noncritical_delay:,} ns "
             f"({Constants.noncritical_delay:.2e} ns)"
@@ -26,10 +26,10 @@ def finish_plotting_cdf(thread_time_or_lock_time):
     if Constants.low_contention:
         title += f"\nLow-contention mode: stagger {Constants.stagger_ms} ms/start"
     plt.title(title)
-    if log_scale:
+    if Constants.log_scale and not Constants.iter:
         plt.xscale('log')
     legend = plt.legend()
-    for handle in legend.legend_handles:
+    for handle in legend.legend_handles: # type: ignore
         handle._sizes = [30]
     plt.show()
 
@@ -84,7 +84,7 @@ def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", titl
     elif error_bars is not None:
         plt.errorbar(x, y, error_bars, label=title)
     else:
-        plt.plot(x, y, label=title_label)
+        plt.plot(x, y, label=title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
@@ -94,6 +94,7 @@ def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", 
     if error_bars is not None:
         # data = data.sample(1000)
         # color = sns.color_palette()
+        logger.debug(dict(data=data, x=iter_variable_name, y="Time Spent", errorbar=("sd", 0.1), label=title))
         grid = sns.lineplot(data=data, x=iter_variable_name, y="Time Spent", errorbar=("sd", 0.1), label=title)
         grid.set(yscale="log")
         # sns.scatterplot(data=data, x="threads", y="Time Spent", palette=color)

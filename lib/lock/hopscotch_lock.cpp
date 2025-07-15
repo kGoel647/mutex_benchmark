@@ -54,6 +54,7 @@ private:
 
     // TODO: if a thread leaves, will its still-used thread locals be reclaimed
     // and break the algorithm?
+    // Would this algorithm be faster if the nodes were all contiguous in memory?
     alignas(2) static thread_local struct Node my_nodes[2];
 };
 struct HopscotchMutex::Node HopscotchMutex::default_node;

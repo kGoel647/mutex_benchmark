@@ -1,5 +1,6 @@
 from .constants import *
 from .plotter import plot_one_cdf, plot_one_graph, finish_plotting_cdf, finish_plotting_graph
+from .logger import logger
 
 import pandas as pd
 import numpy as np
@@ -37,39 +38,43 @@ def analyze_lock_level(data):
     finish_plotting_cdf("Lock time")
     return output
 
-def analyze_iter_v_threads(data):
-    output=""
-    output +="\n"
-    figure, axis = plt.subplots(1, 2)
-    for mutex_name in Constants.mutex_names:
-        mean_values = [thread.mean() for thread in data[mutex_name]]
-        print(mean_values)
-        plot_one_graph(
-            axis[0],
-            np.array(range(Constants.threads_start, Constants.threads_end, Constants.threads_step)),
-            mean_values,
-            mutex_name,
-            xlabel="# of Threads",
-            ylabel="# Iterations",
-            title=f"{mutex_name}",
-            skip=-1,
-        )
+# def analyze_iter_double_graph(data, iter_variable_name, iter_range):
+#     if Constants.iter_threads is None:
+#         raise ValueError()
+    
+#     output=""
+#     output +="\n"
+#     figure, axis = plt.subplots(1, 2)
+#     for mutex_name in Constants.mutex_names:
+#         logger.debug(f"{data[mutex_name]['Time Spent']=}")
+#         # TODO rename column to # Iterations so that it makes sense
+#         mean_values = [x.mean() for x in data[mutex_name]["Time Spent"]]
+#         print(mean_values)
+#         plot_one_graph(
+#             axis[0],
+#             np.array(range(*iter_range)),
+#             mean_values,
+#             mutex_name,
+#             xlabel=iter_variable_name,
+#             ylabel="# Iterations",
+#             title=f"{mutex_name}",
+#             skip=-1,
+#         )
 
-        stdev_values = [np.std(thread)/thread.mean() for thread in data[mutex_name]]
-        plot_one_graph(
-            axis[1],
-            np.array(range(Constants.threads_start, Constants.threads_end, Constants.threads_step)),
-            stdev_values,
-            mutex_name,
-            xlabel="# of Threads",
-            ylabel="# Iterations Standard Deviation",
-            title=f"{mutex_name}",
-            skip=-1
-        )
-
+#         stdev_values = [np.std(x)/x.mean() for x in data[mutex_name]["Time Spent"]]
+#         plot_one_graph(
+#             axis[1],
+#             np.array(range(*iter_range)),
+#             stdev_values,
+#             mutex_name,
+#             xlabel=iter_variable_name,
+#             ylabel="# Iterations Standard Deviation",
+#             title=f"{mutex_name}",
+#             skip=-1
+#         )
         
-    finish_plotting_graph(axis)
-    return output
+#     finish_plotting_graph(axis)
+#     return output
 
 def analyze_iter(data, iter_variable_name, iter_range):
     output=""
@@ -95,6 +100,10 @@ def analyze_iter(data, iter_variable_name, iter_range):
             iter_variable_name=iter_variable_name,
         )
 
-        
-    finish_plotting_cdf(axis, log_scale=False)
+    legend = plt.legend()
+    for handle in legend.legend_handles: # type: ignore
+        handle._sizes = [30]
+    plt.show()
+    # analyze_iter_double_graph(data, iter_variable_name, iter_range)
+
     return output

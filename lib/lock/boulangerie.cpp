@@ -17,7 +17,7 @@ public:
 
     void lock(size_t thread_id) override {
         choosing[thread_id] = 1;
-        Fence();
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         int max_number = 0;
         for (size_t i = 0; i < num_threads; ++i) {
             if (number[i] > max_number) {
@@ -25,9 +25,9 @@ public:
             }
         }
         number[thread_id] = max_number + 1;
-        Fence();
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         choosing[thread_id] = 0;
-        Fence();
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         
         //limit the number of thread to check
         size_t limit;
@@ -45,7 +45,7 @@ public:
                     curr_j = number[j];
             }
         }
-        Fence();
+        std::atomic_thread_fence(std::memory_order_seq_cst);
     }
 
     void unlock(size_t thread_id) override {
