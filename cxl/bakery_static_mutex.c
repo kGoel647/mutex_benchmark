@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <threads.h>
+#include <string.h>
 
 struct bakery_static_mutex {
     size_t num_threads;
@@ -24,7 +25,7 @@ struct bakery_static_mutex *bakery_static_mutex_init(void *region, size_t num_th
     struct bakery_static_mutex *mutex = (struct bakery_static_mutex*)region;
     mutex->num_threads = num_threads;
     mutex->number = (atomic_size_t*)&mutex->tail[0];
-    mutex->choosing = (atomic_size_t*)&mutex->tail[num_threads * sizeof(atomic_size_t)];
+    mutex->choosing = (atomic_bool*)&mutex->tail[num_threads * sizeof(atomic_size_t)];
     memset((void*)mutex->tail, 0, num_threads * (sizeof(atomic_size_t) + sizeof(atomic_bool)));
 }
 

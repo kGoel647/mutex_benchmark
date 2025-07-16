@@ -1,11 +1,7 @@
 #! /bin/bash
 
-echo "This command should be run in a VM simulating a CXL environment"
-
-# Make sure emucxl is cloned
-if [ ! -d "emucxl "] ; then
-    git clone "https://github.com/cloudarxiv/emucxl"
-fi
+echo "Note: command should be run in a VM simulating a CXL environment"
+echo "Note: need to clone emucxl in this directory before running"
 
 # Make kernel module
 cd ./emucxl/src
