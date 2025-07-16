@@ -1,8 +1,9 @@
+#define debug(...)
+
 #include "bakery_static_mutex.c"
 #include "bl_static_mutex.c"
 #include "emucxl/src/emucxl_lib.h"
 
-// #include <threads.h>
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -13,6 +14,9 @@
 
 #define concat_nx(a, b) a##b
 #define concat(a, b) concat_nx(a, b)
+
+#define str_nx(a) #a
+#define str(a) str_nx(a)
 
 #define MUTEX concat(MUTEX_NAME_ROOT, _static_mutex)
 #define mutex_t struct MUTEX
@@ -39,25 +43,25 @@ static void *thread_start(void *arg)
     while (!*thread_info.start_flag);
 
     for (size_t i = 0; i < NUM_ITERATIONS; i++) {
-        printf("%ld: Locking...\n", thread_info.thread_id);
+        debug("%ld: Locking...\n", thread_info.thread_id);
         m_lock(thread_info.mutex, thread_info.thread_id);
-        printf("%ld: Locked.\n", thread_info.thread_id);
+        debug("%ld: Locked.\n", thread_info.thread_id);
         (*thread_info.counter)++;
-        printf("%ld: Unlocking...\n", thread_info.thread_id);
+        debug("%ld: Unlocking...\n", thread_info.thread_id);
         m_unlock(thread_info.mutex, thread_info.thread_id);
-        printf("%ld: Unlocked. (Completed one iteration)\n", thread_info.thread_id);
+        debug("%ld: Unlocked. (Completed one iteration)\n", thread_info.thread_id);
     }
 
     printf("%ld: thread_start finished.\n", thread_info.thread_id);
 }
 
-void test_bakery()
+void test_mutex()
 {
     size_t region_size = m_get_size(NUM_THREADS);
     void *region = emucxl_alloc(region_size, REMOTE_CXL_MEMORY);
     mutex_t *mutex = m_init(region, NUM_THREADS);
     // Should these be in shared memory?
-    size_t counter;
+    size_t counter = 0;
     bool start_flag = false;
     pthread_t threads[NUM_THREADS];
     struct thread_info threads_info[NUM_THREADS];
@@ -86,8 +90,8 @@ int main(int argc, char **argv)
 {
     emucxl_init();
 
-    printf("Testing bakery... ");
-    test_bakery();
+    printf("Testing " str_nx(MUTEX) " ...\n");
+    test_mutex();
     printf("done\n");
 
     emucxl_exit();

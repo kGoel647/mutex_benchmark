@@ -65,5 +65,5 @@ void bl_static_mutex_lock(struct bl_static_mutex *mutex, size_t thread_id)
 
 void bl_static_mutex_unlock(struct bl_static_mutex *mutex, size_t thread_id)
 {
-    mutex->in_contention[thread_id] = false;
+    mutex->is_locked = false;
 }
