@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 {
     emucxl_init();
 
-    printf("Testing " str_nx(MUTEX) " ...\n");
+    printf("Testing " str(MUTEX) " ...\n");
     test_mutex();
     printf("done\n");
 
