@@ -12,5 +12,5 @@ make > /dev/null 2>/dev/null
 sudo insmod emucxl_kernel.ko
 
 # Run custom tests
-gcc ../../test.c emucxl_lib.c emucxl_lib.h ../../bakery_static_mutex.c \
+gcc ../../test.c emucxl_lib.c emucxl_lib.h \
     && sudo ./a.out
