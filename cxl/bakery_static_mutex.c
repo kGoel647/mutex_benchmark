@@ -1,4 +1,4 @@
-#include "emucxl_lib.h"
+#include "emucxl/src/emucxl_lib.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -16,21 +16,22 @@
 // TODO: does this code get ruined by endianness? the buffer stuff seems like it might be.
 // TODO: storing num_threads locally as part of the pointer (fat pointer) would be better; it doesn't change.
 
-// These have to be `const bools` so that we can get pointers to them
-const bool true_ = true;
-const bool false_ = false;
-const size_t not_in_contention = 0;
+// These have to be statics so that we can get pointers to them
+// Should be constant, but the API doesn't allow it.
+static bool true_ = true;
+static bool false_ = false;
+static size_t not_in_contention = 0;
 
 struct bakery_static_mutex {
     size_t num_threads;
     char tail[];
 };
 
-inline bool *bm_get_choosing_array(struct bakery_static_mutex *mutex, size_t num_threads) {
+bool *bm_get_choosing_array(struct bakery_static_mutex *mutex, size_t num_threads) {
     return (bool*)&mutex->tail[sizeof(size_t) * num_threads];
 }
 
-inline size_t *bm_get_number_array(struct bakery_static_mutex *mutex, size_t num_threads) {
+size_t *bm_get_number_array(struct bakery_static_mutex *mutex, size_t num_threads) {
     return (size_t*)&mutex->tail[0];
 }
 
@@ -53,7 +54,7 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
 {
     // Get "bakery number"
     size_t num_threads;
-    emucxl_read(&mutex->num_threads, 0, num_threads, sizeof(mutex->num_threads));
+    emucxl_read(&mutex->num_threads, 0, &num_threads, sizeof(mutex->num_threads));
     bool *choosing = bm_get_choosing_array(mutex, num_threads);
     size_t *number = bm_get_number_array(mutex, num_threads);
 
@@ -97,7 +98,7 @@ void bakery_static_mutex_unlock(struct bakery_static_mutex *mutex, size_t thread
 {
     atomic_thread_fence(memory_order_seq_cst);
     size_t num_threads;
-    emucxl_read(&mutex->num_threads, 0, num_threads, sizeof(mutex->num_threads));
+    emucxl_read(&mutex->num_threads, 0, &num_threads, sizeof(mutex->num_threads));
     size_t *number = bm_get_number_array(mutex, num_threads);
     emucxl_read(number, thread_id, &not_in_contention, sizeof(*number));
 }
