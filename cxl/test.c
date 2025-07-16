@@ -1,4 +1,5 @@
 #include "bakery_static_mutex.c"
+#include "bl_static_mutex.c"
 #include "emucxl/src/emucxl_lib.h"
 
 // #include <threads.h>
@@ -8,13 +9,24 @@
 
 #define NUM_THREADS 10
 #define NUM_ITERATIONS 1000
+#define MUTEX_NAME_ROOT bl
+
+#define concat_nx(a, b) a##b
+#define concat(a, b) concat_nx(a, b)
+
+#define MUTEX concat(MUTEX_NAME_ROOT, _static_mutex)
+#define mutex_t struct MUTEX
+#define m_lock(mutex, thread_id) concat(MUTEX, _lock)(mutex, thread_id)
+#define m_unlock(mutex, thread_id) concat(MUTEX, _unlock)(mutex, thread_id)
+#define m_init(region, num_threads) concat(MUTEX, _init)(region, num_threads)
+#define m_get_size(num_threads) concat(MUTEX, _get_size)(num_threads)
 
 #define LOCAL_MEMORY 0
 #define REMOTE_CXL_MEMORY 1
 
 struct thread_info {
     size_t thread_id;
-    struct bakery_static_mutex *mutex;
+    mutex_t *mutex;
     size_t *counter;
     bool *start_flag;
 };
@@ -28,11 +40,11 @@ static void *thread_start(void *arg)
 
     for (size_t i = 0; i < NUM_ITERATIONS; i++) {
         printf("%ld: Locking...\n", thread_info.thread_id);
-        bakery_static_mutex_lock(thread_info.mutex, thread_info.thread_id);
+        m_lock(thread_info.mutex, thread_info.thread_id);
         printf("%ld: Locked.\n", thread_info.thread_id);
         (*thread_info.counter)++;
         printf("%ld: Unlocking...\n", thread_info.thread_id);
-        bakery_static_mutex_unlock(thread_info.mutex, thread_info.thread_id);
+        m_unlock(thread_info.mutex, thread_info.thread_id);
         printf("%ld: Unlocked. (Completed one iteration)\n", thread_info.thread_id);
     }
 
@@ -41,9 +53,9 @@ static void *thread_start(void *arg)
 
 void test_bakery()
 {
-    size_t region_size = bakery_static_mutex_get_size(NUM_THREADS);
+    size_t region_size = m_get_size(NUM_THREADS);
     void *region = emucxl_alloc(region_size, REMOTE_CXL_MEMORY);
-    struct bakery_static_mutex *mutex = bakery_static_mutex_init(region, NUM_THREADS);
+    mutex_t *mutex = m_init(region, NUM_THREADS);
     // Should these be in shared memory?
     size_t counter;
     bool start_flag = false;
