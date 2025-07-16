@@ -116,6 +116,8 @@ def init_args():
         Constants.executable = "./build/apps/max_contention_bench/max_contention_bench"
     elif (args.bench=='grouped'):
         Constants.executable = "./build/apps/grouped_contention_bench/grouped_contention_bench"
+    elif (args.bench=='min'):
+        Constants.executable = "./build/apps/min_contention_bench/min_contention_bench"
     
     Constants.max_n_points = args.max_n_points
 

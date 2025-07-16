@@ -141,3 +141,4 @@ def run_grouped_experiment_iter_v_threads_single_threaded(rusageGet=False):
                 csv_data = thread.stdout
                 with open(data_file_name, "wb") as data_file:
                     data_file.write(csv_data)
+
