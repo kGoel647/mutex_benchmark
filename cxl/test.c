@@ -25,7 +25,7 @@ static void *thread_start(void *arg)
 
     for (size_t i = 0; i < NUM_ITERATIONS; i++) {
         bakery_static_mutex_lock(thread_info->mutex, thread_info->thread_id);
-        thread_info->counter++;
+        (*thread_info->counter)++;
         bakery_static_mutex_unlock(thread_info->mutex, thread_info->thread_id);
     }
 }
@@ -55,6 +55,8 @@ void test_bakery()
     {
         pthread_join(threads[thread_id], &_ret);
     }
+
+    printf("expected=%d, actual=%ld\n", NUM_ITERATIONS * NUM_THREADS, counter);
 
     emucxl_free(region, region_size);
 }

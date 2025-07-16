@@ -22,14 +22,14 @@
 
 struct bakery_static_mutex {
     size_t num_threads;
-    char tail[];
+    volatile char tail[];
 };
 
-bool *bm_get_choosing_array(struct bakery_static_mutex *mutex, size_t num_threads) {
+volatile bool *bm_get_choosing_array(struct bakery_static_mutex *mutex, size_t num_threads) {
     return (bool*)&mutex->tail[sizeof(size_t) * num_threads];
 }
 
-size_t *bm_get_number_array(struct bakery_static_mutex *mutex, size_t num_threads) {
+volatile size_t *bm_get_number_array(struct bakery_static_mutex *mutex, size_t num_threads) {
     return (size_t*)&mutex->tail[0];
 }
 
@@ -44,7 +44,7 @@ size_t bakery_static_mutex_get_size(size_t num_threads)
 struct bakery_static_mutex *bakery_static_mutex_init(void *region, size_t num_threads)
 {
     struct bakery_static_mutex *mutex = (struct bakery_static_mutex*)region;
-    emucxl_write(&mutex->num_threads, 0, &num_threads, sizeof(mutex->num_threads));
+    mutex->num_threads = num_threads;
     memset((void*)&mutex->tail, 0, num_threads * (sizeof(size_t) + sizeof(bool)));
 }
 
@@ -52,8 +52,8 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
 {
     // Get "bakery number"
     size_t num_threads = mutex->num_threads;
-    bool *choosing = bm_get_choosing_array(mutex, num_threads);
-    size_t *number = bm_get_number_array(mutex, num_threads);
+    volatile bool *choosing = bm_get_choosing_array(mutex, num_threads);
+    volatile size_t *number = bm_get_number_array(mutex, num_threads);
 
     choosing[thread_id] = true;
     atomic_thread_fence(memory_order_seq_cst);
@@ -93,6 +93,6 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
 void bakery_static_mutex_unlock(struct bakery_static_mutex *mutex, size_t thread_id)
 {
     atomic_thread_fence(memory_order_seq_cst);
-    size_t *number = bm_get_number_array(mutex, mutex->num_threads);
+    volatile size_t *number = bm_get_number_array(mutex, mutex->num_threads);
     number[thread_id] = 0;
 }
