@@ -56,7 +56,7 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
     volatile size_t *number = bm_get_number_array(mutex, num_threads);
 
     choosing[thread_id] = true;
-    atomic_thread_fence(memory_order_seq_cst);
+    Fence();
     size_t my_bakery_number = 1;
     for (size_t i = 0; i < num_threads; i++) {
         size_t other_number = number[i];
@@ -66,9 +66,9 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
     }
     number[thread_id] = my_bakery_number;
 
-    atomic_thread_fence(memory_order_seq_cst);
+    Fence();
     choosing[thread_id] = false;
-    atomic_thread_fence(memory_order_seq_cst);
+    Fence();
 
     // Lock waiting part
     for (size_t j = 0; j < num_threads; j++) {
@@ -87,12 +87,12 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
             || (other_number == my_bakery_number && j < thread_id));
     }
     
-    atomic_thread_fence(memory_order_seq_cst);
+    Fence();
 }
 
 void bakery_static_mutex_unlock(struct bakery_static_mutex *mutex, size_t thread_id)
 {
-    atomic_thread_fence(memory_order_seq_cst);
+    Fence();
     volatile size_t *number = bm_get_number_array(mutex, mutex->num_threads);
     number[thread_id] = 0;
 }

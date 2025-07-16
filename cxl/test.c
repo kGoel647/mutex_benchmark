@@ -1,4 +1,17 @@
+// TODO: restructure cxl folder
+
 #define debug(...)
+
+#if defined(__x86_64)
+    //#define Fence() __asm__ __volatile__ ( "mfence" )
+    #define Fence() __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" )
+#elif defined(__i386)
+    #define Fence() __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" )
+#elif defined(__ARM_ARCH)
+    #define Fence() __asm__ __volatile__ ( "DMB ISH" ::: )
+#else
+    #error unsupported architecture
+#endif
 
 #include "bakery_static_mutex.c"
 #include "bl_static_mutex.c"
