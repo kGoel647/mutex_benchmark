@@ -4,6 +4,7 @@
 // #include <threads.h>
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
+#include <stdio.h>
 
 #define NUM_THREADS 10
 #define NUM_ITERATIONS 1000
@@ -20,14 +21,18 @@ struct thread_info {
 
 static void *thread_start(void *arg)
 {
-    struct thread_info *thread_info = (struct thread_info*)arg;
-    while (!thread_info->start_flag);
+    struct thread_info thread_info = *(struct thread_info*)arg;
+    printf("%ld: thread_start running...\n", thread_info.thread_id);
+
+    while (!*thread_info.start_flag);
 
     for (size_t i = 0; i < NUM_ITERATIONS; i++) {
-        bakery_static_mutex_lock(thread_info->mutex, thread_info->thread_id);
-        (*thread_info->counter)++;
-        bakery_static_mutex_unlock(thread_info->mutex, thread_info->thread_id);
+        bakery_static_mutex_lock(thread_info.mutex, thread_info.thread_id);
+        (*thread_info.counter)++;
+        bakery_static_mutex_unlock(thread_info.mutex, thread_info.thread_id);
     }
+
+    printf("%ld: thread_start finished.\n", thread_info.thread_id);
 }
 
 void test_bakery()

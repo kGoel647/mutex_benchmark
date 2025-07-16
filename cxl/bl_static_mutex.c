@@ -25,30 +25,39 @@ struct bl_static_mutex *bl_static_mutex_init(void *region, size_t num_threads)
 }
 
 
-void bl_static_mutex_lock(struct bl_static_mutex *mutex, size_t thread_id) 
+bool bl_static_mutex_trylock(struct bl_static_mutex *mutex, size_t thread_id) 
 {
     size_t num_threads = mutex->num_threads;
-restart:
+
     mutex->in_contention[thread_id] = true;
     // Does this fence happen?
     atomic_thread_fence(memory_order_seq_cst);
-    for (int i = 0; i < thread_id; i++) {
+    for (size_t i = 0; i < thread_id; i++) {
         if (mutex->in_contention[i]) {
-            goto restart;
+            // Give up if a higher-priority thread is in contention.
+            mutex->in_contention[thread_id] = false;
+            return false;
         }
     }
 
-    for (int i = thread_id + 1; i < num_threads; i++) {
+    for (size_t i = thread_id + 1; i < num_threads; i++) {
         while (mutex->in_contention[i]) {
             // Wait for it to stop being in contention.
         }
     }
 
-    if (!mutex->is_locked) {
+    bool leader = !mutex->is_locked;
+    if (leader) {
         mutex->is_locked = true;
-        mutex->in_contention[thread_id] = false;
-    } else {
-        goto restart;
+    }
+    mutex->in_contention[thread_id] = false;
+    return leader;
+}
+
+void bl_static_mutex_lock(struct bl_static_mutex *mutex, size_t thread_id)
+{
+    while (!bl_static_mutex_trylock(mutex, thread_id)) {
+        // Busy wait
     }
 }
 
