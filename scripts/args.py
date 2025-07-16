@@ -12,7 +12,6 @@ def init_args():
         description='Run contention benchmarks on various mutex algorithms',
     )
 
-
     parser.add_argument('threads',            type=int,
                         help='number of threads to spawn')
     parser.add_argument('seconds',            type=int,
@@ -27,6 +26,9 @@ def init_args():
                      help='measure per-lock/unlock latency')
     exp.add_argument('--iter-v-threads', nargs=3, type=int, metavar=('START','END','STEP'),
                      help='sweep iterations over a range of thread counts')
+    
+    
+    parser.add_argument('-r', '--rusage', action='store_true', help = 'record CPU usage instead of time/# iterations')
 
     parser.add_argument('-l','--log', type=str, default='INFO',
                         help='console log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
@@ -77,6 +79,7 @@ def init_args():
 
     parser.add_argument('-bench', type=str, default='max')
 
+
     args = parser.parse_args()
 
     if args.all:
@@ -97,6 +100,7 @@ def init_args():
     if args.iter_v_threads:
         Constants.threads_start, Constants.threads_end, Constants.threads_step = args.iter_v_threads
 
+    Constants.rusage = args.rusage
     Constants.data_folder       = args.data_folder
     Constants.logs_folder       = args.log_folder
     Constants.multithreaded     = args.multithreaded
@@ -112,6 +116,8 @@ def init_args():
         Constants.executable = "./build/apps/max_contention_bench/max_contention_bench"
     elif (args.bench=='grouped'):
         Constants.executable = "./build/apps/grouped_contention_bench/grouped_contention_bench"
+    elif (args.bench=='min'):
+        Constants.executable = "./build/apps/min_contention_bench/min_contention_bench"
     
     Constants.max_n_points = args.max_n_points
 

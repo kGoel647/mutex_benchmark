@@ -37,12 +37,14 @@
 #include "knuth_sleeper_lock.cpp"
 #include "yang_lock.cpp"
 #include "yang_sleeper_lock.cpp"
+
 #include "szymanski.cpp"
 
 int max_contention_bench(
     int num_threads,
     std::chrono::seconds run_time,
     bool csv,
+    bool rusage,
     bool thread_level,
     bool no_output,
     int max_noncritical_delay_ns,
@@ -123,11 +125,16 @@ int max_contention_bench(
         if (t.joinable()) t.join();
     }
 
+    if (rusage && !no_output){
+        record_rusage(csv);
+    }
+
     lock->destroy();
     free((void*)counter);
     delete lock;
 
-    if (!no_output) {
+
+    if (!no_output && !rusage) {
         for (auto& targs : thread_args) {
             report_thread_latency(&targs.stats, csv, thread_level);
             if (!thread_level) destroy_lock_timer(&targs.stats);
@@ -147,6 +154,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     const char* mutex_name            = argv[1];
     int         num_threads           = atoi(argv[2]);
     int         run_time_sec          = atoi(argv[3]);
@@ -155,6 +163,7 @@ int main(int argc, char* argv[]) {
     bool csv             = false;
     bool thread_level    = false;
     bool no_output       = false;
+    bool rusage          = false;
     bool low_contention  = false;
     int  stagger_ms      = 0;
 
@@ -163,6 +172,8 @@ int main(int argc, char* argv[]) {
             csv = true;
         } else if (strcmp(argv[i], "--thread-level") == 0) {
             thread_level = true;
+        } else if (strcmp(argv[i], "--rusage") == 0) {
+            rusage=true;
         } else if (strcmp(argv[i], "--no-output") == 0) {
             no_output = true;
         } else if (strcmp(argv[i], "--low-contention") == 0) {
@@ -212,12 +223,14 @@ int main(int argc, char* argv[]) {
         );
 
         return 1;
+
     }
 
     return max_contention_bench(
         num_threads,
         std::chrono::seconds(run_time_sec),
         csv,
+        rusage,
         thread_level,
         no_output,
         max_noncrit_delay_ns,

@@ -1,13 +1,15 @@
-// max_contention_bench.hpp
+// min_contention_bench.hpp
 
-#ifndef MAX_CONTENTION_BENCH_HPP
-#define MAX_CONTENTION_BENCH_HPP
+#ifndef MIN_CONTENTION_BENCH_HPP
+#define MIN_CONTENTION_BENCH_HPP
 
 #include "bench_utils.hpp"
 #include "lock.hpp"
 #include <chrono>
 #include <atomic>
 #include <memory>
+#include <cstdlib> 
+#include <ctime> 
 
 struct per_thread_args {
     int thread_id;
@@ -31,23 +33,10 @@ struct per_thread_args {
  * @param lock                      Pointer to the initialized SoftwareMutex.
  * @return int                      0 on success, 1 on error (e.g. counter mismatch).
  */
-int max_contention_bench(
+int min_contention_bench(
     int num_threads,
     std::chrono::seconds run_time,
     bool csv,
-    bool thread_level,
-    bool no_output,
-    int max_noncritical_delay_ns,
-    bool low_contention,
-    int stagger_ms,
-    SoftwareMutex* lock
-);
-
-int max_contention_bench(
-    int num_threads,
-    std::chrono::seconds run_time,
-    bool csv,
-    bool rusage,
     bool thread_level,
     bool no_output,
     int max_noncritical_delay_ns,
@@ -57,4 +46,3 @@ int max_contention_bench(
 );
 
 #endif 
-

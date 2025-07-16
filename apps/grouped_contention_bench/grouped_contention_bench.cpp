@@ -26,7 +26,9 @@
 #include "knuth_sleeper_lock.cpp"
 #include "szymanski.cpp"
 
-int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time, int num_groups, bool csv, SoftwareMutex* lock) {
+
+int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time, int num_groups, bool csv, bool rusage, SoftwareMutex* lock) {
+
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -94,6 +96,11 @@ int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time,
         }
     }
 
+
+    if (rusage){
+        record_rusage(csv);
+    }
+
     // Cleanup resources
     lock->destroy(); // Cleanup the lock resources
 
@@ -102,8 +109,10 @@ int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time,
 
     // Output benchmark results
 
-    for (auto& args : thread_args) {
-        report_thread_latency(&args.stats, csv, true); // Report latency for each thread
+    if (!rusage){
+        for (auto& args : thread_args) {
+            report_thread_latency(&args.stats, csv, true); // Report latency for each thread
+        }
     }
 
     // record_rusage(); // Record resource usage
@@ -113,12 +122,10 @@ int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time,
 void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared_ptr<std::atomic<bool>*> end_flags, std::chrono::nanoseconds run_time, int num_groups){
     for (int i=0; i<num_groups; i++){
 
-        std::atomic_thread_fence(std::memory_order_seq_cst);
         (*start_flags)[i]=true;
         std::this_thread::sleep_for(run_time);
         (*end_flags)[i]=true;
 
-        std::atomic_thread_fence(std::memory_order_seq_cst);
     }
     
 }
@@ -136,6 +143,7 @@ int main(int argc, char* argv[]) {
     bool thread_level = false;
     int run_time =-1;
     int num_groups =-1;
+    bool rusage = false;
 
     for (int i = 1; i < argc; i++) 
     {
@@ -144,6 +152,8 @@ int main(int argc, char* argv[]) {
             csv = true;
         } else if (strcmp(argv[i], "--thread-level") == 0 || strcmp(argv[i], "-t") == 0) {
             thread_level = true;
+        } else if (strcmp(argv[i], "--rusage") == 0) {
+            rusage=true;
         } else if (mutex_name == nullptr) {
             mutex_name = argv[i];
         } else if (num_threads == -1) {
@@ -197,5 +207,5 @@ int main(int argc, char* argv[]) {
     }
     
     // Run the max contention benchmark
-    return grouped_contention_bench(num_threads, std::chrono::nanoseconds(run_time), num_groups, csv, lock);
+    return grouped_contention_bench(num_threads, std::chrono::nanoseconds(run_time), num_groups, csv, rusage, lock);
 }
