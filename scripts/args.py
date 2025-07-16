@@ -105,6 +105,7 @@ def init_args():
     # Constants.threads_step = args.threads_step
     Constants.iter_threads = args.iter_threads
     Constants.iter_noncritical_delay = args.iter_noncritical_delay
+    Constants.rusage = args.rusage
     Constants.iter_critical_delay = args.iter_critical_delay
     Constants.iter = args.iter_threads is not None or args.iter_noncritical_delay is not None or args.iter_critical_delay is not None
 

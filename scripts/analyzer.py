@@ -77,6 +77,8 @@ def analyze_lock_level(data):
 #     return output
 
 def analyze_iter(data, iter_variable_name, iter_range):
+    if Constants.rusage:
+        return analyze_iter_rusage(iter_variable_name, iter_range, data)
     output=""
     output +="\n"
     axis = plt.axes()
@@ -98,6 +100,7 @@ def analyze_iter(data, iter_variable_name, iter_range):
             skip=-1,
             data=data[mutex_name],
             iter_variable_name=iter_variable_name,
+            colname="# Iterations",
         )
 
     legend = plt.legend()
@@ -109,34 +112,37 @@ def analyze_iter(data, iter_variable_name, iter_range):
 
     return output
 
-def analyze_iter_v_threads_rusage(data):
+def analyze_iter_rusage(iter_variable_name, iter_range, data):
     output=""
     output +="\n"
     figure, axis = plt.subplots(1, 2)
     for mutex_name in Constants.mutex_names:
         # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
-        user_time = [thread[0].mean() for thread in data[mutex_name]]
+        print(data)
+        # user_time = [thread['utime'].mean() for thread in data[mutex_name]]
         plot_one_graph(
             axis[0],
-            np.array(range(Constants.threads_start, Constants.threads_end, Constants.threads_step)),
-            user_time,
+            data[mutex_name]['threads'],
+            data[mutex_name]['utime'],
             mutex_name,
-            xlabel="# of Threads",
+            xlabel=iter_variable_name,
             ylabel="User time",
             title=f"{mutex_name}",
-            skip=-1
+            skip=-1,
+            colname="utime",
         )
 
-        sys_time = [thread[1].mean() for thread in data[mutex_name]]
+        # sys_time = [thread['stime'].mean() for thread in data[mutex_name]]
         plot_one_graph(
             axis[1],
-            np.array(range(Constants.threads_start, Constants.threads_end, Constants.threads_step)),
-            sys_time,
+            data[mutex_name]['threads'],
+            data[mutex_name]['stime'],
             mutex_name,
-            xlabel="# of Threads",
+            xlabel=iter_variable_name,
             ylabel="System time",
             title=f"{mutex_name}",
-            skip=-1
+            skip=-1,
+            colname="stime",
         )
 
         

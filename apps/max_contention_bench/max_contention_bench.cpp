@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 
     }
 
-    int result = max_contention_bench(
+    return max_contention_bench(
         num_threads,
         run_time_sec,
         csv,
@@ -222,8 +222,4 @@ int main(int argc, char* argv[]) {
         stagger_ms,
         lock
     );
-
-    cleanup_mutex(lock);
-
-    return result;
 }

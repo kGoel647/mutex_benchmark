@@ -14,14 +14,6 @@
 #include "bench_utils.hpp"
 #include "lock.hpp"
 
-struct per_thread_args {
-    int thread_id;
-    per_thread_stats stats;
-    std::shared_ptr<std::atomic<bool>> start_flag;
-    std::shared_ptr<std::atomic<bool>> end_flag;
-    SoftwareMutex* lock;
-};
-
 // Note: the problem with this benchmark is that many mutexes store internal state with thread_local variables that could cause problems because
 // if we use the same thread every time, the state gets recycled when it shouldn't be.
 // The benchmarking overhead is likely also very significant here.
@@ -116,7 +108,5 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    int result = min_contention_bench(num_threads, run_time_sec, csv, no_output, lock);
-    cleanup_mutex(lock);
-    return result;
+    return min_contention_bench(num_threads, run_time_sec, csv, no_output, lock);
 }

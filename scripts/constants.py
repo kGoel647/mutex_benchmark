@@ -62,6 +62,7 @@ class Constants:
     log                  = Defaults.LOG
     bench: str           = Defaults.BENCH
     iter: bool
+    rusage: bool
 
     noncritical_delay: int
     groups: int

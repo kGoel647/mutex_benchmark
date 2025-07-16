@@ -76,21 +76,24 @@ def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", titl
 
     if Constants.scatter:
         plt.scatter(x, y, label=title, s=0.2)
+        plt.xscale("log")
     elif error_bars is not None:
         plt.errorbar(x, y, error_bars, label=title)
     else:
         plt.plot(x, y, label=title)
+        plt.xscale("log")
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None):
+def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None, colname=None):
     logger.info(f"Plotting {mutex_name=}")
     # print(data)
     if error_bars is not None:
         # data = data.sample(1000)
         # color = sns.color_palette()
-        logger.debug(dict(data=data, x=iter_variable_name, y="Time Spent", errorbar=("sd", 0.1), label=title))
-        grid = sns.lineplot(data=data, x=iter_variable_name, y="Time Spent", errorbar=("sd", 0.1), label=title)
+        print(data)
+        logger.debug(dict(data=data, x=iter_variable_name, y=colname, errorbar=("sd", 0.1), label=title))
+        grid = sns.lineplot(data=data, x=iter_variable_name, y=colname, errorbar=("sd", 0.1), label=title)
         grid.set(yscale="log")
         # sns.scatterplot(data=data, x="threads", y="Time Spent", palette=color)
         return

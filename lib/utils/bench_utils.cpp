@@ -148,6 +148,8 @@ void busy_sleep(size_t iterations) {
 }
 
 SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
+    (void)num_threads; // May be used in the future
+
     SoftwareMutex* lock = nullptr;
     if      (strcmp(mutex_name, "pthread") == 0)             lock = new Pthread();
     else if (strcmp(mutex_name, "cpp_std") == 0)             lock = new CPPMutex();
@@ -181,23 +183,17 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "burns_lamport") == 0)       lock = new BurnsLamportMutex();
     else if (strcmp(mutex_name, "futex") == 0)               lock = new FutexLock();
     else if (strcmp(mutex_name, "elevator") == 0)            lock = new ElevatorMutex();
-    else if (strcmp(mutex_name, "hopscotch_static") == 0) {
-        // This causes a free / delete / delete[] mismatch
-        size_t region_size = HopscotchStaticMutex::get_size(num_threads);
-        void *region = malloc(region_size);
-        lock = new (region) HopscotchStaticMutex();
-    } else {
+    // else if (strcmp(mutex_name, "hopscotch_static") == 0) {
+    //     // This causes a free / delete / delete[] mismatch
+    //     size_t region_size = HopscotchStaticMutex::get_size(num_threads);
+    //     void *region = malloc(region_size);
+    //     lock = new (region) HopscotchStaticMutex();
+    // } 
+    else {
         fprintf(stderr,
             "Unrecognized mutex '%s'\n", mutex_name
         );
         return nullptr;
     }
     return lock;
-}
-
-void cleanup_mutex(SoftwareMutex *mutex) {
-    // if (mutex->name().compare("hopscotch_static") == 0) {
-        // printf("Cleaning up...\n");
-        // free(static_cast<void*>(mutex));
-    // }
 }
