@@ -27,9 +27,13 @@ static void *thread_start(void *arg)
     while (!*thread_info.start_flag);
 
     for (size_t i = 0; i < NUM_ITERATIONS; i++) {
+        printf("%ld: Locking...\n", thread_info.thread_id);
         bakery_static_mutex_lock(thread_info.mutex, thread_info.thread_id);
+        printf("%ld: Locked.\n", thread_info.thread_id);
         (*thread_info.counter)++;
+        printf("%ld: Unlocking...\n", thread_info.thread_id);
         bakery_static_mutex_unlock(thread_info.mutex, thread_info.thread_id);
+        printf("%ld: Unlocked. (Completed one iteration)\n", thread_info.thread_id);
     }
 
     printf("%ld: thread_start finished.\n", thread_info.thread_id);

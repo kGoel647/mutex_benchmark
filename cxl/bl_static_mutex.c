@@ -21,7 +21,9 @@ struct bl_static_mutex *bl_static_mutex_init(void *region, size_t num_threads)
 {
     struct bl_static_mutex *mutex = (struct bl_static_mutex*)region;
     mutex->num_threads = num_threads;
-    memset((void*)&mutex->in_contention, 0, num_threads);
+    for (size_t i = 0; i < num_threads; i++) {
+        mutex->in_contention[i] = false;
+    }
 }
 
 
