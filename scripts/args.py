@@ -14,7 +14,7 @@ def init_args():
     parser.add_argument('threads', type=int,
                         help="number of threads in contention")
     parser.add_argument('seconds', type=float,
-                        help="run duration")
+                        help="run duration in seconds")
     parser.add_argument('program_iterations', type=int,
                         help="number of times to run c++ subscript (more if changing # threads or other parameter)")
 
@@ -27,6 +27,9 @@ def init_args():
                      help='sweep iterations over a range of thread counts')
     experiment_type.add_argument('--iter-noncritical-delay', type=int, nargs=3)
     experiment_type.add_argument('--iter-critical-delay', type=int, nargs=3)
+    
+    
+    parser.add_argument('-r', '--rusage', action='store_true', help = 'record CPU usage instead of time/# iterations')
 
     parser.add_argument('-l','--log', type=str, default='INFO',
                         help='console log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')

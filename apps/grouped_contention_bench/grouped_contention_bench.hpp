@@ -21,4 +21,4 @@ struct run_args {
 
 void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared_ptr<std::atomic<bool>*> end_flags, double run_time, int num_groups);
 
-int grouped_contention_bench(int num_threads, double run_time, int num_groups, bool csv, SoftwareMutex* lock);
+int grouped_contention_bench(int num_threads, double run_time, int num_groups, bool csv, bool rusage, SoftwareMutex* lock);

@@ -12,7 +12,7 @@ def get_data_file_name(mutex_name, i, **kwargs):
     name = name_root + ".csv"
     return name
 
-def get_command(mutex_name, *, threads=None, csv=True, thread_level=False, critical_delay=None, noncritical_delay=None):
+def get_command(mutex_name, *, threads=None, csv=True, thread_level=False, critical_delay=None, noncritical_delay=None, rusage=False):
     if threads is None:
         threads = Constants.bench_n_threads
     if critical_delay is None:
@@ -35,6 +35,8 @@ def get_command(mutex_name, *, threads=None, csv=True, thread_level=False, criti
         cmd.append("--csv")
     if thread_level:
         cmd.append("--thread-level")
+    if rusage:
+        cmd.append("--rusage")
 
     if Constants.low_contention:
         cmd.append("--low-contention")
@@ -112,10 +114,10 @@ def run_experiment_lock_level_single_threaded():
 #                     data_file.write(csv_data)
 
 
-def run_experiment_iter_single_threaded(iter_variable_name, iter, *, thread_level=False):
+def run_experiment_iter_single_threaded(iter_variable_name, iter, *, thread_level=False, rusage=False):
     for i in range(Constants.n_program_iterations):
         for iter_variable_value in range(*iter):
-            extra_command_args = {iter_variable_name: iter_variable_value}
+            extra_command_args = {iter_variable_name: iter_variable_value, "rusage":rusage}
             for mutex_name in Constants.mutex_names:
                 logger.info(f"{mutex_name=} | {i=} | {extra_command_args=}")
                 data_file_name = get_data_file_name(mutex_name, i, **extra_command_args)

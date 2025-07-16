@@ -18,6 +18,7 @@ int max_contention_bench(
     int num_threads, 
     double run_time, 
     bool csv, 
+    bool rusage,
     bool thread_level, 
     bool no_output, 
     int max_critical_delay_iterations, 
@@ -115,6 +116,10 @@ int max_contention_bench(
         if (t.joinable()) t.join();
     }
 
+    if (rusage && !no_output){
+        record_rusage(csv);
+    }
+    
     int expected = 0;
     for (auto& targs : thread_args) {
         expected += targs.stats.num_iterations;
@@ -131,7 +136,8 @@ int max_contention_bench(
     free((void*)counter);
     delete lock;
 
-    if (!no_output) {
+
+    if (!no_output && !rusage) {
         for (auto& targs : thread_args) {
             report_thread_latency(&targs.stats, csv, thread_level);
             if (!thread_level) destroy_lock_timer(&targs.stats);
@@ -151,6 +157,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     const char* mutex_name            = argv[1];
     int         num_threads           = atoi(argv[2]);
     double      run_time_sec          = atof(argv[3]);
@@ -159,6 +166,7 @@ int main(int argc, char* argv[]) {
     bool thread_level          = false;
     bool no_output             = false;
     bool low_contention        = false;
+    bool rusage_               = false;
     int  stagger_ms            = 0;
     int  max_noncritical_delay = -1;
     int  max_critical_delay    = -1;
@@ -168,6 +176,8 @@ int main(int argc, char* argv[]) {
             csv = true;
         } else if (strcmp(argv[i], "--thread-level") == 0) {
             thread_level = true;
+        } else if (strcmp(argv[i], "--rusage") == 0) {
+            rusage_ = true;
         } else if (strcmp(argv[i], "--no-output") == 0) {
             no_output = true;
         } else if (strcmp(argv[i], "--low-contention") == 0) {
@@ -196,12 +206,14 @@ int main(int argc, char* argv[]) {
     SoftwareMutex *lock = get_mutex(mutex_name, num_threads);
     if (lock == nullptr) {
         return 1;
+
     }
 
     int result = max_contention_bench(
         num_threads,
         run_time_sec,
         csv,
+        rusage_,
         thread_level,
         no_output,
         max_noncritical_delay,

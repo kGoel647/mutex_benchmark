@@ -33,30 +33,25 @@ def finish_plotting_cdf(thread_time_or_lock_time):
         handle._sizes = [30]
     plt.show()
 
+def finish_plotting_graph(axis, rusage=False):
+    print("Finishing plotting...")
+    if not(rusage):
+        axis[0].set_title(f"# Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+        axis[0].set_yscale('log')
+    else:
+        axis[0].set_title(f"# User time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
 
-def finish_plotting_graph(axis):
-    """
-    Finalize and show a 2-panel graph: iterations vs threads and std dev vs threads.
-    Expects `axis` to be a tuple/list of two Axes objects.
-    """
-    print("Finishing plotting graph...")
-    # Upper plot: total iterations
-    axis[0].set_title(
-        f"# Iterations vs threads for {Constants.bench_n_seconds}s ({Constants.n_program_iterations}×)"
-    )
-    axis[0].set_yscale('log')
+    if len(axis)>1:
+        if not(rusage):
+            axis[1].set_title(f"Std. dev of # Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+            axis[1].set_yscale('log')
+        else:
+            axis[1].set_title(f"System time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
 
-    # Lower plot: standard deviation
-    axis[1].set_title(
-        f"Std. dev of # Iterations vs threads for {Constants.bench_n_seconds}s ({Constants.n_program_iterations}×)"
-    )
-    axis[1].set_yscale('log')
-
-    # Legend sizing
     for ax in axis:
-        legend = ax.legend()
-        for handle in legend.legend_handles:
-            handle._sizes = [30]
+      legend = ax.legend()
+      for handle in legend.legend_handles:
+          handle._sizes = [30]
 
     plt.show()
 

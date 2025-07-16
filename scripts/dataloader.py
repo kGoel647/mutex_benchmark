@@ -42,16 +42,22 @@ def load_data_lock_level():
 #             data[mutex_name].append(dataframes["# Iterations"])
 #     return data
 
-def load_data_iter(iter_variable_name, iter_range):
+def get_column_names(rusage):
+    if rusage:
+        return ["utime", "stime", "maxrss", "ru_minflt", "ru_majflt"]
+    else:
+        return ["Thread ID", "Seconds", "# Iterations"]
+
+def load_data_iter(iter_variable_name, iter_range, rusage=False):
     data = {}
     for mutex_name in Constants.mutex_names:
         data[mutex_name]=[]
         for iter_variable_value in range(*iter_range):
-            extra_command_args = {iter_variable_name:iter_variable_value}
+            extra_command_args = {iter_variable_name:iter_variable_value, "rusage":rusage}
             dataframes=[]
             for i in range(Constants.n_program_iterations):
                 data_file_name = get_data_file_name(mutex_name, i, **extra_command_args)
-                dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Iteration #", "Time Spent"])
+                dataframe = pd.read_csv(data_file_name, names=get_column_names(rusage))
                 dataframes.append(dataframe)
             dataframes=pd.concat(dataframes)
             dataframes[iter_variable_name] = iter_variable_value
