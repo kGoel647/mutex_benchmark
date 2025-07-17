@@ -1,7 +1,10 @@
 // TODO: restructure cxl folder
 
-#ifndef CXL_HARNESS_CPP
-#define CXL_HARNESS_CPP
+// Should this be a header file?
+// Should the constants be split off into a separate file?
+
+#ifndef CXL_HARNESS_HPP
+#define CXL_HARNESS_HPP
 
 #pragma once
 
@@ -125,4 +128,4 @@ int main(int argc, char **argv)
     return 0;
 }
 
-#endif // CXL_HARNESS_CPP
+#endif // CXL_HARNESS_HPP

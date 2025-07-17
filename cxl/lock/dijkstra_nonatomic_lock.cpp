@@ -1,5 +1,5 @@
 #include "../emucxl_lib.h"
-#include "../harness.cpp"
+#include "../harness.hpp"
 
 #include "lock.hpp"
 #include <stdexcept>
