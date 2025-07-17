@@ -1,6 +1,9 @@
 // TODO: restructure cxl folder
 
+#ifndef CXL_HARNESS_CPP
+#define CXL_HARNESS_CPP
 
+#pragma once
 
 #define debug(...)
 #define CXL_ALLOCATE(size) emucxl_alloc(size, 1)
@@ -121,3 +124,5 @@ int main(int argc, char **argv)
     emucxl_exit();
     return 0;
 }
+
+#endif // CXL_HARNESS_CPP
