@@ -1,4 +1,4 @@
-#include "emu/src/emucxl_lib.h"
+#include "../emucxl_lib.h"
 
 #include "lock.hpp"
 #include <stdexcept>
