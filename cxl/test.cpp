@@ -15,7 +15,7 @@
 
 #include "bakery_static_mutex.cpp"
 #include "bl_static_mutex.cpp"
-#include "emucxl/src/emucxl_lib.h"
+#include "emucxl_lib.h"
 
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
