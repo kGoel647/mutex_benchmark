@@ -76,8 +76,10 @@ int max_contention_bench(
                 while (!*end_flag) {
                     lock->lock(i);
                     thread_args[i].stats.num_iterations++;
+                    __tsan_acquire((void*)&(counter)); 
                     (*counter)++; // Critical section
-                    Fence(); //ensure that counter was updated before unlocking; required for any impl.
+                    
+                    __tsan_release((void*)&(counter)); //ensure that counter was updated before unlocking; required for any impl.
                     lock->unlock(i);
                 }
             });
@@ -96,6 +98,7 @@ int max_contention_bench(
                     start_lock_timer(&thread_args[i].stats);
                     lock->lock(i);
                     (*counter)++;
+                    Fence(counter);
                     lock->unlock(i);
                     end_lock_timer(&thread_args[i].stats);
 
@@ -144,6 +147,8 @@ int max_contention_bench(
     }
 
     return 0;
+    
+
 }
 
 int main(int argc, char* argv[]) {

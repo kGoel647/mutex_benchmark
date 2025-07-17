@@ -12,22 +12,22 @@
 #  if __has_feature(thread_sanitizer)
     // asm fence. ADDED for ThreadSanitizer support. SHOULD NOT WORK, as tsan_acquire and tsan_release require a memory address.
     #if defined(__x86_64)
-        #define Fence() {\
-        __tsan_acquire(nullptr); \
-        __tsan_release(nullptr); \
+        #define Fence(ptr) {\
+        __tsan_acquire((void*)ptr); \
+        __tsan_release((void*)ptr); \
         __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" );\
         }
     #elif defined(__i386)
-        #define Fence() {\
-            __tsan_acquire(nullptr); \
-            __tsan_release(nullptr); \
+        #define Fence(ptr) {\
+            __tsan_acquire((void*)ptr); \
+            __tsan_release((void*)ptr); \
         __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" );\
         }
     #elif defined(__ARM_ARCH)
-        #define Fence() {\
-        __tsan_acquire(nullptr); \
-        __tsan_release(nullptr); \
-        __asm__ __volatile__ ( "DMB ISH" ::: ); \
+        #define Fence(ptr) {\
+        __tsan_acquire((void*)ptr); \
+        __tsan_release((void*)ptr); \
+        __asm__ __volatile__ ( "DMB ISH" ::: );\ 
         }
     #else
         #error unsupported architecture
@@ -36,17 +36,16 @@
 // asm fence
     #if defined(__x86_64)
         //#define Fence() __asm__ __volatile__ ( "mfence" )
-        #define Fence() __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" )
+        #define Fence(ptr) __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" )
     #elif defined(__i386)
-        #define Fence() __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" )
+        #define Fence(ptr) __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" )
     #elif defined(__ARM_ARCH)
-        #define Fence() __asm__ __volatile__ ( "DMB ISH" ::: ) 
+        #define Fence(ptr) __asm__ __volatile__ ( "DMB ISH" ::: ) 
     #else
         #error unsupported architecture
     #endif
 #endif
 #endif
-
 
 class SoftwareMutex {
 public:

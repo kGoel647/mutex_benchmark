@@ -19,18 +19,20 @@ public:
         unlocking[thread_id] = false;
     try_again:
         c[thread_id] = true;
-        Fence();
+        __tsan_release((void*)&c[thread_id]);
+        __tsan_acquire((void*)&k);
         if (k != thread_id) {
             while (!unlocking[k]) {}
             k = thread_id;
-            Fence();
+            __tsan_release((void*)&k);
             
             goto try_again;
         } 
         c[thread_id] = false;
-        Fence();
+        __tsan_release((void*)&c[thread_id]);
         for (size_t j = 0; j < num_threads; j++) {
-            if (j != thread_id && !c[j]) {
+            __tsan_acquire((void*)&c[j]);
+            if (!c[j] && j != thread_id) {
                 goto try_again;
             }
         }
