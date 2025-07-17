@@ -13,8 +13,8 @@
     #error unsupported architecture
 #endif
 
-#include "bakery_static_mutex.c"
-#include "bl_static_mutex.c"
+#include "bakery_static_mutex.cpp"
+#include "bl_static_mutex.cpp"
 #include "emucxl/src/emucxl_lib.h"
 
 #include <bits/pthreadtypes.h>
@@ -66,6 +66,8 @@ static void *thread_start(void *arg)
     }
 
     printf("%ld: thread_start finished.\n", thread_info.thread_id);
+
+    return nullptr;
 }
 
 void test_mutex()

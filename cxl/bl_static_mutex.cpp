@@ -1,10 +1,9 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <threads.h>
 #include <string.h>
-#include <stdatomic.h>
 
+#include <atomic>
 
 struct bl_static_mutex {
     size_t num_threads;
@@ -34,7 +33,7 @@ bool bl_static_mutex_trylock(struct bl_static_mutex *mutex, size_t thread_id)
 
     mutex->in_contention[thread_id] = true;
     // Does this fence happen?
-    Fence();
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     for (size_t i = 0; i < thread_id; i++) {
         if (mutex->in_contention[i]) {
             // Give up if a higher-priority thread is in contention.

@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <threads.h>
 #include <string.h>
-#include <stdatomic.h>
+
+#include <atomic>
 
 // TODO add fences because these variables are not going to be atomic in CXL
 // TODO handle emucxl_write() returning false
@@ -46,6 +46,7 @@ struct bakery_static_mutex *bakery_static_mutex_init(void *region, size_t num_th
     struct bakery_static_mutex *mutex = (struct bakery_static_mutex*)region;
     mutex->num_threads = num_threads;
     memset((void*)&mutex->tail, 0, num_threads * (sizeof(size_t) + sizeof(bool)));
+    return mutex;
 }
 
 void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_id) 
@@ -56,7 +57,8 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
     volatile size_t *number = bm_get_number_array(mutex, num_threads);
 
     choosing[thread_id] = true;
-    atomic_thread_fence(memory_order_seq_cst);
+    
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     size_t my_bakery_number = 1;
     for (size_t i = 0; i < num_threads; i++) {
         size_t other_number = number[i];
@@ -66,9 +68,10 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
     }
     number[thread_id] = my_bakery_number;
 
-    atomic_thread_fence(memory_order_seq_cst);
+    
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     choosing[thread_id] = false;
-    atomic_thread_fence(memory_order_seq_cst);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
 
     // Lock waiting part
     for (size_t j = 0; j < num_threads; j++) {
@@ -87,12 +90,12 @@ void bakery_static_mutex_lock(struct bakery_static_mutex *mutex, size_t thread_i
             || (other_number == my_bakery_number && j < thread_id));
     }
     
-    atomic_thread_fence(memory_order_seq_cst);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
 }
 
 void bakery_static_mutex_unlock(struct bakery_static_mutex *mutex, size_t thread_id)
 {
-    atomic_thread_fence(memory_order_seq_cst);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     volatile size_t *number = bm_get_number_array(mutex, mutex->num_threads);
     number[thread_id] = 0;
 }
