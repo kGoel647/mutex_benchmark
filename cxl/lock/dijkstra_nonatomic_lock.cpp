@@ -1,4 +1,5 @@
 #include "../emucxl_lib.h"
+#include "../harness.cpp"
 
 #include "lock.hpp"
 #include <stdexcept>
@@ -7,7 +8,7 @@ class DijkstraNonatomicMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
         size_t size = num_threads * sizeof(bool) * 2;
-        this->cxl_region = (volatile char*)emucxl_alloc(size, 1);
+        this->cxl_region = (volatile char*)CXL_ALLOCATE(size);
 
         this->unlocking = (volatile bool*)&this->cxl_region[0];
 
@@ -49,7 +50,7 @@ public:
         c[thread_id] = true;
     }
     void destroy() override {
-        emucxl_free((void*)this->cxl_region, num_threads * sizeof(bool) * 2);
+        CXL_FREE((void*)this->cxl_region, num_threads * sizeof(bool) * 2);
     }
 
     std::string name() override {

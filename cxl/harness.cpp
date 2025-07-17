@@ -1,6 +1,10 @@
 // TODO: restructure cxl folder
 
+
+
 #define debug(...)
+#define CXL_ALLOCATE(size) emucxl_alloc(size, 1)
+#define CXL_FREE(ptr, size) emucxl_free(ptr, size)
 
 #if defined(__x86_64)
     //#define Fence() __asm__ __volatile__ ( "mfence" )
