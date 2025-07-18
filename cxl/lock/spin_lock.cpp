@@ -12,7 +12,7 @@ public:
     void init(size_t num_threads) override {
         (void)num_threads; // This parameter is not used
 
-        this->lock_ = (std::atomic_flag*)CXL_ALLOCATE(sizeof(std::atomic_flag), 1);
+        this->lock_ = (std::atomic_flag*)CXL_ALLOCATE(sizeof(std::atomic_flag));
     }
 
     void lock(size_t thread_id) override {

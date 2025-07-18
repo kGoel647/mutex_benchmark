@@ -27,6 +27,7 @@
 
 #include "lock/lock.hpp"
 #include "lock/dijkstra_nonatomic_lock.cpp"
+#include "lock/spin_lock.cpp"
 
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
@@ -86,7 +87,8 @@ static void *thread_start(void *arg)
 
 void test_mutex()
 {
-    SoftwareMutex *mutex = new DijkstraNonatomicMutex();
+    SoftwareMutex *mutex = new SpinLock();
+    printf("Mutex name: %s\n", mutex->name().c_str());
     mutex->init(NUM_THREADS);
     // Should these be in shared memory?
     size_t counter = 0;
