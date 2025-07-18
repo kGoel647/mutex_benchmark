@@ -3,10 +3,8 @@
 // Should this be a header file?
 // Should the constants be split off into a separate file?
 
-#ifndef CXL_HARNESS_HPP
-#define CXL_HARNESS_HPP
-
-#pragma once
+#ifndef CXL_HARNESS_CPP
+#define CXL_HARNESS_CPP
 
 #define debug(...)
 #define CXL_ALLOCATE(size) emucxl_alloc(size, 1)
@@ -128,4 +126,4 @@ int main(int argc, char **argv)
     return 0;
 }
 
-#endif // CXL_HARNESS_HPP
+#endif // CXL_HARNESS_CPP

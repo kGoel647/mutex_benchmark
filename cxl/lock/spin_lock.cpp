@@ -1,4 +1,4 @@
-#include "../harness.hpp"
+#include "../harness.cpp"
 
 #include "lock.hpp"
 #include "trylock.hpp"

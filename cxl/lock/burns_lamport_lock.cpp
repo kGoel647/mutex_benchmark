@@ -1,3 +1,5 @@
+#include "../harness.cpp"
+
 #include "lock.hpp"
 #include "trylock.hpp"
 #include <atomic>
@@ -9,7 +11,7 @@ class BurnsLamportMutex : public virtual TryLock {
 public:
     void init(size_t num_threads) override {
         size_t _cxl_region_size = num_threads * sizeof(volatile bool) + sizeof(volatile bool);
-        this->_cxl_region = (volatile char*)malloc(_cxl_region_size);
+        this->_cxl_region = (volatile char*)CXL_ALLOCATE(_cxl_region_size);
         this->in_contention = (volatile bool*)&this->_cxl_region[0];
         size_t in_contention_size = sizeof(volatile bool) * num_threads;
         memset((void*)in_contention, 0, in_contention_size);
@@ -52,7 +54,7 @@ public:
     }
 
     void destroy() override {
-        free((void*)in_contention);
+        CXL_FREE((void*)in_contention, this->num_threads * sizeof(volatile bool) + sizeof(volatile bool));
     }
 
     std::string name() override {
