@@ -36,7 +36,9 @@ public:
         lock_->clear(std::memory_order_release);
     }
 
-    void destroy() override {}
+    void destroy() override {
+        free((void*)this->lock_);
+    }
 
     std::string name() override {
         return "spin";
