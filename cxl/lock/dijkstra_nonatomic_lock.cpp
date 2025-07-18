@@ -7,12 +7,12 @@ class DijkstraNonatomicMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
         size_t size = num_threads * sizeof(bool) * 2;
-        this->cxl_region = (volatile char*)CXL_ALLOCATE(size);
+        this->_cxl_region = (volatile char*)CXL_ALLOCATE(size);
 
-        this->unlocking = (volatile bool*)&this->cxl_region[0];
+        this->unlocking = (volatile bool*)&this->_cxl_region[0];
 
         size_t c_offset = sizeof(bool) * num_threads;
-        this->c = (volatile bool*)&this->cxl_region[c_offset];
+        this->c = (volatile bool*)&this->_cxl_region[c_offset];
 
         for (size_t i = 0; i < num_threads; i++) {
             unlocking[i] = true;
@@ -49,7 +49,7 @@ public:
         c[thread_id] = true;
     }
     void destroy() override {
-        CXL_FREE((void*)this->cxl_region, num_threads * sizeof(bool) * 2);
+        CXL_FREE((void*)this->_cxl_region, num_threads * sizeof(bool) * 2);
     }
 
     std::string name() override {
@@ -57,7 +57,7 @@ public:
     }
 
 private:
-    volatile char *cxl_region;
+    volatile char *_cxl_region;
     volatile bool *unlocking;
     volatile bool *c;
     volatile size_t k;
