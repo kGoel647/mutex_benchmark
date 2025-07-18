@@ -1,4 +1,3 @@
-#include "../emucxl_lib.h"
 #include "../harness.hpp"
 
 #include "lock.hpp"
