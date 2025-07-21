@@ -13,12 +13,27 @@
     extern "C" { 
         void *emucxl_alloc(size_t size, int node);
         void  emucxl_free(void *ptr, size_t size);
+        void emucxl_init();
+        void emucxl_exit();
     }
     #define ALLOCATE(size) emucxl_alloc(size, 1)
     #define FREE(ptr, size) emucxl_free(ptr, size)
+
+    void cxl_mutex_benchmark_init() {
+        emucxl_init();
+    }
+    void cxl_mutex_benchmark_exit() {
+        emucxl_exit();
+    }
 #else
     #define ALLOCATE(size) malloc(size)
     #define FREE(ptr, size) free(ptr); (void)(size) //
+    void cxl_mutex_benchmark_init() {
+
+    }
+    void cxl_mutex_benchmark_exit() {
+
+    }
 #endif // CXL
 
 #if defined(__x86_64)

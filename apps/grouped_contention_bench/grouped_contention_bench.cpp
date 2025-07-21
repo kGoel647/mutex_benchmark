@@ -1,25 +1,10 @@
 #include "grouped_contention_bench.hpp"
 #include "bench_utils.hpp"
-
-#include "lock.hpp"
-#include "pthread_lock.cpp"
-#include "cpp_std_mutex.cpp"
-#include "boost_lock.cpp"
-#include "dijkstra_lock.cpp"
-#include "dijkstra_nonatomic_lock.cpp"
-#include "spin_lock.hpp"
-#include "exp_spin_lock.cpp"
-#include "nsync_lock.cpp"
-#include "bakery_mutex.cpp"
-#include "bakery_nonatomic_mutex.cpp"
-#include "lamport_lock.cpp"
-#include "mcs_lock.cpp"
-#include "mcs_volatile_lock.cpp"
-#include "mcs_malloc_lock.cpp"
-#include "knuth_lock.cpp"
-#include "peterson_lock.cpp"
-#include "boulangerie.cpp"
-#include "szymanski.cpp"
+#include "cxl_utils.hpp"
+#include "memory.h"
+#include "stdio.h"
+#include <string>
+#include <stdlib.h>
 
 int grouped_contention_bench(int num_threads, double run_time, int num_groups, bool csv, bool rusage, SoftwareMutex* lock) {
 
@@ -178,10 +163,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    cxl_mutex_benchmark_init();
+
     SoftwareMutex *lock = get_mutex(mutex_name, num_threads);
     if (lock == nullptr) {
+        fprintf(stderr, "Failed to initialize lock.\n");
         return 1;
     }
 
-    return grouped_contention_bench(num_threads, run_time, num_groups, csv, rusage, lock);
+    int result = grouped_contention_bench(num_threads, run_time, num_groups, csv, rusage, lock);
+
+    cxl_mutex_benchmark_exit();
+    
+    return result;
 }

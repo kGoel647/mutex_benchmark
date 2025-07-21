@@ -64,10 +64,14 @@ void* emucxl_alloc(size_t size, int node)
 		}
 		printf("DEBUG: size : %ld\n", size);
 	#endif
+	if (fd == 0) {
+		fprintf(stderr, "fd=0: forgot emucxl_init()?\n");
+		return NULL;
+	}
     p_map = (unsigned char *)mmap(0, size, PROT_READ | PROT_WRITE,
             MAP_SHARED, fd, node * PAGE_SIZE); // offset should be in multiple of page size
     if(p_map == MAP_FAILED) {
-        printf("mmap fail\n");
+        fprintf(stderr, "mmap fail\n");
         munmap(p_map, size);
 		return NULL;
     }
