@@ -3,34 +3,8 @@
 
 #include "lock.hpp"
 
-#include "cpp_std_mutex.cpp"
-#include "boost_lock.cpp"
-#include "dijkstra_lock.cpp"
-#include "dijkstra_nonatomic_lock.cpp"
-#include "dijkstra_nonatomic_sleeper_lock.cpp"
-#include "spin_lock.cpp"
-#include "exp_spin_lock.cpp"
-#include "nsync_lock.cpp"
-#include "bakery_mutex.cpp"
-#include "bakery_nonatomic_mutex.cpp"
-#include "lamport_lock.cpp"
-#include "mcs_lock.cpp"
-#include "mcs_volatile_lock.cpp"
-#include "mcs_malloc_lock.cpp"
-#include "knuth_lock.cpp"
-#include "peterson_lock.cpp"
-#include "boulangerie.cpp"
-#include "wait_spin_lock.cpp"
-#include "lamport_sleeper_lock.cpp"
-#include "system_lock.cpp"
-#include "mcs_sleeper_lock.cpp"
-#include "knuth_sleeper_lock.cpp"
-#include "yang_lock.cpp"
-#include "yang_sleeper_lock.cpp"
-#include "szymanski.cpp"
+int grouped_contention_bench(int num_threads, double run_time, int num_groups, bool csv, bool rusage, SoftwareMutex* lock) {
 
-
-int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time, int num_groups, bool csv, bool rusage, SoftwareMutex* lock) {
 
 
     // Create run args structure to hold thread arguments
@@ -120,13 +94,14 @@ int grouped_contention_bench(int num_threads, std::chrono::nanoseconds run_time,
 
     // record_rusage(); // Record resource usage
     // report_latency(&args); // Report latency if needed
+    return 0;
 }
 
-void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared_ptr<std::atomic<bool>*> end_flags, std::chrono::nanoseconds run_time, int num_groups){
+void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared_ptr<std::atomic<bool>*> end_flags, double run_time, int num_groups){
     for (int i=0; i<num_groups; i++){
 
         (*start_flags)[i]=true;
-        std::this_thread::sleep_for(run_time);
+        std::this_thread::sleep_for(std::chrono::duration<double>(run_time));
         (*end_flags)[i]=true;
 
     }
@@ -134,7 +109,7 @@ void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
+    if (argc < 6) {
         fprintf(stderr, "Usage: %s <mutex_name> <num_threads> <run_time_per_group> <num_groups> <flags>]\n", argv[0]);
         return 1;
     }
@@ -143,8 +118,7 @@ int main(int argc, char* argv[]) {
     char *mutex_name = nullptr;
     int num_threads = -1;
     bool csv = false;
-    bool thread_level = false;
-    int run_time =-1;
+    double run_time = -1;
     int num_groups =-1;
     bool rusage = false;
 
@@ -153,8 +127,6 @@ int main(int argc, char* argv[]) {
         // First, check if the argument is a flag, which can be placed anywhere.
         if (strcmp(argv[i], "--csv") == 0 || strcmp(argv[i], "-c") == 0) {
             csv = true;
-        } else if (strcmp(argv[i], "--thread-level") == 0 || strcmp(argv[i], "-t") == 0) {
-            thread_level = true;
         } else if (strcmp(argv[i], "--rusage") == 0) {
             rusage=true;
         } else if (mutex_name == nullptr) {
@@ -162,7 +134,7 @@ int main(int argc, char* argv[]) {
         } else if (num_threads == -1) {
             num_threads = atoi(argv[i]);
         } else if (run_time == -1){
-            run_time = atoi(argv[i]);
+            run_time = atof(argv[i]);
         } else if (num_groups==-1){
             num_groups = atoi(argv[i]);
         } else {
@@ -176,41 +148,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create a lock instance (using Pthread lock as an example)
-    // This section is going to be annoying to change every time we add a new mutex.
-    SoftwareMutex* lock = nullptr;
-    if      (strcmp(mutex_name, "system") == 0)                     lock = new System();
-    else if (strcmp(mutex_name, "cpp_std") == 0)                    lock = new CPPMutex();
-    else if (strcmp(mutex_name, "boost") == 0)                      lock = new BoostMutex();
-    else if (strcmp(mutex_name, "dijkstra") == 0)                   lock = new DijkstraMutex();
-    else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0)         lock = new DijkstraNonatomicMutex();
-    else if (strcmp(mutex_name, "dijkstra_nonatomic_sleeper") == 0) lock = new DijkstraNonatomicSleeperMutex();
-    else if (strcmp(mutex_name, "spin") == 0)                       lock = new SpinLock();
-    else if (strcmp(mutex_name, "exp_spin") == 0)                   lock = new ExponentialSpinLock();
-    else if (strcmp(mutex_name, "wait_spin") == 0)                  lock = new ExponentialSpinLock();
-    else if (strcmp(mutex_name, "nsync") == 0)                      lock = new NSync();
-    else if (strcmp(mutex_name, "bakery") == 0)                     lock = new BakeryMutex();
-    else if (strcmp(mutex_name, "bakery_nonatomic") == 0)           lock = new BakeryNonAtomicMutex();
-    else if (strcmp(mutex_name, "lamport") == 0)                    lock = new LamportLock();
-    else if (strcmp(mutex_name, "lamport_sleeper") == 0)            lock = new LamportSleeperLock();
-    else if (strcmp(mutex_name, "mcs") == 0)                        lock = new MCSMutex();
-    else if (strcmp(mutex_name, "mcs_volatile") == 0)               lock = new MCSVolatileMutex();
-    else if (strcmp(mutex_name, "mcs_malloc") == 0)                 lock = new MCSMallocMutex();
-    else if (strcmp(mutex_name, "mcs_sleeper") == 0)                lock = new MCSSleeperMutex();
-    else if (strcmp(mutex_name, "knuth") == 0)                      lock = new KnuthMutex();
-    else if (strcmp(mutex_name, "knuth_sleeper") == 0)              lock = new KnuthSleeperMutex(); //does not work as of 7/14/25
-    else if (strcmp(mutex_name, "peterson") == 0)                   lock = new PetersonMutex();
-    else if (strcmp(mutex_name, "boulangerie") == 0)                lock = new Boulangerie();
-    else if (strcmp(mutex_name, "szymanski") == 0)                  lock = new SzymanskiLock();
-    else if (strcmp(mutex_name, "yang") == 0)                       lock = new YangMutex();
-    else if (strcmp(mutex_name, "yang_sleeper") == 0)               lock = new YangSleeperMutex();
-    else {
-        fprintf(stderr,
-            "Unrecognized mutex '%s'\n", mutex_name
-        );
+
+    SoftwareMutex *lock = get_mutex(mutex_name, num_threads);
+    if (lock == nullptr) {
+
         return 1;
     }
-    
-    // Run the max contention benchmark
-    return grouped_contention_bench(num_threads, std::chrono::nanoseconds(run_time), num_groups, csv, rusage, lock);
+
+    return grouped_contention_bench(num_threads, run_time, num_groups, csv, rusage, lock);
 }

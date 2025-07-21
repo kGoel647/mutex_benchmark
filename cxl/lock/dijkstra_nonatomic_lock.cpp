@@ -1,17 +1,24 @@
+#include "../harness.cpp"
+
 #include "lock.hpp"
 #include <stdexcept>
-#include "../utils/bench_utils.hpp"
 
 class DijkstraNonatomicMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        this->unlocking = (volatile bool*)malloc(sizeof(bool) * (num_threads+1));
-        this->c = (volatile bool*)malloc(sizeof(bool) * (num_threads+1));
-        for (size_t i = 0; i < num_threads+1; i++) {
+        size_t size = num_threads * sizeof(bool) * 2;
+        this->cxl_region = (volatile char*)CXL_ALLOCATE(size);
+
+        this->unlocking = (volatile bool*)&this->cxl_region[0];
+
+        size_t c_offset = sizeof(bool) * num_threads;
+        this->c = (volatile bool*)&this->cxl_region[c_offset];
+
+        for (size_t i = 0; i < num_threads; i++) {
             unlocking[i] = true;
             c[i] = true;
         }
-        this->k = num_threads;
+        this->k = 0;
         this->num_threads = num_threads;
     }
 
@@ -24,10 +31,9 @@ public:
         if (k != thread_id) {
             while (!unlocking[k]) {}
             k = thread_id;
-
-            Fence();
-            // goto try_again; //maybe not needed
-
+            std::atomic_thread_fence(std::memory_order_seq_cst);
+            
+            goto try_again;
         } 
         c[thread_id] = false;
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -39,18 +45,19 @@ public:
 
     }
     void unlock(size_t thread_id) override {
-        k=num_threads;
         unlocking[thread_id] = true;
         c[thread_id] = true;
     }
     void destroy() override {
-        free((void*)unlocking);
-        free((void*)c);
+        CXL_FREE((void*)this->cxl_region, num_threads * sizeof(bool) * 2);
     }
 
-    std::string name(){return "djikstra";};
+    std::string name() override {
+        return "djikstra";
+    }
 
 private:
+    volatile char *cxl_region;
     volatile bool *unlocking;
     volatile bool *c;
     volatile size_t k;

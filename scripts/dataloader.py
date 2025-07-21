@@ -10,7 +10,7 @@ def load_data():
     for mutex_name in Constants.mutex_names:
         dataframes = []
         for i in range(Constants.n_program_iterations):
-            data_file_name = get_data_file_name(mutex_name, i, Constants.bench_n_threads)
+            data_file_name = get_data_file_name(mutex_name, i)
             dataframe = pd.read_csv(data_file_name, names=["Thread #", "Seconds", "# Iterations"])
             dataframes.append(dataframe)
         data[mutex_name] = pd.concat(dataframes)
@@ -21,30 +21,46 @@ def load_data_lock_level():
     for mutex_name in Constants.mutex_names:
         dataframes = []
         for i in range(Constants.n_program_iterations):
-            data_file_name = get_data_file_name(mutex_name, i, Constants.bench_n_threads)
+            data_file_name = get_data_file_name(mutex_name, i)
             dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Iteration #", "Time Spent"])
             dataframes.append(dataframe)
         data[mutex_name] = pd.concat(dataframes)
     return data
 
-def load_data_iter_v_threads(rusage=False):
+# def load_data_iter_v_threads():
+#     if (Constants.iter_threads)
+#     data = {}
+#     for mutex_name in Constants.mutex_names:
+#         data[mutex_name]=[]
+#         for threads in range(*Constants.iter_threads):
+#             dataframes=[]
+#             for i in range(Constants.n_program_iterations):
+#                 data_file_name = get_data_file_name(mutex_name, i, threads=threads)
+#                 dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Seconds", "# Iterations"])
+#                 dataframes.append(dataframe)
+#             dataframes=pd.concat(dataframes)
+#             data[mutex_name].append(dataframes["# Iterations"])
+#     return data
+
+def get_column_names(rusage):
+    if rusage:
+        return ["utime", "stime", "maxrss", "ru_minflt", "ru_majflt"]
+    else:
+        return ["Thread ID", "Seconds", "# Iterations"]
+
+def load_data_iter(iter_variable_name, iter_range, rusage=False):
     data = {}
     for mutex_name in Constants.mutex_names:
         data[mutex_name]=[]
-        for threads in range(Constants.threads_start, Constants.threads_end, Constants.threads_step):
+        for iter_variable_value in range(*iter_range):
+            extra_command_args = {iter_variable_name:iter_variable_value, "rusage":rusage}
             dataframes=[]
             for i in range(Constants.n_program_iterations):
-                if not(rusage):
-                    data_file_name = f"{Constants.data_folder}/{mutex_name}-{threads}-{i}.csv"
-                    dataframe = pd.read_csv(data_file_name, names=["Thread ID", "Seconds", "# Iterations"])
-                    dataframes.append(dataframe)
-                else:
-                    data_file_name = f"{Constants.data_folder}/{mutex_name}-{threads}-{i}-rusage.csv"
-                    dataframe = pd.read_csv(data_file_name, names=["utime", "stime", "maxrss", "ru_minflt", "ru_majflt"])
-                    dataframes.append(dataframe)
+                data_file_name = get_data_file_name(mutex_name, i, **extra_command_args)
+                dataframe = pd.read_csv(data_file_name, names=get_column_names(rusage))
+                dataframes.append(dataframe)
             dataframes=pd.concat(dataframes)
-            if (not(rusage)):
-                data[mutex_name].append(dataframes["# Iterations"])
-            else:
-                data[mutex_name].append([dataframes["utime"], dataframes["stime"]])
+            dataframes[iter_variable_name] = iter_variable_value
+            data[mutex_name].append(dataframes)
+        data[mutex_name] = pd.concat(data[mutex_name])
     return data

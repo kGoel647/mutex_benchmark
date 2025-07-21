@@ -10,31 +10,20 @@
 #include <atomic>
 #include <chrono>
 #include <vector>
-#include <queue>
-#include <semaphore>
 
-// asm fence
-#if defined(__x86_64)
-    //#define Fence() __asm__ __volatile__ ( "mfence" )
-    #define Fence() __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" )
-#elif defined(__i386)
-    #define Fence() __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" )
-#elif defined(__ARM_ARCH)
-    #define Fence() __asm__ __volatile__ ( "DMB ISH" ::: )
-#else
-    #error unsupported architecture
-#endif
+#include "../lock/lock.hpp"
+
+
 
 struct per_thread_stats {
     int thread_id;
     int num_iterations;
 
-    std::chrono::nanoseconds run_time;
+    double run_time;
     struct timespec start_time;
     struct timespec end_time;
     // Vector reallocation could waste some thread time.
     std::vector<double> lock_times;
-
 };
 
 
@@ -43,26 +32,6 @@ struct run_stats {
     struct per_thread_stats **thread_stats;
     struct rusage usage;
 };
-
-// class waiter{
-//     public:
-        // waiter* next;
-// }
-
-class sleeperScheduler{
-    public:
-        void init(size_t num_threads);
-
-        void sleep(size_t thread_id);
-        void awake(size_t thread_id);
-
-    private:
-        std::queue<size_t> threads = {};
-        std::mutex waiter_lock;
-        std::binary_semaphore* waiters;
-        int waiterSize=0;
-};
-
 
 // Use getrusage  to record resource usage
 
@@ -81,5 +50,8 @@ void destroy_lock_timer(struct per_thread_stats *stats);
 void report_run_latency(struct run_stats *stats);
 
 void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread_level);
+
+void busy_sleep(size_t iterations);
+SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads);
 
 #endif // __BENCH_UTILS_HPP_

@@ -1,15 +1,13 @@
-// min_contention_bench.hpp
+// max_contention_bench.hpp
 
-#ifndef MIN_CONTENTION_BENCH_HPP
-#define MIN_CONTENTION_BENCH_HPP
+#ifndef MIN_CONTENTION_BENCH
+#define MIN_CONTENTION_BENCH
 
 #include "bench_utils.hpp"
 #include "lock.hpp"
 #include <chrono>
 #include <atomic>
 #include <memory>
-#include <cstdlib> 
-#include <ctime> 
 
 struct per_thread_args {
     int thread_id;

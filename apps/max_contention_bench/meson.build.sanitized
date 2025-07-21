@@ -1,0 +1,17 @@
+link_with = [
+  lock_lib,
+  utils_lib,
+]
+
+include_directories = [
+  lock_includes,
+  utils_includes,
+]
+
+max_contention_bench = executable(
+  'max_contention_bench',
+  'max_contention_bench.cpp',
+  dependencies : [lock_dep, utils_dep, boost_dep, nsync_dep],
+  cpp_args: '-fsanitize=thread',
+  link_args: '-fsanitize=thread'
+)
