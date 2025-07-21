@@ -1,7 +1,6 @@
 
 
 cpp = meson.get_compiler('cpp')
-c = meson.get_compiler('c')
 
 nsync_dep = cpp.find_library('nsync_cpp')
 
@@ -10,7 +9,7 @@ boost_dep = dependency('boost', static : true)
 utils_includes = include_directories('.')
 utils_lib = library(
   'utils', 'bench_utils.cpp', 'cxl_utils.cpp', 'cxl_utils.hpp',
-  'emucxl_lib.c', 'emucxl_lib.h', 'emucxl_kernel.c', 'emucxl_kernel.h',
+  'emucxl_lib.c', 'emucxl_lib.h', 'emucxl_kernel.h',
   include_directories : utils_includes,
   dependencies : [boost_dep, nsync_dep]
 )

@@ -1,13 +1,19 @@
 // Use -Dcxl to compile for CXL.
 
+
 #ifndef __CXL_UTILS_HPP
 #define __CXL_UTILS_HPP
 
 #pragma once
 
+
 // defined via macro so they can be changed for the actual hardware
 #ifdef cxl
-    #include "emucxl_lib.h"
+    #include <stddef.h>
+    extern "C" { 
+        void *emucxl_alloc(size_t size, int node);
+        void  emucxl_free(void *ptr, size_t size);
+    }
     #define ALLOCATE(size) emucxl_alloc(size, 1)
     #define FREE(ptr, size) emucxl_free(ptr, size)
 #else
