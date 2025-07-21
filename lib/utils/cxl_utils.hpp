@@ -19,21 +19,14 @@
     #define ALLOCATE(size) emucxl_alloc(size, 1)
     #define FREE(ptr, size) emucxl_free(ptr, size)
 
-    void cxl_mutex_benchmark_init() {
-        emucxl_init();
-    }
-    void cxl_mutex_benchmark_exit() {
-        emucxl_exit();
-    }
+    #define cxl_mutex_benchmark_init() emucxl_init()
+    #define cxl_mutex_benchmark_exit() emucxl_exit()
 #else
     #define ALLOCATE(size) malloc(size)
     #define FREE(ptr, size) free(ptr); (void)(size) //
-    void cxl_mutex_benchmark_init() {
-
-    }
-    void cxl_mutex_benchmark_exit() {
-
-    }
+    
+    #define cxl_mutex_benchmark_init()
+    #define cxl_mutex_benchmark_exit()
 #endif // CXL
 
 #if defined(__x86_64)
