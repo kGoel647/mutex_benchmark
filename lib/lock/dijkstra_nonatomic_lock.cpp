@@ -7,19 +7,20 @@
 class DijkstraNonatomicMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        size_t size = num_threads * sizeof(bool) * 2;
+        size_t size = num_threads * sizeof(bool) * 2 + sizeof(size_t);
         this->_cxl_region = (volatile char*)ALLOCATE(size);
 
-        this->unlocking = (volatile bool*)&this->_cxl_region[0];
+        this->k = (volatile size_t*)&this->_cxl_region[0];
+        *k = 0;
+        this->unlocking = (volatile bool*)&this->_cxl_region[sizeof(size_t)];
 
-        size_t c_offset = sizeof(bool) * num_threads;
+        size_t c_offset = sizeof(bool) * num_threads + sizeof(size_t);
         this->c = (volatile bool*)&this->_cxl_region[c_offset];
 
         for (size_t i = 0; i < num_threads; i++) {
             unlocking[i] = true;
             c[i] = true;
         }
-        this->k = 0;
         this->num_threads = num_threads;
     }
 
@@ -29,9 +30,9 @@ public:
     try_again:
         c[thread_id] = true;
         FENCE();
-        if (k != thread_id) {
-            while (!unlocking[k]) {}
-            k = thread_id;
+        if (*k != thread_id) {
+            while (!unlocking[*k]) {}
+            *k = thread_id;
             FENCE();
             
             goto try_again;
@@ -61,6 +62,6 @@ private:
     volatile char *_cxl_region;
     volatile bool *unlocking;
     volatile bool *c;
-    volatile size_t k;
+    volatile size_t *k;
     size_t num_threads;
 };

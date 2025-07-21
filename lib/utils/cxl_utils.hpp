@@ -9,7 +9,7 @@
 
 // defined via macro so they can be changed for the actual hardware
 #ifdef cxl
-    #include <stddef.h>
+    #include "stddef.h"
     extern "C" { 
         void *emucxl_alloc(size_t size, int node);
         void  emucxl_free(void *ptr, size_t size);
