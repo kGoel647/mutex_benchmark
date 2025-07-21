@@ -6,36 +6,38 @@ class Constants:
     class Defaults:
 
         MUTEX_NAMES = [
-            "burns_lamport",
-            # "dijkstra",
+            # "burns_lamport", TODO: Fix (Kush saw a data race multiple times)
+            "dijkstra",
             "dijkstra_nonatomic",
             "dijkstra_nonatomic_sleeper",
-            # "bakery",
-            # "bakery_nonatomic",
-            # "spin",
+            "bakery",
+            "bakery_nonatomic",
+            "spin",
             "exp_spin",
             "wait_spin",
-            # "nsync",
+            "nsync",
             "system",
             "mcs",
             "mcs_sleeper",
-            # "knuth",
-            # "knuth_sleeper",
-            # "peterson",
-            # "clh",
-            # "hopscotch",
-            # "ticket", 
-            # "halfnode", 
+            "knuth",
+            # "knuth_sleeper", Likely is not possible
+            "peterson",
+            "clh",
+            "hopscotch",
+            "ticket", 
+            "halfnode", 
             "lamport", 
             "lamport_sleeper", 
             "boulangerie",
             # "tree_cas_elevator",
-            # "linear_cas_elevator",
+            # "linear_cas_elevator", TODO: fix (Kush saw a data race once)
             # "tree_bl_elevator",
-            # "linear_bl_elevator",
-            # "futex",
-            # "szymanski",
-            # "yang",
+            "linear_bl_elevator",
+            "linear_lamport_elevator",
+            # "tree_lamport_elevator", TODO: fix trees (known to deadlock)
+            # "futex", TODO: Add guard for macOS
+            "szymanski",
+            # "yang", TODO: Sometimes deadlocks
             "yang_sleeper",
         ]
         EXECUTABLE_NAME = "max_contention_bench"

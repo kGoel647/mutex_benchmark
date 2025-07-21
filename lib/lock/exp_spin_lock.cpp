@@ -13,7 +13,7 @@ public:
         (void)thread_id; // This parameter is not used in this implementation
 
         while (lock_.test_and_set(std::memory_order_acquire)) {
-            spin_delay_exponential_nanosleep();
+            spin_delay_exponential();
         }
     }
 
