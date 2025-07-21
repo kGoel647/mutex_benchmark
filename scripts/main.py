@@ -39,7 +39,7 @@ def run_experiment_iter_v_threads():
     # logger.info(output)
     run_experiment_iter("threads", Constants.iter_threads)
 
-def run_experiment_iter(iter_variable_name, iter_range, *, thread_level=False):
+def run_experiment_iter(iter_variable_name, iter_range, *, thread_level=True):
     iter_range[1] += 1 # To make the range inclusive, we need to add one to the end value. ([start, end, step])
     if not Constants.skip_experiment:
         # Normal experiment
