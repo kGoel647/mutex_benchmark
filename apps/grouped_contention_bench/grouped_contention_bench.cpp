@@ -109,7 +109,7 @@ void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 6) {
+    if (argc < 4) {
         fprintf(stderr, "Usage: %s <mutex_name> <num_threads> <run_time_per_group> <num_groups> <flags>]\n", argv[0]);
         return 1;
     }

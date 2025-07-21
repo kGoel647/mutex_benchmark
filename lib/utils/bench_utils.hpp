@@ -13,7 +13,7 @@
 
 #include "../lock/lock.hpp"
 
-
+class SoftwareMutex;
 
 struct per_thread_stats {
     int thread_id;
