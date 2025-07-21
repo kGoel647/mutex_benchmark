@@ -121,12 +121,15 @@ int main(int argc, char* argv[]) {
     double run_time = -1;
     int num_groups =-1;
     bool rusage = false;
+    bool thread_level = false;
 
     for (int i = 1; i < argc; i++) 
     {
         // First, check if the argument is a flag, which can be placed anywhere.
         if (strcmp(argv[i], "--csv") == 0 || strcmp(argv[i], "-c") == 0) {
             csv = true;
+        } else if (strcmp(argv[i], "--thread-level") == 0){
+            thread_level=true;
         } else if (strcmp(argv[i], "--rusage") == 0) {
             rusage=true;
         } else if (mutex_name == nullptr) {

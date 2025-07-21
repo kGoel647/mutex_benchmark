@@ -75,7 +75,7 @@ def main():
     if Constants.bench == 'max':
         run_experiment_lock_level()
     elif Constants.bench == 'grouped':
-        run_experiment_iter("threads", iter_range=Constants.iter_threads, thread_level=Constants.thread_level)
+        run_experiment_iter("threads", iter_range=Constants.iter_threads, thread_level=False)
     elif Constants.bench == 'min':
         run_experiment_lock_level()
     else:
