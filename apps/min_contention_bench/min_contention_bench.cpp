@@ -19,7 +19,6 @@ int min_contention_bench(
     bool csv,
     bool thread_level,
     bool no_output,
-    int max_noncritical_delay_ns,
     bool low_contention,
     int stagger_ms,
     SoftwareMutex* lock
@@ -80,8 +79,6 @@ int min_contention_bench(
                 (*counter)++;
                 lock->unlock(i);
                 end_lock_timer(&thread_args[i].stats);
-
-                delay.tv_nsec = rand() % max_noncritical_delay_ns;
                 nanosleep(&delay, &rem);
                 thread_args[i].stats.num_iterations++;
             }
@@ -107,7 +104,7 @@ int min_contention_bench(
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 5) {
+    if (argc < 4) {
         fprintf(stderr,
             "Usage: %s <mutex_name> <num_threads> <run_time_s> <max_noncrit_delay_ns> "
             "[--csv] [--thread-level] [--no-output] [--low-contention] [--stagger-ms ms]\n",
@@ -119,7 +116,6 @@ int main(int argc, char* argv[]) {
     const char* mutex_name            = argv[1];
     int         num_threads           = atoi(argv[2]);
     double      run_time_sec          = atof(argv[3]);
-    int         max_noncrit_delay_ns  = atoi(argv[4]);
 
     bool csv             = false;
     bool thread_level    = false;
@@ -127,7 +123,7 @@ int main(int argc, char* argv[]) {
     bool low_contention  = false;
     int  stagger_ms      = 0;
 
-    for (int i = 5; i < argc; ++i) {
+    for (int i = 4; i < argc; ++i) {
         if (strcmp(argv[i], "--csv") == 0) {
             csv = true;
         } else if (strcmp(argv[i], "--thread-level") == 0) {
@@ -144,13 +140,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    
-
-    if (max_noncrit_delay_ns <= 0) {
-        max_noncrit_delay_ns = 1;
-    }
-
-
     SoftwareMutex *lock = get_mutex(mutex_name, num_threads);
     if (lock == nullptr) {
 
@@ -164,7 +153,6 @@ int main(int argc, char* argv[]) {
         csv,
         thread_level,
         no_output,
-        max_noncrit_delay_ns,
         low_contention,
         stagger_ms,
         lock

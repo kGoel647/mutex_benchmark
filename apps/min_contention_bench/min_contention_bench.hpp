@@ -39,7 +39,6 @@ int min_contention_bench(
     bool csv,
     bool thread_level,
     bool no_output,
-    int max_noncritical_delay_ns,
     bool low_contention,
     int stagger_ms,
     SoftwareMutex* lock
