@@ -7,6 +7,47 @@
 #include <thread>
 #include <vector>
 #include <sched.h>
+#include <sanitizer/tsan_interface.h>
+
+#if defined(__has_feature)
+#  if __has_feature(thread_sanitizer)
+    // asm fence. ADDED for ThreadSanitizer support. SHOULD NOT WORK, as tsan_acquire and tsan_release require a memory address.
+    #if defined(__x86_64)
+        #define Fence() {\
+        __tsan_acquire(nullptr); \
+        __tsan_release(nullptr); \
+        __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" );\
+        }
+    #elif defined(__i386)
+        #define Fence() {\
+            __tsan_acquire(nullptr); \
+            __tsan_release(nullptr); \
+        __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" );\
+        }
+    #elif defined(__ARM_ARCH)
+        #define Fence() {\
+        __tsan_acquire(nullptr); \
+        __tsan_release(nullptr); \
+        __asm__ __volatile__ ( "DMB ISH" ::: ); \
+        }
+    #else
+        #error unsupported architecture
+    #endif
+# else
+// asm fence
+    #if defined(__x86_64)
+        //#define Fence() __asm__ __volatile__ ( "mfence" )
+        #define Fence() __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" )
+    #elif defined(__i386)
+        #define Fence() __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" )
+    #elif defined(__ARM_ARCH)
+        #define Fence() __asm__ __volatile__ ( "DMB ISH" ::: ) 
+    #else
+        #error unsupported architecture
+    #endif
+#endif
+#endif
+
 
 class SoftwareMutex {
 public:
