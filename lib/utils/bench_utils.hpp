@@ -10,7 +10,9 @@
 #include <atomic>
 #include <chrono>
 #include <vector>
+
 #include "../lock/lock.hpp"
+
 
 
 struct per_thread_stats {
@@ -30,7 +32,6 @@ struct run_stats {
     struct per_thread_stats **thread_stats;
     struct rusage usage;
 };
-
 
 // Use getrusage  to record resource usage
 

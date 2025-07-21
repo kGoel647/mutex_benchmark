@@ -2,26 +2,10 @@
 #include "bench_utils.hpp"
 
 #include "lock.hpp"
-#include "pthread_lock.cpp"
-#include "cpp_std_mutex.cpp"
-#include "boost_lock.cpp"
-#include "dijkstra_lock.cpp"
-#include "dijkstra_nonatomic_lock.cpp"
-#include "spin_lock.hpp"
-#include "exp_spin_lock.cpp"
-#include "nsync_lock.cpp"
-#include "bakery_mutex.cpp"
-#include "bakery_nonatomic_mutex.cpp"
-#include "lamport_lock.cpp"
-#include "mcs_lock.cpp"
-#include "mcs_volatile_lock.cpp"
-#include "mcs_malloc_lock.cpp"
-#include "knuth_lock.cpp"
-#include "peterson_lock.cpp"
-#include "boulangerie.cpp"
-#include "szymanski.cpp"
 
 int grouped_contention_bench(int num_threads, double run_time, int num_groups, bool csv, bool rusage, SoftwareMutex* lock) {
+
+
 
     // Create run args structure to hold thread arguments
     // struct run_args args;
@@ -38,7 +22,6 @@ int grouped_contention_bench(int num_threads, double run_time, int num_groups, b
     // Create a flag to signal the threads to start
     std::shared_ptr<std::atomic<bool>*> start_flags = std::make_shared<std::atomic<bool>*>((std::atomic<bool>*) malloc(sizeof(std::atomic<bool>*) * num_groups));
     std::shared_ptr<std::atomic<bool>*> end_flags = std::make_shared<std::atomic<bool>*>((std::atomic<bool>*) malloc(sizeof(std::atomic<bool>*) * num_groups));
-    volatile int *counter = (volatile int*)malloc(sizeof(int));
 
     for (int i=0; i<num_groups; i++){
         (*start_flags)[i]=false;
@@ -58,7 +41,7 @@ int grouped_contention_bench(int num_threads, double run_time, int num_groups, b
     for (int i = 0; i < num_threads; ++i) {
         thread_args[i].start_flags = start_flags; // Share the start flag with each thread
         thread_args[i].end_flags = end_flags;
-        threads[i] = std::thread([&thread_args, i, counter, &num_groups, &num_threads]() {
+        threads[i] = std::thread([&, i]() {
 
                 // Record the thread ID
                 thread_args[i].stats.thread_id = thread_args[i].thread_id;
@@ -73,8 +56,7 @@ int grouped_contention_bench(int num_threads, double run_time, int num_groups, b
                     // Perform the locking operations
                     thread_args[i].lock->lock(thread_args[i].thread_id);
                     thread_args[i].stats.num_iterations++;
-                    (*counter)++;
-                    // Critical section code goes here
+                    lock->criticalSection(i);
                     thread_args[i].lock->unlock(thread_args[i].thread_id);
 
                 }
@@ -91,26 +73,13 @@ int grouped_contention_bench(int num_threads, double run_time, int num_groups, b
         }
     }
 
+
     if (rusage){
         record_rusage(csv);
     }
 
-    *counter -= num_threads;
-
-    int expectedIterations = 0;
-    for (int i =0; i<num_threads; i++){
-        expectedIterations+=thread_args[i].stats.num_iterations;
-    }
-
-    if (*counter != expectedIterations) {
-        // The mutex did not work.
-        fprintf(stderr, "Mutex %s failed; *counter != num_threads * num_iterations (%d!=%d)\n", lock->name().c_str(), *counter, expectedIterations);
-        return 1;
-    }
-
     // Cleanup resources
     lock->destroy(); // Cleanup the lock resources
-    free((void *)counter);
 
     // Destroy the lock 
     delete lock; // Assuming lock was dynamically allocated
@@ -134,6 +103,7 @@ void schedule_flags(std::shared_ptr<std::atomic<bool>*> start_flags, std::shared
         (*start_flags)[i]=true;
         std::this_thread::sleep_for(std::chrono::duration<double>(run_time));
         (*end_flags)[i]=true;
+
     }
     
 }
@@ -178,8 +148,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     SoftwareMutex *lock = get_mutex(mutex_name, num_threads);
     if (lock == nullptr) {
+
         return 1;
     }
 

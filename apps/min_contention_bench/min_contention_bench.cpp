@@ -14,9 +14,13 @@
 #include "bench_utils.hpp"
 #include "lock.hpp"
 
+
 // Note: the problem with this benchmark is that many mutexes store internal state with thread_local variables that could cause problems because
 // if we use the same thread every time, the state gets recycled when it shouldn't be.
 // The benchmarking overhead is likely also very significant here.
+
+//TODO: discuss above
+
 int min_contention_bench(
     int num_threads, 
     double _run_time, 
@@ -103,8 +107,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
+
     SoftwareMutex *lock = get_mutex(mutex_name, num_threads);
     if (lock == nullptr) {
+
         return 1;
     }
 

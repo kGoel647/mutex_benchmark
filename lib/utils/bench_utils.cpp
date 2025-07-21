@@ -3,9 +3,11 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <iostream>
 #include <vector>
 #include <string>
 #include <string.h>
+
 
 #include "../lock/pthread_lock.cpp"
 #include "../lock/cpp_std_mutex.cpp"
@@ -116,8 +118,10 @@ void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread
             // Thread ID, Runtime, # Iterations
             printf("%d,%f,%d\n", stats->thread_id, stats->run_time, stats->num_iterations);
         } else {
+
             printf("Thread %d: %d iterations completed in %f seconds\n",
                 stats->thread_id, stats->num_iterations, stats->run_time);
+
         }
     } else {
         if (csv) {

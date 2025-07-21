@@ -4,6 +4,7 @@ import logging
 
 class Constants:
     class Defaults:
+
         MUTEX_NAMES = [
             "burns_lamport",
             # "dijkstra",
@@ -31,6 +32,7 @@ class Constants:
         EXECUTABLE_NAME = "max_contention_bench"
         BENCH_N_THREADS = 10
         BENCH_N_SECONDS = 1
+
         N_PROGRAM_ITERATIONS = 10
         DATA_FOLDER          = "./data/generated"
         LOGS_FOLDER          = "./data/logs"
