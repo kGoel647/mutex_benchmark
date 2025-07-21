@@ -12,7 +12,7 @@
     #define FREE(ptr, size) emucxl_free(ptr, size)
 #else
     #define ALLOCATE(size) malloc(size)
-    #define FREE(ptr, size) free(ptr)
+    #define FREE(ptr, size) free(ptr); (void)(size) //
 #endif // CXL
 
 #if defined(__x86_64)

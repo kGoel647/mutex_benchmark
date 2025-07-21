@@ -68,6 +68,8 @@ def init_args():
     parser.add_argument('--skip-experiment', action='store_true', default=False,
                         help="use previous data files instead of rerunning experiment (only works if exact same experiment was just run)")
 
+    parser.add_argument('--cxl', action='store_true',
+                        help='compile with emucxl allocation for cxl machine/hardware')
 
     logg = parser.add_mutually_exclusive_group()
     logg.add_argument('-d','--debug',    action='store_const', dest='log', const='DEBUG',

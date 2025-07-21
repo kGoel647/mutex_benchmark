@@ -135,6 +135,7 @@ public:
     }
 private:
     SpinLock designated_waker_lock;
+    
     std::atomic_size_t *val; // TODO: test atomic_int performance instead
     volatile bool *flag;
     size_t num_threads;

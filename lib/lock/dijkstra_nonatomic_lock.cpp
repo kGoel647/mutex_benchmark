@@ -49,7 +49,7 @@ public:
         c[thread_id] = true;
     }
     void destroy() override {
-        FREE((void*)this->_cxl_region, num_threads * sizeof(bool) * 2);
+        FREE((void*)this->_cxl_region, this->num_threads * sizeof(bool) * 2);
     }
 
     std::string name() override {
