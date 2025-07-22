@@ -53,7 +53,9 @@ int main(int argc, char **argv)
         printf("Running " STR(TEST) " in environment " TEST_ENVIRONMENT "...\n");
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-        TEST();
+        for (int i = 0; i < ITERATIONS; i++) {
+            TEST();
+        }
 
         clock_gettime(CLOCK_MONOTONIC, &end_time);
         double time_spent = get_elapsed_time(start_time, end_time);
@@ -71,33 +73,27 @@ int main(int argc, char **argv)
 
 void test_alloc()
 {
-    for (int i = 0; i < ITERATIONS; i++) {
-        void *region = ALLOC(REGION_SIZE, 1);
-        FREE(region, REGION_SIZE);
-    }
+    void *region = ALLOC(REGION_SIZE, 1);
+    FREE(region, REGION_SIZE);
 }
 
 void test_write()
 {
-    for (int i = 0; i < ITERATIONS; i++) {
-        volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
-        for (int i = 0; i < REGION_SIZE; i++) {
-            region[i] = 1;
-        }
-        FREE((void*)region, REGION_SIZE);
+    volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
+    for (int i = 0; i < REGION_SIZE; i++) {
+        region[i] = 1;
     }
+    FREE((void*)region, REGION_SIZE);
 }
 
 
 void test_read()
 {
-    for (int i = 0; i < ITERATIONS; i++) {
-        volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
-        for (int i = 0; i < REGION_SIZE; i++) {
-            c = region[i];
-        }
-        FREE((void*)region, REGION_SIZE);
+    volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
+    for (int i = 0; i < REGION_SIZE; i++) {
+        c = region[i];
     }
+    FREE((void*)region, REGION_SIZE);
 }
 
 double get_elapsed_time(struct timespec start_time, struct timespec end_time) {
