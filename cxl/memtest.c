@@ -19,7 +19,7 @@
 #if defined(cxl)
     #include "emucxl/src/emucxl_lib.h"
     #define ALLOC(size, node) emucxl_alloc(size, node)
-    #define FREE(ptr, size), emucxl_free(ptr, size)
+    #define FREE(ptr, size) emucxl_free(ptr, size)
     #define TEST_ENVIRONMENT "'cxl'"
 #else
     #define ALLOC(size, node) malloc(size); (void)(node)
