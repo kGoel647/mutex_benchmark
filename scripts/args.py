@@ -138,6 +138,7 @@ def init_args():
 
     Constants.low_contention = args.low_contention
     Constants.stagger_ms     = args.stagger_ms
+    Constants.cxl = args.cxl
 
     level = getattr(logging, args.log.upper(), Constants.Defaults.LOG)
     Constants.log = level

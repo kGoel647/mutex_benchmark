@@ -63,6 +63,7 @@ class Constants:
     bench: str           = Defaults.BENCH
     iter: bool
     rusage: bool
+    cxl: bool
 
     noncritical_delay: int
     groups: int
