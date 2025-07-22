@@ -119,7 +119,7 @@ def run_experiment_iter_single_threaded(iter_variable_name, iter, *, thread_leve
         for iter_variable_value in range(*iter):
             extra_command_args = {iter_variable_name: iter_variable_value, "rusage":rusage}
             for mutex_name in Constants.mutex_names:
-                logger.info(f"{mutex_name=} | {i=} | {extra_command_args=}")
+                logger.info(f"{mutex_name=:<24} | {i=:0>2} | {extra_command_args=}")
                 data_file_name = get_data_file_name(mutex_name, i, **extra_command_args)
                 subprocess.run(["rm", "-f", data_file_name])
                 command = get_command(mutex_name, csv=True, thread_level=thread_level, **extra_command_args)

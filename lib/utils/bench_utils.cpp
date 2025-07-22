@@ -32,10 +32,8 @@
 #include "../lock/hopscotch_lock.cpp"
 #include "../lock/hopscotch_static_lock.cpp"
 #include "../lock/clh_lock.cpp"
-#include "../lock/linear_cas_elevator.cpp"
-#include "../lock/tree_cas_elevator.cpp"
-#include "../lock/linear_bl_elevator.cpp"
-#include "../lock/tree_bl_elevator.cpp"
+#include "../lock/linear_elevator.cpp"
+#include "../lock/tree_elevator.cpp"
 #include "../lock/burns_lamport_lock.hpp"
 #include "../lock/futex_mutex.cpp"
 #include "../lock/elevator_mutex.hpp"
@@ -176,10 +174,10 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "halfnode") == 0)            lock = new HalfnodeMutex();
     else if (strcmp(mutex_name, "hopscotch") == 0)           lock = new HopscotchMutex();
     else if (strcmp(mutex_name, "clh") == 0)                 lock = new CLHMutex();
-    else if (strcmp(mutex_name, "linear_cas_elevator") == 0) lock = new LinearCASElevatorMutex();
-    else if (strcmp(mutex_name, "tree_cas_elevator") == 0)   lock = new TreeCASElevatorMutex();
-    else if (strcmp(mutex_name, "linear_bl_elevator") == 0)  lock = new LinearBLElevatorMutex();
-    else if (strcmp(mutex_name, "tree_bl_elevator") == 0)    lock = new TreeBLElevatorMutex();
+    else if (strcmp(mutex_name, "linear_cas_elevator") == 0) lock = new LinearElevatorMutex<SpinLock>();
+    else if (strcmp(mutex_name, "tree_cas_elevator") == 0)   lock = new TreeElevatorMutex<SpinLock>();
+    else if (strcmp(mutex_name, "linear_bl_elevator") == 0)  lock = new LinearElevatorMutex<BurnsLamportMutex>();
+    else if (strcmp(mutex_name, "tree_bl_elevator") == 0)    lock = new TreeElevatorMutex<BurnsLamportMutex>();
     else if (strcmp(mutex_name, "burns_lamport") == 0)       lock = new BurnsLamportMutex();
     else if (strcmp(mutex_name, "futex") == 0)               lock = new FutexLock();
     else if (strcmp(mutex_name, "elevator") == 0)            lock = new ElevatorMutex();
