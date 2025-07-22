@@ -60,5 +60,5 @@ private:
 struct HopscotchMutex::Node HopscotchMutex::default_node;
 std::atomic<struct HopscotchMutex::Node*> HopscotchMutex::tail;
 
-thread_local struct HopscotchMutex::Node HopscotchMutex::my_nodes[2];
+alignas(2) thread_local struct HopscotchMutex::Node HopscotchMutex::my_nodes[2];
 thread_local struct HopscotchMutex::Node *HopscotchMutex::node = (struct HopscotchMutex::Node*)&my_nodes;

@@ -51,7 +51,7 @@ public:
         free((void*)y);
     }
 
-    std::string name(){return "lamport";}
+    std::string name() override {return "lamport";}
 private:
     volatile bool* b;
     volatile size_t *x;

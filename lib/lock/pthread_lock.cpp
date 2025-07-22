@@ -32,7 +32,7 @@ public:
     }
 
 
-    std::string name(){return "pthread";};
+    std::string name() override {return "pthread";};
     
 private:
     pthread_mutex_t mutex_;
