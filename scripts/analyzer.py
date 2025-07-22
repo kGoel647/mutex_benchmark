@@ -11,7 +11,7 @@ def analyze(data):
     output = ""
     output += "\n"
     for mutex_name in Constants.mutex_names:
-        output += f"Mutex {mutex_name:>8} average iterations: {data[mutex_name]['# Iterations'].mean():.7f} standard deviation: {data[mutex_name]['# Iterations'].std():.7f}\n"
+        output += f"Mutex {mutex_name:<24} average iterations: {data[mutex_name]['# Iterations'].mean():.7f} standard deviation: {data[mutex_name]['# Iterations'].std():.7f}\n"
         plot_one_cdf(
             data[mutex_name]["# Iterations"], 
             mutex_name,
@@ -26,7 +26,7 @@ def analyze_lock_level(data):
     output = ""
     output += "\n"
     for mutex_name in Constants.mutex_names:
-        output += f"Mutex {mutex_name:>8} average time: {data[mutex_name]['Time Spent'].mean():.9f} standard deviation: {data[mutex_name]['Time Spent'].std():.9f}\n"
+        output += f"Mutex {mutex_name:<24} average time: {data[mutex_name]['Time Spent'].mean():.9f} standard deviation: {data[mutex_name]['Time Spent'].std():.9f}\n"
         plot_one_cdf(
             data[mutex_name]["Time Spent"], 
             mutex_name,
@@ -83,7 +83,7 @@ def analyze_iter(data, iter_variable_name, iter_range):
     output +="\n"
     axis = plt.axes()
     for mutex_name in Constants.mutex_names:
-        # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
+        # output += f"Mutex {mutex_name:<24} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
         # mean_values = [thread.mean() for thread in data[mutex_name]]
         # y_values = np.array(range(*iter_range))
         # df = pd.DataFrame(sum([[y_values[k], ]] for k in range(len(data[mutex_name]))), columns=["# Threads", "Locking time"])
@@ -117,7 +117,7 @@ def analyze_iter_rusage(iter_variable_name, iter_range, data):
     output +="\n"
     figure, axis = plt.subplots(1, 2)
     for mutex_name in Constants.mutex_names:
-        # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
+        # output += f"Mutex {mutex_name:<24} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
         print(data)
         # user_time = [thread['utime'].mean() for thread in data[mutex_name]]
         plot_one_graph(
