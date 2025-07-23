@@ -17,7 +17,7 @@
 class HopscotchMutex : public virtual SoftwareMutex {
 public:
     struct Node {
-        std::atomic_bool successor_must_wait;
+        volatile bool successor_must_wait;
     };
 
     void init(size_t num_threads) override {
