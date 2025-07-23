@@ -40,6 +40,10 @@
 #include "../lock/futex_mutex.cpp"
 #include "../lock/elevator_mutex.hpp"
 #include "../lock/szymanski.cpp"
+#include "../lock/cohortTicket_lock.cpp"
+#include "../lock/cohortMCS_lock.cpp"
+#include "../lock/hbo_lock.cpp"
+
 
 void record_rusage(bool csv) {
     struct rusage usage;
@@ -183,6 +187,9 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "burns_lamport") == 0)       lock = new BurnsLamportMutex();
     else if (strcmp(mutex_name, "futex") == 0)               lock = new FutexLock();
     else if (strcmp(mutex_name, "elevator") == 0)            lock = new ElevatorMutex();
+    else if (strcmp(mutex_name, "CohortTicket") == 0)        lock = new CohortTicket();
+    else if (strcmp(mutex_name, "CohortMCS") == 0)           lock = new CMCSLock();
+    else if (strcmp(mutex_name, "hbo_lock") == 0)            lock = new hbo_lock();
     // else if (strcmp(mutex_name, "hopscotch_static") == 0) {
     //     // This causes a free / delete / delete[] mismatch
     //     size_t region_size = HopscotchStaticMutex::get_size(num_threads);
