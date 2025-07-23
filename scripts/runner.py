@@ -116,7 +116,7 @@ def run_experiment_lock_level_single_threaded():
 #                     data_file.write(csv_data)
 
 
-def run_experiment_iter_single_threaded(iter_variable_name, iter, *, thread_level=False, rusage=False):
+def run_experiment_iter_single_threaded(iter_variable_name, iter, *, thread_level=True, rusage=False):
     for i in range(Constants.n_program_iterations):
         for iter_variable_value in range(*iter):
             extra_command_args = {iter_variable_name: iter_variable_value, "rusage":rusage}
