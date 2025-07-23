@@ -86,6 +86,7 @@ def init_args():
     parser.add_argument('--groups', type=int)
 
     parser.add_argument('--bench', type=str, default='max')
+    parser.add_argument('--skip-plotting', action='store_true')
 
     args = parser.parse_args()
 
@@ -139,6 +140,7 @@ def init_args():
     Constants.low_contention = args.low_contention
     Constants.stagger_ms     = args.stagger_ms
     Constants.cxl = args.cxl
+    Constants.skip_plotting = args.skip_plotting
 
     level = getattr(logging, args.log.upper(), Constants.Defaults.LOG)
     Constants.log = level

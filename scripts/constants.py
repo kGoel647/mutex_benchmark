@@ -64,6 +64,7 @@ class Constants:
     iter: bool
     rusage: bool
     cxl: bool
+    skip_plotting: bool
 
     noncritical_delay: int
     groups: int

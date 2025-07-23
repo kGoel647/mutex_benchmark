@@ -11,6 +11,8 @@ def finish_plotting_cdf(thread_time_or_lock_time):
     """
     Finalize and show a cumulative distribution (CDF) plot.
     """
+    if Constants.skip_plotting:
+        return
     print("Finishing plotting CDF...")
     title = (
         f"{thread_time_or_lock_time} CDF for "
@@ -34,6 +36,8 @@ def finish_plotting_cdf(thread_time_or_lock_time):
     plt.show()
 
 def finish_plotting_graph(axis, rusage=False):
+    if Constants.skip_plotting:
+        return
     print("Finishing plotting...")
     if not(rusage):
         axis[0].set_title(f"# Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
@@ -56,6 +60,8 @@ def finish_plotting_graph(axis, rusage=False):
     plt.show()
 
 def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, average_lock_time=None):
+    if Constants.skip_plotting:
+        return
     logger.info(f"Plotting {mutex_name=}")
     # The y-values should go up from 0 to 1, while the X-values vary along the series
     x_values = series.sort_values().reset_index(drop=True)
@@ -86,6 +92,8 @@ def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", titl
     plt.ylabel(ylabel)
 
 def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None, colname=None):
+    if Constants.skip_plotting:
+        return
     logger.info(f"Plotting {mutex_name=}")
     # print(data)
     if error_bars is not None:
