@@ -24,7 +24,7 @@ public:
         size_t queue_size = sizeof(Queue);
         size_t waker_lock_size = WakerLock::get_cxl_region_size(num_threads);
         size_t flag_size = sizeof(std::atomic_bool) * (num_threads + 1);
-        _cxl_region_size = val_size + queue_buffer_size + queue_size + flag_size;
+        _cxl_region_size = val_size + queue_buffer_size + queue_size + waker_lock_size + flag_size;
         _cxl_region = (volatile char*)ALLOCATE(_cxl_region_size);
 
 
