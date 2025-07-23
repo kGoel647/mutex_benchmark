@@ -2,12 +2,12 @@
 #include <stdexcept>
 #include <atomic>
 
-#include "spin_lock.hpp"
+#include "lamport_lock.cpp"
 // TODO: explicit memory ordering.
 // NOTE: Because of the limitations of `thread_local`,
 // this class MUST be singleton. TODO: This is not yet explicitly enforced.
 
-class LinearCASElevatorMutex : public virtual SoftwareMutex {
+class LinearLamportElevatorMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
         this->num_threads = num_threads;
@@ -27,6 +27,7 @@ public:
     void lock(size_t thread_id) override {
         thread_n_is_waiting[thread_id] = true;
         if (designated_waker_lock.trylock(thread_id)) {
+            Fence();
             // This thread is the designated waker if 
             // a) the unlocker fucks up and doesn't realize anyone is waiting or
             // b) (more likely) if this thread is the first to get to the lock
@@ -66,10 +67,10 @@ public:
     }
 
     std::string name() override {
-        return "linear_cas_elevator";
+        return "linear_lamport_elevator";
     }
 private:
-    SpinLock designated_waker_lock;
+    LamportLock designated_waker_lock;
     volatile bool *thread_n_given_lock; // Should this be atomic?
     volatile bool *thread_n_is_waiting;
     size_t num_threads;

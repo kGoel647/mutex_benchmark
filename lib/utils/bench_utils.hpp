@@ -10,8 +10,10 @@
 #include <atomic>
 #include <chrono>
 #include <vector>
+
 #include "../lock/lock.hpp"
 
+class SoftwareMutex;
 
 struct per_thread_stats {
     int thread_id;
@@ -30,7 +32,6 @@ struct run_stats {
     struct per_thread_stats **thread_stats;
     struct rusage usage;
 };
-
 
 // Use getrusage  to record resource usage
 
