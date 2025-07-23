@@ -19,6 +19,18 @@
             this->lock_ = (std::atomic_flag*)ALLOCATE(sizeof(std::atomic_flag));
         }
 
+        static size_t get_cxl_region_size(size_t num_threads) {
+            (void)num_threads;
+
+            return sizeof(std::atomic_flag);
+        }
+
+        void region_init(size_t num_threads, volatile char *_cxl_region) override {
+            (void)num_threads; // This parameter is not used
+
+            this->lock_ = (std::atomic_flag*)_cxl_region;
+        }
+
         void lock(size_t thread_id) override {
             (void)thread_id; // This parameter is not used
 
@@ -55,6 +67,16 @@
     class SpinLock : public virtual TryLock {
     public:
         void init(size_t num_threads) override {
+            (void)num_threads; // This parameter is not used
+        }
+
+        static size_t get_cxl_region_size(size_t num_threads) {
+            (void)num_threads;
+
+            return 0;
+        }
+
+        void region_init(size_t num_threads, volatile char *_cxl_region) override {
             (void)num_threads; // This parameter is not used
         }
 
