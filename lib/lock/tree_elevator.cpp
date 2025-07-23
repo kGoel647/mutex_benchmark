@@ -155,9 +155,6 @@ public:
         return "tree_elevator";
     }
 private:
-    // Note: uses two CXL regions, not one.
-    // This could be irrelevant because allocation doesn't take very long compared to other lock operations.
-
     struct Queue {
         size_t index_mask;
         size_t ring_start;

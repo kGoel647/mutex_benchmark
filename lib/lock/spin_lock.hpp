@@ -77,6 +77,7 @@
         }
 
         void region_init(size_t num_threads, volatile char *_cxl_region) override {
+            (void)_cxl_region;
             (void)num_threads; // This parameter is not used
         }
 

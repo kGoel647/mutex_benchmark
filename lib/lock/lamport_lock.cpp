@@ -1,4 +1,5 @@
 #include "lock.hpp"
+#include "../utils/cxl_utils.hpp"
 #include <stdexcept>
 #include <iostream>
 
@@ -6,9 +7,12 @@
 class LamportLock : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        this->x = (volatile size_t*)malloc(sizeof(size_t));;
-        this->y = (volatile size_t*)malloc(sizeof(size_t));;
-        this->b=(volatile bool*)malloc(sizeof(bool) * num_threads);
+        // size_t x_size = 
+        _cxl_region = (volatile char*)ALLOCATE(sizeof(size_t) * 2 + sizeof(bool) * num_threads);
+
+        this->x = (volatile size_t*)&_cxl_region[0];
+        this->y = (volatile size_t*)&_cxl_region[sizeof(size_t)];
+        this->b = (volatile bool*)&_cxl_region[sizeof(size_t) * 2];
         this->num_threads = num_threads;
     }
 
@@ -46,13 +50,12 @@ public:
     }
 
     void destroy() override {
-        free((void*)b);
-        free((void*)x);
-        free((void*)y);
+        FREE((void*)_cxl_region, sizeof(size_t) * 2 + sizeof(bool) * num_threads);
     }
 
     std::string name(){return "lamport";}
 private:
+    volatile char *_cxl_region;
     volatile bool* b;
     volatile size_t *x;
     volatile size_t *y;
