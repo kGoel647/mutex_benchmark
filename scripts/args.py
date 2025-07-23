@@ -47,6 +47,8 @@ def init_args():
                         help='all except these names')
     mnames.add_argument('-a','--all', action='store_true',
                         help='run all default mutexes')
+    mnames.add_argument('--all-cxl', action='store_true',
+                        help="run all mutexes that can run on CXL")
 
     parser.add_argument('--scatter', action='store_true',
                         help='scatter CDF plots instead of lines')
@@ -94,6 +96,8 @@ def init_args():
         Constants.mutex_names = Constants.Defaults.MUTEX_NAMES
     elif args.include:
         Constants.mutex_names = args.include
+    elif args.all_cxl:
+        Constants.mutex_names = Constants.Defaults.CXL_MUTEXES
     else:  
         Constants.mutex_names = [
             n for n in Constants.Defaults.MUTEX_NAMES
@@ -139,8 +143,12 @@ def init_args():
 
     Constants.low_contention = args.low_contention
     Constants.stagger_ms     = args.stagger_ms
-    Constants.cxl = args.cxl
     Constants.skip_plotting = args.skip_plotting
+    Constants.cxl = args.cxl
+
+    if Constants.cxl:
+        for mutex_name in Constants.mutex_names:
+            assert mutex_name in Constants.Defaults.CXL_MUTEXES, "expected only mutexes that work on cxl"
 
     level = getattr(logging, args.log.upper(), Constants.Defaults.LOG)
     Constants.log = level

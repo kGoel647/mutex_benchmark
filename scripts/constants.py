@@ -28,6 +28,31 @@ class Constants:
             "futex",
             "szymanski",
         ]
+
+        # note: CLH technically works but it makes one allocation per
+        # lock operation, so it is too slow.
+        # peterson is also probaby really really slow
+        CXL_MUTEXES = [
+            "bakery",
+            "bakery_nonatomic",
+            "boulangerie",
+            "burns_lamport",
+            "dijkstra",
+            "dijkstra_nonatomic",
+            "exp_spin",
+            "hopscotch",
+            "knuth",
+            "lamport",
+            "linear_cas_elevator",
+            "linear_bl_elevator",
+            "tree_cas_elevator",
+            "tree_bl_elevator",
+            "mcs",
+            "peterson",
+            "szymanski",
+            "ticket",
+        ]
+
         EXECUTABLE_NAME = "max_contention_bench"
         BENCH_N_THREADS = 10
         BENCH_N_SECONDS = 1

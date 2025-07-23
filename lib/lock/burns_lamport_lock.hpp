@@ -67,7 +67,7 @@ public:
     }
 
     void destroy() override {
-        free((void*)in_contention);
+        FREE((void*)_cxl_region, get_cxl_region_size(num_threads));
     }
 
     std::string name() override {
