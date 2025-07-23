@@ -51,6 +51,7 @@
 #include "../lock/szymanski.cpp"
 #include "../lock/yang_lock.cpp"
 #include "../lock/yang_sleeper_lock.cpp"
+#include "../lock/hardspin_lock.hpp"
 
 void record_rusage(bool csv) {
     struct rusage usage;
@@ -171,6 +172,7 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0)          lock = new DijkstraNonatomicMutex();
     else if (strcmp(mutex_name, "dijkstra_nonatomic_sleeper") == 0)  lock = new DijkstraNonatomicSleeperMutex();
     else if (strcmp(mutex_name, "spin") == 0)                        lock = new SpinLock();
+    else if (strcmp(mutex_name, "hard_spin") == 0)                   lock = new HardSpinLock();
     else if (strcmp(mutex_name, "exp_spin") == 0)                    lock = new ExponentialSpinLock();
     else if (strcmp(mutex_name, "wait_spin") == 0)                   lock = new WaitSpinLock();
     else if (strcmp(mutex_name, "nsync") == 0)                       lock = new NSync();

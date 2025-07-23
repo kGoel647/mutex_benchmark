@@ -71,7 +71,7 @@ public:
     // Cleanup any resources used by the mutex
     virtual void destroy() = 0;
 
-    void criticalSection(size_t thread_id) {
+    int criticalSection(size_t thread_id) {
         *currentId=thread_id;
         Fence();
         for (int i=0; i<100; i++){
@@ -79,7 +79,7 @@ public:
                 throw std::runtime_error(name() + " was breached");
             }
         }
-
+        return 1;
     }
 
     void sleep() {

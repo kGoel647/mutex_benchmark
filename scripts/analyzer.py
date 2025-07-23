@@ -78,7 +78,7 @@ def analyze_lock_level(data):
 
 def analyze_iter(data, iter_variable_name, iter_range):
     if Constants.rusage:
-        return analyze_iter_rusage(iter_variable_name, iter_range, data)
+        return analyze_iter_rusage(data, iter_variable_name, iter_range)
     output=""
     output +="\n"
     axis = plt.axes()
@@ -112,39 +112,49 @@ def analyze_iter(data, iter_variable_name, iter_range):
 
     return output
 
-def analyze_iter_rusage(iter_variable_name, iter_range, data):
+def analyze_iter_rusage(data, iter_variable_name, iter_range):
     output=""
     output +="\n"
     figure, axis = plt.subplots(1, 2)
     for mutex_name in Constants.mutex_names:
         # output += f"Mutex {mutex_name:>8} average time: {np.array(data[mutex_name]).mean():.7f} standard deviation: {np.array(data[mutex_name]).mean():.7f}\n"
-        print(data)
         # user_time = [thread['utime'].mean() for thread in data[mutex_name]]
         plot_one_graph(
             axis[0],
-            data[mutex_name]['threads'],
-            data[mutex_name]['utime'],
+            np.array(range(*iter_range)),
+            None,
             mutex_name,
-            xlabel=iter_variable_name,
+            error_bars=True,
+            xlabel=f"{iter_variable_name.title()}",
             ylabel="User time",
             title=f"{mutex_name}",
             skip=-1,
+            data=data[mutex_name],
+            iter_variable_name=iter_variable_name,
             colname="utime",
+            log = False
         )
 
         # sys_time = [thread['stime'].mean() for thread in data[mutex_name]]
         plot_one_graph(
             axis[1],
-            data[mutex_name]['threads'],
-            data[mutex_name]['stime'],
+            np.array(range(*iter_range)),
+            None,
             mutex_name,
-            xlabel=iter_variable_name,
+            error_bars=True,
+            xlabel=f"{iter_variable_name.title()}",
             ylabel="System time",
             title=f"{mutex_name}",
             skip=-1,
+            data=data[mutex_name],
+            iter_variable_name=iter_variable_name,
             colname="stime",
+            log=False
         )
 
         
-    finish_plotting_graph(axis, rusage=True)
+    legend = plt.legend()
+    for handle in legend.legend_handles: # type: ignore
+        handle._sizes = [30]
+    plt.show()
     return output

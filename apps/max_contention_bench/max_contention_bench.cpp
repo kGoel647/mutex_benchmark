@@ -72,7 +72,8 @@ int max_contention_bench(
                 while (!*end_flag) {
                     lock->lock(i);
                     thread_args[i].stats.num_iterations++;
-                    lock->criticalSection(i);
+                    (*counter) += lock->criticalSection(i);
+                    Fence();
                     lock->unlock(i);
                 }
             });
@@ -123,9 +124,25 @@ int max_contention_bench(
         record_rusage(csv);
     }
 
+
+    int expectedCounter=0;
+    for (auto& targs : thread_args){
+        expectedCounter+=targs.stats.num_iterations;
+    }
+
+    if (expectedCounter != *counter)
+    {
+        
+        fprintf(stderr,
+            "%s was not correct: expectedCounter %i did not match real counter %i",
+            lock->name().c_str(), expectedCounter, *counter
+        );
+    }
+
     lock->destroy();
     free((void*)counter);
     delete lock;
+
 
 
     if (!no_output && !rusage) {

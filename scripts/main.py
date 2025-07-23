@@ -46,7 +46,6 @@ def run_experiment_iter(iter_variable_name, iter_range, *, thread_level=True):
         run_experiment_iter_single_threaded(iter_variable_name, iter_range, thread_level=thread_level, rusage=Constants.rusage)
     data = load_data_iter(iter_variable_name, iter_range, rusage=Constants.rusage)
     output = analyze_iter(data, iter_variable_name, iter_range)
-    print(output)
     logger.info(output)
 
 
@@ -72,14 +71,15 @@ def main():
     elif Constants.iter_critical_delay is not None:
         run_experiment_iter("critical_delay", iter_range=Constants.iter_critical_delay)
         
-    if Constants.bench == 'max':
-        run_experiment_lock_level()
-    elif Constants.bench == 'grouped':
-        run_experiment_iter("threads", iter_range=Constants.iter_threads, thread_level=False)
-    elif Constants.bench == 'min':
-        run_experiment_lock_level()
     else:
-        raise NotImplementedError(f"Benchmark {Constants.bench} not recognized.")
+        if Constants.bench == 'max':
+            run_experiment_lock_level()
+        elif Constants.bench == 'grouped':
+            run_experiment_iter("threads", iter_range=Constants.iter_threads, thread_level=False)
+        elif Constants.bench == 'min':
+            run_experiment_lock_level()
+        else:
+            raise NotImplementedError(f"Benchmark {Constants.bench} not recognized.")
 
 
 if __name__ == "__main__":

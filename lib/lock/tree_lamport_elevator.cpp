@@ -3,6 +3,7 @@
 #include <atomic>
 #include <math.h>
 #include <string.h>
+#include <iostream>
 
 #include "lamport_lock.cpp"
 
@@ -14,12 +15,12 @@ public:
         this->leaf_depth = depth(leaf(0));
 
         this->val = (std::atomic_size_t*)malloc(sizeof(std::atomic_size_t) * (num_threads * 2 + 1));
-        for (size_t i = 0; i < num_threads; i++) {
+        for (size_t i = 0; i < num_threads*2; i++) {
             this->val[i] = num_threads; // num_threads represents Not A Thread
         }
         val[num_threads * 2] = num_threads; // optimization mentioned in paper
 
-        this->flag = (volatile bool*)malloc(sizeof(volatile bool) * (num_threads + 1));
+        this->flag = (std::atomic_bool*)malloc(sizeof(std::atomic_bool) * (num_threads + 1));
         memset((void*)this->flag, 0, sizeof(volatile bool) * (num_threads + 1));
         flag[num_threads] = true;
 
@@ -30,7 +31,7 @@ public:
         while (num_threads_rounded_up_to_power_of_2 < num_threads) {
             num_threads_rounded_up_to_power_of_2 *= 2;
         }
-        this->queue = (size_t*)malloc(sizeof(size_t) * num_threads_rounded_up_to_power_of_2);
+        this->queue = (size_t *)malloc(sizeof(size_t ) * num_threads_rounded_up_to_power_of_2);
         this->queue_index_mask = num_threads_rounded_up_to_power_of_2 - 1;
         this->queue_ring_start = 0;
         this->queue_ring_end = 0;
@@ -90,7 +91,6 @@ public:
         // Contention loop
         if (designated_waker_lock.trylock(thread_id)) {
             // Fence included in algorithm. TODO test
-            std::atomic_thread_fence(std::memory_order_seq_cst);
             while (flag[thread_id] == false && flag[num_threads] == false) {
                 // spin_delay_exponential(); // Wait (TODO test spin_delay_exp here)
             }
@@ -109,20 +109,20 @@ public:
         // Traverse tree from root to lead (excluding root) to find and enqueue waiting nodes.
         // Exclude root because we're enqueueing only siblings and the root does not have a sibling.
         size_t node = leaf(thread_id);
-        for (size_t j = leaf_depth - 1; j != (size_t)-1; j--) { // doesn't have to be "signed" i think
+        for (size_t j = depth(leaf(thread_id))-1; j != -1; j--) { // doesn't have to be "signed" i think
             size_t k = val[sibling(path_climbing(node, j))];
             if (val[leaf(k)] < num_threads) {
                 val[leaf(k)] = num_threads;
-                std::atomic_thread_fence(std::memory_order_seq_cst);
                 enqueue(k);
-            std::atomic_thread_fence(std::memory_order_seq_cst);
             }
         }
         if (!queue_empty()) {
-            std::atomic_thread_fence(std::memory_order_seq_cst);
-            flag[dequeue()] = true;
+            int k = dequeue();
+            flag[k]= true;
         } else {
-            flag[num_threads] = true;
+            flag[num_threads] = true;            
+
+            std::atomic_thread_fence(std::memory_order_seq_cst);
         }
     }
 
@@ -139,11 +139,11 @@ public:
 private:
     LamportLock designated_waker_lock;
     std::atomic_size_t *val; // TODO: test atomic_int performance instead
-    volatile bool *flag;
+    std::atomic_bool *flag;
     size_t num_threads;
     size_t leaf_depth;
 
-    size_t *queue;
+    size_t  *queue;
     size_t queue_index_mask;
     size_t queue_ring_start;
     size_t queue_ring_end;

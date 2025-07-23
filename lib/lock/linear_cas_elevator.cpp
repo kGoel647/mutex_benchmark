@@ -41,7 +41,6 @@ public:
             }
         }
         thread_n_given_lock[thread_id] = false;
-        thread_n_is_waiting[thread_id] = false;
     }
 
     void unlock(size_t thread_id) override {
@@ -50,6 +49,8 @@ public:
         for (size_t offset = 1; offset < num_threads; offset++) {
             size_t next_successor_index = (thread_id + offset) % num_threads;
             if (thread_n_is_waiting[next_successor_index]) {
+                thread_n_is_waiting[thread_id] = false;
+                Fence();
                 thread_n_given_lock[next_successor_index] = true;
                 return; // Successfully passed off to successor
             }

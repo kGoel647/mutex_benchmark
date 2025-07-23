@@ -85,16 +85,17 @@ def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", titl
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None, colname=None):
+def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None, colname=None, log=True):
     logger.info(f"Plotting {mutex_name=}")
     # print(data)
     if error_bars is not None:
         # data = data.sample(1000)
         # color = sns.color_palette()
         print(data)
-        logger.debug(dict(data=data, x=iter_variable_name, y=colname, errorbar=("sd", 0.1), label=title))
-        grid = sns.lineplot(data=data, x=iter_variable_name, y=colname, errorbar=("sd", 0.1), label=title)
-        grid.set(yscale="log")
+        logger.debug(dict(data=data, x=iter_variable_name, y=colname, errorbar=("sd", .1), label=title))
+        grid = sns.lineplot(data=data, x=iter_variable_name, y=colname, errorbar=("sd", .1), label=title, ax=ax)
+        if (log):
+            grid.set(yscale="log")
         # sns.scatterplot(data=data, x="threads", y="Time Spent", palette=color)
         return
         # ax.errorbar(x, y, error_bars, marker='o', capsize=5, capthick=1, label=title)

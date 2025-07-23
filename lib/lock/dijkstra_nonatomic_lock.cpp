@@ -20,7 +20,7 @@ public:
         unlocking[thread_id] = false;
     try_again:
         c[thread_id] = true;
-        std::atomic_thread_fence(std::memory_order_seq_cst);
+        Fence();
         if (k != thread_id) {
             while (!unlocking[k]) {}
             k = thread_id;
@@ -30,7 +30,7 @@ public:
 
         } 
         c[thread_id] = false;
-        std::atomic_thread_fence(std::memory_order_seq_cst);
+        Fence();
         for (size_t j = 0; j < num_threads; j++) {
             if (j != thread_id && !c[j]) {
                 goto try_again;
