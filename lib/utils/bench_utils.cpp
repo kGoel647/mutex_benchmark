@@ -64,9 +64,9 @@ void record_rusage(bool csv) {
 
 void print_rusage(struct rusage *usage, bool csv) {
     if (!csv){
-        printf("User CPU time used: %ld.%06ld seconds\n", 
+        printf("User CPU time used: %ld.%06d seconds\n", 
             usage->ru_utime.tv_sec, usage->ru_utime.tv_usec); //slightly important, not as much
-        printf("System CPU time used: %ld.%06ld seconds\n", 
+        printf("System CPU time used: %ld.%06d seconds\n", 
             usage->ru_stime.tv_sec, usage->ru_stime.tv_usec); //important and relevant
         printf("Maximum resident set size: %ld KB\n", usage->ru_maxrss); //not too important?
         printf("Integral shared memory size: %ld KB\n", usage->ru_ixrss); //unmantained
@@ -84,7 +84,7 @@ void print_rusage(struct rusage *usage, bool csv) {
         printf("Involuntary context switches: %ld\n", usage->ru_nivcsw); //just linux
     }
     else{
-        printf("%ld.%06ld,%ld.%06ld,%ld,%ld,%ld", usage->ru_utime.tv_sec, usage->ru_utime.tv_usec, usage->ru_stime.tv_sec, usage->ru_stime.tv_usec, usage->ru_maxrss, usage->ru_minflt, usage->ru_majflt);
+        printf("%ld.%06d,%ld.%06d,%ld,%ld,%ld", usage->ru_utime.tv_sec, usage->ru_utime.tv_usec, usage->ru_stime.tv_sec, usage->ru_stime.tv_usec, usage->ru_maxrss, usage->ru_minflt, usage->ru_majflt);
     }
 }
 

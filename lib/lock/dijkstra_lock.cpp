@@ -46,7 +46,7 @@ public:
         free((void*)c);
     }
 
-    std::string name(){return "djikstra";};
+    std::string name() override {return "djikstra";};
 
 private:
     volatile std::atomic_bool *unlocking;
