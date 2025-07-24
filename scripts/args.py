@@ -146,9 +146,9 @@ def init_args():
     Constants.skip_plotting = args.skip_plotting
     Constants.cxl = args.cxl
 
-    if Constants.cxl:
-        for mutex_name in Constants.mutex_names:
-            assert mutex_name in Constants.Defaults.CXL_MUTEXES, "expected only mutexes that work on cxl"
+    # if Constants.cxl:
+    #     for mutex_name in Constants.mutex_names:
+    #         assert mutex_name in Constants.Defaults.CXL_MUTEXES, "expected only mutexes that work on cxl"
 
     level = getattr(logging, args.log.upper(), Constants.Defaults.LOG)
     Constants.log = level

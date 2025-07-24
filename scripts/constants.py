@@ -39,6 +39,7 @@ class Constants:
             "burns_lamport",
             "dijkstra",
             "dijkstra_nonatomic",
+            "spin",
             "exp_spin",
             "hopscotch",
             "knuth",

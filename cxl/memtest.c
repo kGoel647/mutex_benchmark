@@ -53,9 +53,7 @@ int main(int argc, char **argv)
         printf("Running " STR(TEST) " in environment " TEST_ENVIRONMENT "...\n");
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-        for (int i = 0; i < ITERATIONS; i++) {
-            TEST();
-        }
+        TEST();
 
         clock_gettime(CLOCK_MONOTONIC, &end_time);
         double time_spent = get_elapsed_time(start_time, end_time);
@@ -73,15 +71,19 @@ int main(int argc, char **argv)
 
 void test_alloc()
 {
-    void *region = ALLOC(REGION_SIZE, 1);
-    FREE(region, REGION_SIZE);
+    for (int i = 0; i < ITERATIONS; i++) {
+        void *region = ALLOC(REGION_SIZE, 1);
+        FREE(region, REGION_SIZE);
+    }
 }
 
 void test_write()
 {
     volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
-    for (int i = 0; i < REGION_SIZE; i++) {
-        region[i] = 1;
+    for (int i = 0; i < ITERATIONS; i++) {
+        for (int i = 0; i < REGION_SIZE; i++) {
+            region[i] = 1;
+        }
     }
     FREE((void*)region, REGION_SIZE);
 }
@@ -90,8 +92,10 @@ void test_write()
 void test_read()
 {
     volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
-    for (int i = 0; i < REGION_SIZE; i++) {
-        c = region[i];
+    for (int i = 0; i < ITERATIONS; i++) {
+        for (int i = 0; i < REGION_SIZE; i++) {
+            c = region[i];
+        }
     }
     FREE((void*)region, REGION_SIZE);
 }
