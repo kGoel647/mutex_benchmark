@@ -81,8 +81,8 @@ void test_write()
 {
     volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
     for (int i = 0; i < ITERATIONS; i++) {
-        for (int i = 0; i < REGION_SIZE; i++) {
-            region[i] = 1;
+        for (int j = 0; j < REGION_SIZE; j++) {
+            region[j] = 1;
         }
     }
     FREE((void*)region, REGION_SIZE);
@@ -93,8 +93,8 @@ void test_read()
 {
     volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
     for (int i = 0; i < ITERATIONS; i++) {
-        for (int i = 0; i < REGION_SIZE; i++) {
-            c = region[i];
+        for (int j = 0; j < REGION_SIZE; j++) {
+            c = region[j];
         }
     }
     FREE((void*)region, REGION_SIZE);
