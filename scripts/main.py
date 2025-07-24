@@ -61,8 +61,8 @@ def run_experiment_iter(iter_variable_name, iter_range, *, thread_level=True):
 
 def main():
     setup()
-    build()
     init_args()
+    build()
     setup()
     init_logger()
     if Constants.iter_threads is not None:

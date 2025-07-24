@@ -9,6 +9,12 @@ def build():
     # Compile
     result = subprocess.run("meson setup build".split())#, stdout=subprocess.DEVNULL)
     assert result.returncode == 0, "Meson build failed."
-    subprocess.run('meson configure build --buildtype debugoptimized'.split())#, stdout=subprocess.DEVNULL)
+    configure_command = "meson configure build --buildtype debugoptimized"
+    if Constants.cxl:
+        configure_command += " -Dcpp_args=-Dcxl"
+    else:
+        configure_command += " -Dcpp_args="
+    result = subprocess.run(configure_command.split())
+    assert result.returncode == 0, "Configuration failed." #, stdout=subprocess.DEVNULL)
     result = subprocess.run("meson compile -C build".split())#, stdout=subprocess.DEVNULL)
     assert result.returncode == 0, "Compilation failed."
