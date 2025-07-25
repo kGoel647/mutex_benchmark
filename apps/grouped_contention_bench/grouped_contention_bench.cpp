@@ -1,4 +1,6 @@
 #include "grouped_contention_bench.hpp"
+#include <string.h> 
+#include <stdio.h>
 #include "bench_utils.hpp"
 
 #include "lock.hpp"
