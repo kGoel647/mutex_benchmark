@@ -62,7 +62,6 @@ def main():
     setup()
     build()
     init_args()
-    setup()
     init_logger()
     if Constants.iter_threads is not None:
         run_experiment_iter_v_threads()

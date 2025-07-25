@@ -113,7 +113,7 @@ def init_args():
     Constants.bench_n_threads      = args.threads
     Constants.bench_n_seconds      = args.seconds
     Constants.n_program_iterations = args.program_iterations
-    print(Constants.n_program_iterations)
+    print(f"Program Iterations: {Constants.n_program_iterations}")
     # Constants.threads_start = args.threads_start
     # Constants.threads_end = args.threads_end
     # Constants.threads_step = args.threads_step
