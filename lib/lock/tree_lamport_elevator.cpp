@@ -5,9 +5,9 @@
 #include <string.h>
 #include <iostream>
 
-#include "burns_lamport_lock.hpp"
+#include "lamport_lock.cpp"
 
-class TreeBLElevatorMutex : public virtual SoftwareMutex {
+class TreeLamportElevatorMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
         // TODO organize this function.
@@ -137,7 +137,7 @@ public:
         return "tree_cas_elevator";
     }
 private:
-    BurnsLamportMutex designated_waker_lock;
+    LamportLock designated_waker_lock;
     std::atomic_size_t *val; // TODO: test atomic_int performance instead
     std::atomic_bool *flag;
     size_t num_threads;

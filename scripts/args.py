@@ -47,6 +47,8 @@ def init_args():
                         help='all except these names')
     mnames.add_argument('-a','--all', action='store_true',
                         help='run all default mutexes')
+    mnames.add_argument('-s', '--set', nargs='+',
+                        help='run specific mutex sets')
 
     parser.add_argument('--scatter', action='store_true',
                         help='scatter CDF plots instead of lines')
@@ -89,6 +91,17 @@ def init_args():
 
     if args.all:
         Constants.mutex_names = Constants.Defaults.MUTEX_NAMES
+    elif args.set:
+        Constants.mutex_names=[]
+        if ('sleeper' in args.set ):
+            Constants.mutex_names.extend(Constants.Defaults.SLEEPER_SET)
+        if ('elevator' in args.set):
+            Constants.mutex_names.extend(Constants.Defaults.ELEVATOR_SET)
+        if ('fencing' in args.set):
+            Constants.mutex_names.extend(Constants.Defaults.FENCING_SET)
+        if ('base' in args.set):
+            Constants.mutex_names.extend(Constants.Defaults.BASE_SET)
+
     elif args.include:
         Constants.mutex_names = args.include
     else:  
@@ -100,6 +113,7 @@ def init_args():
     Constants.bench_n_threads      = args.threads
     Constants.bench_n_seconds      = args.seconds
     Constants.n_program_iterations = args.program_iterations
+    print(f"Program Iterations: {Constants.n_program_iterations}")
     # Constants.threads_start = args.threads_start
     # Constants.threads_end = args.threads_end
     # Constants.threads_step = args.threads_step

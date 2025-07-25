@@ -58,6 +58,5 @@ private:
     // which happens if the "bakery" remains full for
     // a long time.
     volatile std::atomic<size_t> *number;
-    struct timespec remaining;
     size_t num_threads;
 };
