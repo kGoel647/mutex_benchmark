@@ -41,7 +41,7 @@ def init_args():
                         help='where to write debug logs')
 
     mnames = parser.add_mutually_exclusive_group(required=True)
-    mnames.add_argument('-i','--include', nargs='+',
+    parser.add_argument('-i','--include', nargs='+',
                         help='only these mutex names')
     mnames.add_argument('-x','--exclude', nargs='+',
                         help='all except these names')
@@ -92,10 +92,9 @@ def init_args():
 
     args = parser.parse_args()
 
+    Constants.mutex_names = []
     if args.all:
         Constants.mutex_names = Constants.Defaults.MUTEX_NAMES
-    elif args.include:
-        Constants.mutex_names = args.include
     elif args.all_cxl:
         Constants.mutex_names = Constants.Defaults.CXL_MUTEXES
     else:  
@@ -103,6 +102,8 @@ def init_args():
             n for n in Constants.Defaults.MUTEX_NAMES
             if n not in args.exclude
         ]
+    if args.include:
+        Constants.mutex_names.extend(args.include)
 
     Constants.bench_n_threads      = args.threads
     Constants.bench_n_seconds      = args.seconds

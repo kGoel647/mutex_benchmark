@@ -4,6 +4,7 @@
 #include <atomic>
 #include <stdio.h>
 #include <string.h>
+#include <immintrin.h>
 
 // TODO: explicit memory ordering.
 // NOTE: Because of the limitations of `thread_local`,
@@ -13,7 +14,7 @@ class MCSMutex : public virtual SoftwareMutex {
 public:
     struct Node {
         std::atomic<Node*> next;
-        std::atomic_bool locked;
+        volatile bool locked;
     };
 
     void init(size_t num_threads) override {
@@ -36,15 +37,16 @@ public:
         if (old_tail == nullptr) {
             // We're the only one in the queue; we successfully acquired the lock.
             return;
-        } else {
-            // Edit the tail to add ourself in.
-            local_node->locked = true;
-            old_tail->next = local_node;
-            while (local_node->locked) {
-                // spin_delay_exponential(); // Busy wait
+        }
+        // Edit the tail to add ourself in.
+        local_node->locked = true;
+        old_tail->next = local_node;
+        while (local_node->locked) {
+            _umonitor((void*)&local_node->locked);
+            if (local_node->locked) {
+                _umwait(1, 0);
             }
         }
-
     }
 
     void unlock(size_t thread_id) override {
@@ -61,7 +63,7 @@ public:
             // spin_delay_exponential(); // Busy wait
         }
 
-        local_node->next.load()->locked.store(false);
+        local_node->next.load()->locked = false;
     }
 
     void destroy() override {

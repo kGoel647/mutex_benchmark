@@ -19,7 +19,7 @@
 #include "../lock/bakery_nonatomic_mutex.cpp"
 #include "../lock/lamport_lock.cpp"
 #include "../lock/mcs_lock.cpp"
-#include "../lock/mcs_volatile_lock.cpp"
+#include "../lock/mcs_local_lock.cpp"
 #include "../lock/mcs_malloc_lock.cpp"
 #include "../lock/knuth_lock.cpp"
 #include "../lock/peterson_lock.cpp"
@@ -30,7 +30,7 @@
 #include "../lock/null_mutex.cpp"
 #include "../lock/halfnode_lock.cpp"
 #include "../lock/hopscotch_lock.cpp"
-#include "../lock/hopscotch_static_lock.cpp"
+#include "../lock/hopscotch_local_lock.cpp"
 #include "../lock/clh_lock.cpp"
 #include "../lock/linear_elevator.cpp"
 #include "../lock/tree_elevator.cpp"
@@ -38,6 +38,8 @@
 #include "../lock/futex_mutex.cpp"
 #include "../lock/elevator_mutex.hpp"
 #include "../lock/szymanski.cpp"
+#include "../lock/umwait_lock.cpp"
+#include "../lock/broken_lock.cpp"
 
 void record_rusage(bool csv) {
     struct rusage usage;
@@ -161,7 +163,7 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "bakery_nonatomic") == 0)    lock = new BakeryNonAtomicMutex();
     else if (strcmp(mutex_name, "lamport") == 0)             lock = new LamportLock();
     else if (strcmp(mutex_name, "mcs") == 0)                 lock = new MCSMutex();
-    else if (strcmp(mutex_name, "mcs_volatile") == 0)        lock = new MCSVolatileMutex();
+    else if (strcmp(mutex_name, "mcs_local") == 0)           lock = new MCSLocalMutex();
     else if (strcmp(mutex_name, "mcs_malloc") == 0)          lock = new MCSMallocMutex();
     else if (strcmp(mutex_name, "knuth") == 0)               lock = new KnuthMutex();
     else if (strcmp(mutex_name, "peterson") == 0)            lock = new PetersonMutex();
@@ -173,6 +175,7 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "null") == 0)                lock = new NullMutex();
     else if (strcmp(mutex_name, "halfnode") == 0)            lock = new HalfnodeMutex();
     else if (strcmp(mutex_name, "hopscotch") == 0)           lock = new HopscotchMutex();
+    else if (strcmp(mutex_name, "hopscotch_local") == 0)     lock = new HopscotchLocalMutex();
     else if (strcmp(mutex_name, "clh") == 0)                 lock = new CLHMutex();
     else if (strcmp(mutex_name, "linear_cas_elevator") == 0) lock = new LinearElevatorMutex<SpinLock>();
     else if (strcmp(mutex_name, "tree_cas_elevator") == 0)   lock = new TreeElevatorMutex<SpinLock>();
@@ -181,6 +184,10 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "burns_lamport") == 0)       lock = new BurnsLamportMutex();
     else if (strcmp(mutex_name, "futex") == 0)               lock = new FutexLock();
     else if (strcmp(mutex_name, "elevator") == 0)            lock = new ElevatorMutex();
+    else if (strcmp(mutex_name, "broken") == 0)              lock = new BrokenLock();
+    #ifdef __x86_64__
+        else if (strcmp(mutex_name, "umwait") == 0)              lock = new UMWaitLock();
+    #endif
     // else if (strcmp(mutex_name, "hopscotch_static") == 0) {
     //     // This causes a free / delete / delete[] mismatch
     //     size_t region_size = HopscotchStaticMutex::get_size(num_threads);

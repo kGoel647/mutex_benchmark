@@ -42,6 +42,9 @@ int max_contention_bench(
     auto start_flag = std::make_shared<std::atomic<bool>>(false);
     auto end_flag   = std::make_shared<std::atomic<bool>>(false);
     volatile int* counter = (volatile int*)malloc(sizeof(int));
+    volatile int* last_thread_id_to_hold_lock = (volatile int*)malloc(sizeof(int));
+    volatile int* unfairness = (volatile int*)malloc(sizeof(int));
+
     *counter = 0;
 
     std::vector<per_thread_args> thread_args(num_threads);
@@ -95,6 +98,10 @@ int max_contention_bench(
 
                     // Critical section
                     (*counter)++;
+                    if (*last_thread_id_to_hold_lock == i) {
+                        (*unfairness)++;
+                    }
+                    *last_thread_id_to_hold_lock = i;
                     busy_sleep(rand() % max_critical_delay_iterations);
 
                     // Unlock
@@ -133,10 +140,16 @@ int max_contention_bench(
         return 1;
     }
 
+    // printf("Unfairness summary: %d/%d iterations are repeats from the same thread.\n", *unfairness, *counter);
+
     lock->destroy();
     free((void*)counter);
+    free((void*)last_thread_id_to_hold_lock);
+    free((void*)unfairness);
     delete lock;
 
+    if (!csv) {
+    }
 
     if (!no_output && !rusage) {
         for (auto& targs : thread_args) {

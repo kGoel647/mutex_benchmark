@@ -8,6 +8,12 @@
 #include <vector>
 #include <sched.h>
 
+#ifdef __x86_64__
+    #include <immintrin.h>
+#else
+
+#endif
+
 class SoftwareMutex {
 public:
     SoftwareMutex() = default;
@@ -31,6 +37,45 @@ public:
         sched_yield();
     }
 
+    #ifdef __x86_64
+        inline void umwait_on(volatile bool *address) {
+            while (!*address) {
+                _umonitor((void*)address);
+                if (!*address) {
+                    _umwait(1, 0);
+                }
+            }
+        }
+    #else
+        inline void umwait_on(volatile bool *address) {
+            while (!*address) {
+                // Busy wait
+            }
+        }
+    #endif
+
+    // #ifdef __linux__
+    //     inline void futex_wait_on(volatile uint32_t* address) {
+
+    //     }
+    // #else
+    //     inline void futex_wait_on(volatile uint32_t* address) {
+            
+    //     }
+    // #endif
+
+
+    // #ifdef __linux__
+    //     inline void futex_wake_on(volatile uint32_t* address) {
+
+    //     }
+    // #else
+    //     inline void futex_wake_on(volatile uint32_t* address) {
+            
+    //     }
+    // #endif
+
+
     inline void spin_delay_exponential() {
         // Same as nsync
         static size_t attempts = 0;
@@ -50,11 +95,12 @@ public:
         delay += 5;
     }
 
-    inline void spin_delay_exponential_nanosleep() {
-        static struct timespec nanosleep_timespec = { 0, 10 }, remaining;
-        nanosleep(&nanosleep_timespec, &remaining);
-        nanosleep_timespec.tv_nsec *= 2;
-    }
+    // Do NOT use this to make an exponential spinlock.
+    // inline void spin_delay_exponential_nanosleep() {
+    //     static struct timespec nanosleep_timespec = { 0, 10 }, remaining;
+    //     nanosleep(&nanosleep_timespec, &remaining);
+    //     nanosleep_timespec.tv_nsec *= 2;
+    // }
 };
 
 #endif // LOCK_LOCK_HPP

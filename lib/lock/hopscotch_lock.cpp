@@ -2,6 +2,8 @@
 // This implementation is not as efficient as it should be; the lock() method makes more memory accesses than is strictly necessary because it 
 // doesn't store anything locally.
 
+#include "../utils/cxl_utils.hpp"
+#include <string.h>
 #include "lock.hpp"
 #include <stdexcept>
 #include <atomic>
@@ -52,16 +54,16 @@ public:
     }
 
     void lock(size_t thread_id) override {
-        // The Hopscotch part, flipping to the other node to avoid reusing a node slot prematurely.
-        which_node ^= 1;
         Node *node = my_node(thread_id);
         node->successor_must_wait = true;
         Node *predecessor = tail->exchange(node, std::memory_order_relaxed);
         while (predecessor->successor_must_wait);
     }
-
+    
     void unlock(size_t thread_id) override {
         my_node(thread_id)->successor_must_wait = false;
+        // The Hopscotch part, flipping to the other node to avoid reusing a node slot prematurely.
+        which_node ^= 1;
     }
 
     void destroy() override {
