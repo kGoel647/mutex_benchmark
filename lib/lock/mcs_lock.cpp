@@ -41,12 +41,7 @@ public:
         // Edit the tail to add ourself in.
         local_node->locked = true;
         old_tail->next = local_node;
-        while (local_node->locked) {
-            _umonitor((void*)&local_node->locked);
-            if (local_node->locked) {
-                _umwait(1, 0);
-            }
-        }
+        while (local_node->locked);
     }
 
     void unlock(size_t thread_id) override {
