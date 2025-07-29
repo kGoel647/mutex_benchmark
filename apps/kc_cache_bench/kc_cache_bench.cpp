@@ -34,7 +34,8 @@ static void dberrprint(kc::BasicDB *db, int32_t line, const char *func)
 std::shared_ptr<std::atomic<bool>> start_flag = std::make_shared<std::atomic<bool>>(false);
 std::shared_ptr<std::atomic<bool>> end_flag = std::make_shared<std::atomic<bool>>(false);
 std::vector<per_thread_args> thread_args = std::vector<per_thread_args>();
-SoftwareMutex *db_lock;
+SoftwareMutex *dbw_lock;
+SoftwareMutex *dbr_lock;
 
 void kc_cache_bench::run(
     int num_threads,
@@ -45,7 +46,8 @@ void kc_cache_bench::run(
     bool no_output)
 {
 
-    db_lock->init(num_threads);
+    dbw_lock->init(num_threads);
+    dbr_lock->init(num_threads);
 
     for (int i = 0; i < num_threads; ++i)
     {
@@ -329,8 +331,8 @@ void kc_cache_bench::run(
             }
         }
         }
-        if (err_){thread_args[id_].stats.num_iterations=-100000000000;}
-        delete cur;});
+        if (err_){std::cout<<"haha there was an error"<<std::endl; thread_args[id_].stats.num_iterations=-100000000000;}
+        delete cur; });
     }
 
     *start_flag = true;
@@ -355,7 +357,8 @@ void kc_cache_bench::run(
         record_rusage(csv);
     }
 
-    db_lock->destroy();
+    dbw_lock->destroy();
+    dbr_lock->destroy();
 
     if (!no_output && !rusage)
     {
@@ -364,7 +367,6 @@ void kc_cache_bench::run(
             report_thread_latency(&targs.stats, csv, true);
         }
     }
-
 }
 
 int main(int argc, char *argv[])
@@ -408,8 +410,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    db_lock = get_mutex(mutex_name, num_threads);
-    if (db_lock == nullptr)
+    dbw_lock = get_mutex(mutex_name, num_threads);
+    dbr_lock = get_mutex(mutex_name, num_threads);
+    if (!dbw_lock || !dbr_lock)
     {
 
         return 1;
@@ -423,6 +426,5 @@ int main(int argc, char *argv[])
         rusage_,
         no_output);
 
-    std::cout << "this has finished" << std::endl;
     return 0;
 }

@@ -43,6 +43,8 @@ public:
                 goto start;
             }
         }
+        // std::cout<<"haha"<<std::endl;
+        Fence();
     }
     
     bool trylock(size_t thread_id){
@@ -79,6 +81,7 @@ public:
     }
 
     void unlock(size_t thread_id) override {
+        Fence();
         *y=0;
         Fence();
         b[thread_id] = false;
@@ -86,13 +89,9 @@ public:
     }
 
     void destroy() override {
-        // free((void*)b);
-        // free((void*)x);
-        // free((void*)y);
-        // free((void*)&fast);
-        // delete b;
-        // delete x;
-        // delete y;
+        free((void*)b);
+        free((void*)x);
+        free((void*)y);
     }
 
     std::string name() override {return "lamport";}

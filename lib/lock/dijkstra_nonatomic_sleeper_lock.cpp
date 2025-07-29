@@ -54,8 +54,8 @@ public:
         wake();
     }
     void destroy() override {
-        // free((void*)unlocking);
-        // free((void*)c);
+        free((void*)unlocking);
+        free((void*)c);
     }
 
     std::string name(){return "djikstra_nonatomic_sleeper";};
