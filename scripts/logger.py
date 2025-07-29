@@ -24,6 +24,5 @@ def init_logger():
 
 
 def log(output):
-
     with open(log_file_name, "w") as log_file:
         log_file.write(output)

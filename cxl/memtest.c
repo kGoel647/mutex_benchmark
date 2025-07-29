@@ -1,7 +1,7 @@
-
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 
 #ifndef REGION_SIZE
@@ -10,6 +10,10 @@
 
 #ifndef ITERATIONS
     #define ITERATIONS 1000
+#endif
+
+#ifndef PROGRAM_ITERATIONS
+    #define PROGRAM_ITERATIONS 1
 #endif
 
 #define XSTR(x) #x
@@ -42,28 +46,53 @@ double get_elapsed_time(struct timespec start_time, struct timespec end_time);
 void test_alloc();
 void test_write();
 void test_read();
+
 volatile static char c;
+static int indeces_buffer[REGION_SIZE];
+
+void test()
+{
+    // Setup indeces beforehand so that rand() doesn't affect how fast the benchmarking is.
+    // Use an indeces buffer either way so that buffer access doesn't make random_access appear slower.
+    #ifdef random_access
+        for (int i = 0; i < REGION_SIZE; i++) {
+            indeces_buffer[i] = rand() % REGION_SIZE;
+        }
+    #else
+        for (int i = 0; i < REGION_SIZE; i++) {
+            indeces_buffer[i] = i;
+        }
+    #endif
+    struct timespec start_time, end_time;
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+    TEST();
+
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
+    double time_spent = get_elapsed_time(start_time, end_time);
+    #if defined(alloc_test)
+        printf(STR(ITERATIONS) " iterations of allocating and deallocating " STR(REGION_SIZE) " bytes took %.8f seconds to run.\n", time_spent);
+    #elif defined(write_test)
+        printf(STR(ITERATIONS) " iterations of writing " STR(REGION_SIZE) " bytes took %.8f seconds to run.\n", time_spent);
+    #elif defined(read_test)
+        printf(STR(ITERATIONS) " iterations of reading " STR(REGION_SIZE) " bytes took %.8f seconds to run.\n", time_spent);
+    #endif
+}
 
 int main(int argc, char **argv)
 {
     #ifdef cxl
         emucxl_init();
     #endif
-        struct timespec start_time, end_time;
         printf("Running " STR(TEST) " in environment " TEST_ENVIRONMENT "...\n");
-        clock_gettime(CLOCK_MONOTONIC, &start_time);
-
-        TEST();
-
-        clock_gettime(CLOCK_MONOTONIC, &end_time);
-        double time_spent = get_elapsed_time(start_time, end_time);
-        #if defined(alloc_test)
-            printf(STR(ITERATIONS) " iterations of allocating and deallocating " STR(REGION_SIZE) " bytes took %.8f seconds to run.\n", time_spent);
-        #elif defined(write_test)
-            printf(STR(ITERATIONS) " iterations of writing " STR(REGION_SIZE) " bytes took %.8f seconds to run.\n", time_spent);
-        #elif defined(read_test)
-            printf(STR(ITERATIONS) " iterations of reading " STR(REGION_SIZE) " bytes took %.8f seconds to run.\n", time_spent);
+        #ifdef random_access
+            printf("Memory accesses are random.\n");
+        #else
+            printf("Memory accesses are sequential.\n");
         #endif
+        for (int i = 0; i < PROGRAM_ITERATIONS; i++) {
+            test();
+        }
     #ifdef cxl
         emucxl_exit();
     #endif
@@ -82,7 +111,7 @@ void test_write()
     volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
     for (int i = 0; i < ITERATIONS; i++) {
         for (int j = 0; j < REGION_SIZE; j++) {
-            region[j] = 1;
+            region[indeces_buffer[j]] = 1;
         }
     }
     FREE((void*)region, REGION_SIZE);
@@ -94,7 +123,7 @@ void test_read()
     volatile char *region = (volatile char*)ALLOC(REGION_SIZE, 1);
     for (int i = 0; i < ITERATIONS; i++) {
         for (int j = 0; j < REGION_SIZE; j++) {
-            c = region[j];
+            c = region[indeces_buffer[j]];
         }
     }
     FREE((void*)region, REGION_SIZE);
