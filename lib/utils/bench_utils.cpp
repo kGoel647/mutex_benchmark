@@ -55,6 +55,10 @@
 #include "../lock/cohortTicket_lock.cpp"
 #include "../lock/cohortMCS_lock.cpp"
 #include "../lock/hbo_lock.cpp"
+#include "../lock/cohortTAS_lock.cpp"
+#include "../lock/cohortPTicket_lock.cpp"
+#include "../lock/HCLH_lock.cpp"
+#include "../lock/HMCS_lock.cpp"
 
 void record_rusage(bool csv) {
     struct rusage usage;
@@ -212,6 +216,10 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "cohortMCS") == 0)                   lock = new CMCSLock();
     else if (strcmp(mutex_name, "hbo") == 0)                         lock = new hbo_lock();
     else if (strcmp(mutex_name, "cohortTicket") == 0)                lock = new CohortTicket();
+    else if (strcmp(mutex_name, "hmcs") == 0)                        lock = new hmcs::HMCSLock();
+    else if (strcmp(mutex_name, "cohortTAS") == 0)                   lock = new CohortTASLock();
+    else if (strcmp(mutex_name, "cohortPTicket") == 0)               lock = new CohortPTicketLock();
+    else if (strcmp(mutex_name, "hclh") == 0)                        lock = new hclh::HCLHMutex();
 
     // else if (strcmp(mutex_name, "hopscotch_static") == 0) {
     //     // This causes a free / delete / delete[] mismatch
