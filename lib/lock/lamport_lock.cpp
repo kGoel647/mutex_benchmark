@@ -86,9 +86,13 @@ public:
     }
 
     void destroy() override {
-        free((void*)b);
-        free((void*)x);
-        free((void*)y);
+        // free((void*)b);
+        // free((void*)x);
+        // free((void*)y);
+        // free((void*)&fast);
+        // delete b;
+        // delete x;
+        // delete y;
     }
 
     std::string name() override {return "lamport";}

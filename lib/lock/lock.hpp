@@ -54,6 +54,8 @@
 #include "../utils/bench_utils.hpp"
 
 
+extern thread_local size_t thr_id;
+
 class SoftwareMutex {
 public:
     SoftwareMutex() = default;
@@ -129,6 +131,95 @@ public:
 private:
     volatile unsigned int* currentId= (volatile unsigned int* )malloc(sizeof(unsigned int *));
 
+
 };
+
+class RWSoftwareMutex {
+public:
+  /**
+   * Default constructor.
+   */
+  explicit RWSoftwareMutex(SoftwareMutex* inner_lock) : inner_lock_(inner_lock){
+  }
+  /**
+   * Destructor.
+   */
+  ~RWSoftwareMutex(){
+    inner_lock_->destroy();
+    delete inner_lock_;
+  }
+  /**
+   * Get the writer lock.
+   */
+  void lock_writer(){
+    inner_lock_->lock(thr_id);
+  }
+  /**
+   * Try to get the writer lock.
+   * @return true on success, or false on failure.
+   */
+  bool lock_writer_try(){
+    return false; //TODO: Fix!!!!
+  }
+  /**
+   * Get a reader lock.
+   */
+  void lock_reader(){
+    inner_lock_->lock(thr_id);
+  }
+  /**
+   * Try to get a reader lock.
+   * @return true on success, or false on failure.
+   */
+  bool lock_reader_try(){
+    return false; //TODO: Fix!!!
+  }
+  /**
+   * Release the lock.
+   */
+  void unlock(){
+    inner_lock_->unlock(thr_id);
+  }
+private:
+  /** Dummy constructor to forbid the use. */
+  RWSoftwareMutex(const RWSoftwareMutex&);
+  /** Dummy Operator to forbid the use. */
+//   RWSoftwareMutex& operator =(const RWSoftwareMutex&);
+
+  SoftwareMutex* inner_lock_;
+};
+
+/**
+ * Scoped reader-writer locking device.
+ */
+class ScopedRWMutex {
+ public:
+  /**
+   * Constructor.
+   * @param rwlock a rwlock to lock the block.
+   * @param writer true for writer lock, or false for reader lock.
+   */
+  explicit ScopedRWMutex(RWSoftwareMutex* rwlock, bool writer) : rwlock_(rwlock) {
+    if (writer) {
+      rwlock_->lock_writer();
+    } else {
+      rwlock_->lock_reader();
+    }
+  }
+  /**
+   * Destructor.
+   */
+  ~ScopedRWMutex() {
+    rwlock_->unlock();
+  }
+ private:
+  /** Dummy constructor to forbid the use. */
+  ScopedRWMutex(const ScopedRWMutex&);
+  /** Dummy Operator to forbid the use. */
+  ScopedRWMutex& operator =(const ScopedRWMutex&);
+  /** The inner device. */
+  RWSoftwareMutex* rwlock_;
+};
+
 
 #endif // LOCK_LOCK_HPP
