@@ -5,7 +5,9 @@
 
 #include <atomic>
 #include <thread>
+
 #include <vector>
+#include <sched.h>
 #include <sanitizer/tsan_interface.h>
 
 #if defined(__has_feature)
@@ -48,6 +50,10 @@
 #endif
 
 
+#include <semaphore>
+#include "../utils/bench_utils.hpp"
+
+
 class SoftwareMutex {
 public:
     SoftwareMutex() = default;
@@ -65,7 +71,64 @@ public:
     // Cleanup any resources used by the mutex
     virtual void destroy() = 0;
 
+    int criticalSection(size_t thread_id) {
+        *currentId=thread_id;
+        Fence();
+        for (int i=0; i<100; i++){
+            if (*currentId!= thread_id){
+                throw std::runtime_error(name() + " was breached");
+            }
+        }
+        return 1;
+    }
+
+    void sleep() {
+        sleeper.acquire();
+    }
+
+    void wake(){
+        if(!sleeper.try_acquire()){
+        }
+            sleeper.release();
+    }
+
+    std::binary_semaphore sleeper{0};
+
     virtual std::string name() =0;
+
+
+    inline void spin_delay_sched_yield() {
+        sched_yield();
+    }
+
+    inline void spin_delay_exponential() {
+        // Same as nsync
+        static size_t attempts = 0;
+        if (attempts < 7) {
+            volatile int i;
+            for (i = 0; i != 1 << attempts; i++);
+        } else {
+            std::this_thread::yield();
+        }
+        attempts++;
+    }
+
+    inline void spin_delay_linear() {
+        static size_t delay = 5;
+        volatile size_t i;
+        for (i = 0; i != delay; i++);
+        delay += 5;
+    }
+
+    inline void spin_delay_exponential_nanosleep() {
+        static struct timespec nanosleep_timespec = { 0, 10 }, remaining;
+        nanosleep(&nanosleep_timespec, &remaining);
+        nanosleep_timespec.tv_nsec *= 2;
+    }
+
+private:
+    volatile unsigned int* currentId= (volatile unsigned int* )malloc(sizeof(unsigned int *));
+
 };
 
 #endif // LOCK_LOCK_HPP

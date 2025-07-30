@@ -14,17 +14,19 @@
 #include <utility>
 #include <unordered_map>
 
+#include "../lock/lock.hpp"
+
+class SoftwareMutex;
 
 struct per_thread_stats {
     int thread_id;
     int num_iterations;
 
-    std::chrono::nanoseconds run_time;
+    double run_time;
     struct timespec start_time;
     struct timespec end_time;
     // Vector reallocation could waste some thread time.
     std::vector<double> lock_times;
-
 };
 
 
@@ -33,7 +35,6 @@ struct run_stats {
     struct per_thread_stats **thread_stats;
     struct rusage usage;
 };
-
 
 // Use getrusage  to record resource usage
 
@@ -52,6 +53,7 @@ void destroy_lock_timer(struct per_thread_stats *stats);
 void report_run_latency(struct run_stats *stats);
 
 void report_thread_latency(struct per_thread_stats *stats, bool csv, bool thread_level);
+
 
 struct Node{
     int key, value;
@@ -137,4 +139,9 @@ public:
         return std::make_pair(keys, values);
     }
 };
+
+void busy_sleep(size_t iterations);
+SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads);
+
+
 #endif // __BENCH_UTILS_HPP_

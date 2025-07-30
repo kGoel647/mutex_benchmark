@@ -4,9 +4,9 @@
 class DijkstraMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        this->unlocking = (volatile std::atomic_bool*)malloc(sizeof(std::atomic_bool) * num_threads);
-        this->c         = (volatile std::atomic_bool*)malloc(sizeof(std::atomic_bool) * num_threads);
-        for (size_t i = 0; i < num_threads; i++) {
+        this->unlocking = (volatile std::atomic_bool*)malloc(sizeof(std::atomic_bool) * (num_threads+1));
+        this->c         = (volatile std::atomic_bool*)malloc(sizeof(std::atomic_bool) * (num_threads+1));
+        for (size_t i = 0; i <= num_threads; i++) {
             unlocking[i] = true;
             c[i] = true;
         }
@@ -16,18 +16,18 @@ public:
 
     void lock(size_t thread_id) override {
         // TODO refactor and remove goto
-        unlocking[thread_id] = false;
+        unlocking[thread_id+1] = false;
     try_again:
-        c[thread_id] = true;
-        if (k != thread_id) {
+        c[thread_id+1] = true;
+        if (k != thread_id+1) {
             while (!unlocking[k]) {}
-            k = thread_id;
+            k = thread_id+1;
             
             goto try_again;
         } 
-        c[thread_id] = false;
-        for (size_t j = 0; j < num_threads; j++) {
-            if (j != thread_id && !c[j]) {
+        c[thread_id+1] = false;
+        for (size_t j = 1; j <= num_threads; j++) {
+            if (j != thread_id+1 && !c[j]) {
                 goto try_again;
             }
         }
@@ -35,8 +35,9 @@ public:
     }
 
     void unlock(size_t thread_id) override {
-        unlocking[thread_id] = true;
-        c[thread_id] = true;
+        k=0;
+        unlocking[thread_id+1] = true;
+        c[thread_id+1] = true;
     }
 
     void destroy() override {
@@ -44,7 +45,7 @@ public:
         free((void*)c);
     }
 
-    std::string name(){return "djikstra";};
+    std::string name() override {return "djikstra";};
 
 private:
     volatile std::atomic_bool *unlocking;

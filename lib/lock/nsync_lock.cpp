@@ -23,10 +23,8 @@ public:
     }
     void destroy() override {}
 
-    std::string name(){return "nsync";};
+    std::string name() override {return "nsync";};
     
 private:
-    
     nsync::nsync_mu my_mutex; // Global mutex
-    bool deleted;
 };
