@@ -26,6 +26,7 @@ def setup():
 def run_experiment_lock_level():
     if not Constants.skip_experiment:
         run_experiment_lock_level_single_threaded()
+    print_averages_lock_level()
     data = load_data_lock_level()
     output = analyze_lock_level(data)
     print(output)
