@@ -7,7 +7,7 @@ import itertools
 from .constants import Constants
 from .logger import logger
 
-# Color Changer/Symbols. 
+# Color Changer/Symbols.
 MARKERS = itertools.cycle(['o', 's', '^', 'D', '*', 'X', 'v', '<', '>', 'P', 'H'])
 coloring = [
     "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
@@ -94,29 +94,56 @@ def finish_plotting_graph(axis, rusage=False):
 
 def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, average_lock_time=None):
     logger.info(f"Plotting {mutex_name=}")
+    
     x_values = series.sort_values().reset_index(drop=True)
-    y_values = [a/x_values.size for a in range(x_values.size)]
+    if x_values.size == 0:
+        logger.error(f"Failed to plot {mutex_name}: No data.")
+        return
+
+    y_values = np.linspace(0, 1, x_values.size)
 
     if average_lock_time:
         title += f" (avg={average_lock_time:.2e})"
     title += f" ({x_values.size:,} datapoints)"
 
-    if x_values.size == 0:
-        logger.error(f"Failed to plot {mutex_name}: No data.")
-        return
-
+    # Subsample if too many points
     skip = max(1, int(ceil(x_values.size / Constants.max_n_points)))
-    x = [x_values[i] for i in range(0, x_values.size, skip)]
-    y = [y_values[i] for i in range(0, x_values.size, skip)]
+    x = x_values[::skip]
+    y = y_values[::skip]
 
     style = get_style(mutex_name)
 
     if Constants.scatter:
-        plt.scatter(x, y, label=title, s=0.4, color=style["color"], marker=style["marker"])
+        plt.scatter(
+            x, y,
+            label=title,
+            s=10,
+            color=style["color"],
+            marker=style["marker"],
+            alpha=0.8
+        )
     elif error_bars is not None:
-        plt.errorbar(x, y, error_bars, label=title, color=style["color"], marker=style["marker"])
+        plt.errorbar(
+            x, y, error_bars[::skip],
+            label=title,
+            color=style["color"],
+            marker=style["marker"],
+            markersize=4,
+            linewidth=0.8,
+            alpha=0.8
+        )
     else:
-        plt.plot(x, y, label=title, color=style["color"], marker=style["marker"])
+        # Smooth line + markers
+        plt.plot(
+            x, y,
+            label=title,
+            color=style["color"],
+            marker=style["marker"],
+            markersize=4,
+            linewidth=0.8,
+            alpha=0.9,
+            markevery=max(1, len(x)//20)
+        )
 
     if Constants.log_scale:
         plt.xscale("log")
@@ -141,9 +168,24 @@ def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", 
             color=style["color"]
         )
     elif Constants.scatter:
-        ax.scatter(x, y, label=title, s=10, color=style["color"], marker=style["marker"])
+        ax.scatter(
+            x, y,
+            label=title,
+            s=10,
+            color=style["color"],
+            marker=style["marker"],
+            alpha=0.8
+        )
     else:
-        ax.plot(x, y, label=title, color=style["color"], marker=style["marker"])
+        ax.plot(
+            x, y,
+            label=title,
+            color=style["color"],
+            marker=style["marker"],
+            markersize=3,
+            linewidth=1.0,
+            alpha=0.8
+        )
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
@@ -152,4 +194,3 @@ def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", 
         ax.set_yscale("log")
     else:
         ax.set_yscale("linear")
-
