@@ -4,6 +4,12 @@ from .logger import logger
 import subprocess
 import os
 
+def setup():
+    # Make sure the script is being run from the right location (in mutex_benchmark directory)
+    absolute_path = os.path.abspath(__file__)
+    parent_directory = os.path.dirname(absolute_path)
+    os.chdir(parent_directory + "/..")
+    
 def build():
     subprocess.run(f"mkdir build data {Constants.Defaults.DATA_FOLDER} {Constants.Defaults.LOGS_FOLDER} -p".split())
 

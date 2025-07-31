@@ -112,11 +112,21 @@ def init_args():
     # Constants.threads_start = args.threads_start
     # Constants.threads_end = args.threads_end
     # Constants.threads_step = args.threads_step
-    Constants.iter_threads = args.iter_threads
-    Constants.iter_noncritical_delay = args.iter_noncritical_delay
     Constants.rusage = args.rusage
-    Constants.iter_critical_delay = args.iter_critical_delay
-    Constants.iter = args.iter_threads is not None or args.iter_noncritical_delay is not None or args.iter_critical_delay is not None
+
+    if args.iter_threads != None:
+        Constants.iter_variable_name = "threads"
+        Constants.iter_range = args.iter_threads
+    elif args.iter_critical_delay != None:
+        Constants.iter_variable_name = "critical_delay"
+        Constants.iter_range = args.iter_critical_delay
+    elif args.iter_noncritical_delay != None:
+        Constants.iter_variable_name = "noncritical_delay"
+        Constants.iter_range = args.iter_noncritical_delay
+        
+    Constants.iter = Constants.iter_variable_name is not None
+    if Constants.iter:
+        Constants.iter_range[1] += 1 # End inclusive range
 
     Constants.data_folder = args.data_folder
     logger.debug(Constants.data_folder)

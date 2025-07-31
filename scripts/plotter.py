@@ -1,125 +1,118 @@
-from math import ceil
-from os.path import isfile
+import pandas as pd # pyright: ignore[reportMissingModuleSource]
+import numpy as np # pyright: ignore[reportMissingImports]
+import matplotlib.pyplot as plt # pyright: ignore[reportMissingModuleSource]
+import seaborn as sns # pyright: ignore[reportMissingModuleSource]
 
-import matplotlib.pyplot as plt
-import seaborn as sns
+from math import ceil
 
 from .constants import Constants
 from .logger import logger
 
-def get_savefig_filepath(cdf_or_iter):
+
+def get_savefig_filepath():
+    from os.path import isfile
+    if Constants.iter:
+        extension = "iter"
+    else:
+        extension = "cdf"
     triplet = f"{Constants.bench_n_threads}_{Constants.bench_n_seconds}_{Constants.n_program_iterations}"
-    name_base = f"{Constants.data_folder}/../figs/fig-{triplet}-{cdf_or_iter}"
+    name_base = f"{Constants.data_folder}/../figs/fig-{triplet}-{extension}"
     n = 0
     while isfile(f"{name_base}{n}.png"):
         n += 1
     return f"{name_base}{n}.png"
 
-def finish_plotting_cdf(thread_time_or_lock_time):
-    """
-    Finalize and show a cumulative distribution (CDF) plot.
-    """
-    if Constants.skip_plotting:
-        return
-    print("Finishing plotting CDF...")
-    title = (
-        f"{thread_time_or_lock_time} CDF for "
-        f"{Constants.bench_n_threads} threads, "
-        f"{Constants.bench_n_seconds}s "
-        f"({Constants.n_program_iterations}×)"
-    )
+def fix_legend_point_size(axes=None):
+    if axes is None:
+        axes = [plt]
+    for ax in axes:
+        legend = ax.legend()
+        for handle in legend.legend_handles: # type: ignore
+            handle._sizes = [30]
+
+def get_cdf_title():
+    title = f"Lock time CDF for {Constants.bench_n_threads} threads, {Constants.bench_n_seconds}s ({Constants.n_program_iterations}×)"
     if Constants.noncritical_delay != -1:
-        title += (
-            f"\nNoncritical delay: {Constants.noncritical_delay:,} ns "
-            f"({Constants.noncritical_delay:.2e} ns)"
-        )
+        title += f"\nNoncritical delay: {Constants.noncritical_delay:,} ns ({Constants.noncritical_delay:.2e} ns)"
     if Constants.low_contention:
         title += f"\nLow-contention mode: stagger {Constants.stagger_ms} ms/start"
-    plt.title(title)
-    if Constants.log_scale and not Constants.iter:
-        plt.xscale('log')
-    legend = plt.legend()
-    for handle in legend.legend_handles: # type: ignore
-        handle._sizes = [30]
+    return title
 
-    plt.savefig(get_savefig_filepath("cdf"))
+def display(axis=None):
+    fix_legend_point_size(axis)
+    plt.savefig(get_savefig_filepath())
     plt.show()
 
-def finish_plotting_graph(axis, rusage=False):
-    if Constants.skip_plotting:
-        return
-    print("Finishing plotting...")
-    if not(rusage):
-        axis[0].set_title(f"# Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-        axis[0].set_yscale('log')
-    else:
-        axis[0].set_title(f"# User time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-
-    if len(axis)>1:
-        if not(rusage):
-            axis[1].set_title(f"Std. dev of # Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-            axis[1].set_yscale('log')
-        else:
-            axis[1].set_title(f"System time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-
-    for ax in axis:
-      legend = ax.legend()
-      for handle in legend.legend_handles:
-          handle._sizes = [30]
-
-    plt.show()
-    plt.savefig(get_savefig_filepath("iter"))
-
-def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, average_lock_time=None):
-    if Constants.skip_plotting:
-        return
+def plot_one_cdf(series, mutex_name, *, xlabel, ylabel, title, average_lock_time=None):
     logger.info(f"Plotting {mutex_name=}")
+
     # The y-values should go up from 0 to 1, while the X-values vary along the series
     x_values = series.sort_values().reset_index(drop=True)
     y_values = [a/x_values.size for a in range(x_values.size)]
     title += f" ({x_values.size:,} datapoints)"
     if average_lock_time:
         title += f" ({average_lock_time=:.2e})"
+
     # Skip some values to save time
     logger.info(x_values.size)
     skip = int(ceil(x_values.size / Constants.max_n_points))
-
-    if (x_values.size == 0):
-        logger.error(f"Failed to plot {mutex_name}: No data.")
-        return
-
     x = [x_values[i] for i in range(0, x_values.size, skip)]
     y = [y_values[i] for i in range(0, x_values.size, skip)]
 
     if Constants.scatter:
         plt.scatter(x, y, label=title, s=0.2)
-        plt.xscale("log")
-    elif error_bars is not None:
-        plt.errorbar(x, y, error_bars, label=title)
     else:
         plt.plot(x, y, label=title)
-        plt.xscale("log")
+
+    plt.xscale("log")
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None, colname=None):
-    if Constants.skip_plotting:
-        return
-    logger.info(f"Plotting {mutex_name=}")
-    # print(data)
-    if error_bars is not None:
-        # data = data.sample(1000)
-        # color = sns.color_palette()
-        print(data)
-        logger.debug(dict(data=data, x=iter_variable_name, y=colname, errorbar=("sd", 0.1), label=title))
-        grid = sns.lineplot(data=data, x=iter_variable_name, y=colname, errorbar=("sd", 0.1), label=title)
-        grid.set(yscale="log")
-        # sns.scatterplot(data=data, x="threads", y="Time Spent", palette=color)
-        return
-        # ax.errorbar(x, y, error_bars, marker='o', capsize=5, capthick=1, label=title)
-    elif Constants.scatter:
-        ax.scatter(x, y, label=title, s=0.2)
+def plot_lock_level(data):
+    for mutex_name, df in data:
+        logger.info(f"Mutex {mutex_name:<24} average time: {df['Time Spent'].mean():.9f} standard deviation: {df['Time Spent'].std():.9f}")
+        plot_one_cdf(
+            df["Time Spent"], 
+            mutex_name,
+            xlabel="Lock time (seconds)",
+            ylabel="% of iterations under",
+            title=f"{mutex_name}",
+            average_lock_time=df['Time Spent'].mean(),
+        )
+    plt.title(get_cdf_title())
+    if Constants.log_scale and not Constants.iter:
+        plt.xscale('log')
+    display()
+
+def plot_iter(data):
+    for mutex_name, df in data:
+        logger.info(f"lineplot_with_std: Plotting {mutex_name=}")
+        sns.lineplot(df, x=Constants.iter_variable_name, y="# Iterations", errorbar=("sd", Constants.Defaults.STANDARD_DEVIATION_SCALE), label=mutex_name)
+    plt.yscale("log")
+    display()
+
+def plot_iter_rusage(data):
+    _, axis = plt.subplots(1, 2)
+    for mutex_name, df in data:
+        logger.debug(f"Mutex {mutex_name:<24} average time: {np.array(df).mean():.7f} standard deviation: {np.array(df).mean():.7f}")
+        for ax, yname, ylabel in zip(axis, ['utime', 'stime'], ["User time", "System time"]):
+            plot_one_graph(
+                ax,
+                df['threads'],
+                df[yname],
+                mutex_name,
+                xlabel=Constants.iter_variable_name,
+                ylabel=ylabel,
+            )
+    axis[0].set_title(f"# User time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+    axis[1].set_title(f"System time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+    display(axis)
+
+def plot_one_graph(ax, x, y, mutex_name, *, xlabel, ylabel):
+    logger.info(f"plot_one_graph: Plotting {mutex_name=}")
+    if Constants.scatter:
+        ax.scatter(x, y, label=mutex_name, s=0.2)
     else:
-        ax.plot(x, y, label=title)
+        ax.plot(x, y, label=mutex_name)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)

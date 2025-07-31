@@ -74,6 +74,7 @@ class Constants:
         SKIP                 = 1
         MAX_N_POINTS         = 1000
         LOG_SCALE            = True
+        STANDARD_DEVIATION_SCALE = 1.0
 
         LOW_CONTENTION = False
         STAGGER_MS     = 0
@@ -98,6 +99,7 @@ class Constants:
     cxl: bool
     skip_plotting: bool
     averages: bool
+    iter_variable_name: str
 
     noncritical_delay: int
     groups: int
@@ -106,8 +108,4 @@ class Constants:
     low_contention = Defaults.LOW_CONTENTION
     stagger_ms     = Defaults.STAGGER_MS
     skip_experiment: bool = False
-
-    iter_threads: list[int] | None
-    iter_critical_delay: list[int] | None
-    iter_noncritical_delay: list[int] | None
-
+    iter_range: list[int]
