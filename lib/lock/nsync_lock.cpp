@@ -1,3 +1,4 @@
+#ifdef inc_nsync
 #include "lock.hpp"
 #include <stdexcept>
 #include "nsync_mu.h"
@@ -30,3 +31,4 @@ private:
     nsync::nsync_mu my_mutex; // Global mutex
     bool deleted;
 };
+#endif //inc_nsync

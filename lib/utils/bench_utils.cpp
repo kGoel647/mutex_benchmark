@@ -9,11 +9,9 @@
 
 #include "../lock/pthread_lock.cpp"
 #include "../lock/cpp_std_mutex.cpp"
-#include "../lock/boost_lock.cpp"
 #include "../lock/dijkstra_lock.cpp"
 #include "../lock/dijkstra_nonatomic_lock.cpp"
 #include "../lock/spin_lock.hpp"
-#include "../lock/nsync_lock.cpp"
 #include "../lock/exp_spin_lock.cpp"
 #include "../lock/bakery_mutex.cpp"
 #include "../lock/bakery_nonatomic_mutex.cpp"
@@ -38,8 +36,19 @@
 #include "../lock/futex_mutex.cpp"
 #include "../lock/elevator_mutex.hpp"
 #include "../lock/szymanski.cpp"
-#include "../lock/umwait_lock.cpp"
 #include "../lock/broken_lock.cpp"
+
+#ifdef inc_nsync
+    #include "../lock/nsync_lock.cpp"
+#endif
+
+#ifdef inc_boost
+    #include "../lock/boost_lock.cpp"
+#endif
+
+#ifdef inc_umwait
+    #include "../lock/umwait_lock.cpp"
+#endif
 
 void record_rusage(bool csv) {
     struct rusage usage;
@@ -153,12 +162,10 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     SoftwareMutex* lock = nullptr;
     if      (strcmp(mutex_name, "pthread") == 0)             lock = new Pthread();
     else if (strcmp(mutex_name, "cpp_std") == 0)             lock = new CPPMutex();
-    else if (strcmp(mutex_name, "boost") == 0)               lock = new BoostMutex();
     else if (strcmp(mutex_name, "dijkstra") == 0)            lock = new DijkstraMutex();
     else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0)  lock = new DijkstraNonatomicMutex();
     else if (strcmp(mutex_name, "spin") == 0)                lock = new SpinLock();
     else if (strcmp(mutex_name, "exp_spin") == 0)            lock = new ExponentialSpinLock();
-    else if (strcmp(mutex_name, "nsync") == 0)               lock = new NSync();
     else if (strcmp(mutex_name, "bakery") == 0)              lock = new BakeryMutex();
     else if (strcmp(mutex_name, "bakery_nonatomic") == 0)    lock = new BakeryNonAtomicMutex();
     else if (strcmp(mutex_name, "lamport") == 0)             lock = new LamportLock();
@@ -185,7 +192,13 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "futex") == 0)               lock = new FutexLock();
     else if (strcmp(mutex_name, "elevator") == 0)            lock = new ElevatorMutex();
     else if (strcmp(mutex_name, "broken") == 0)              lock = new BrokenLock();
-    #ifdef __x86_64__
+    #ifdef inc_boost
+        else if (strcmp(mutex_name, "boost") == 0)               lock = new BoostMutex();
+    #endif
+    #ifdef inc_nsync
+        else if (strcmp(mutex_name, "nsync") == 0)               lock = new NSync();
+    #endif
+    #ifdef inc_umwait
         else if (strcmp(mutex_name, "umwait") == 0)              lock = new UMWaitLock();
     #endif
     // else if (strcmp(mutex_name, "hopscotch_static") == 0) {

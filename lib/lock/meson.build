@@ -2,9 +2,9 @@ lock_includes = include_directories('.')
 
 cpp = meson.get_compiler('cpp')
 
-nsync_dep = cpp.find_library('nsync_cpp')
+nsync_dep = cpp.find_library('nsync_cpp', required: false)
 
-boost_dep = dependency('boost', static : true)
+boost_dep = dependency('boost', static : true, required: false)
 
 lock_lib = library('lock', 
                     ['pthread_lock.cpp', 'boost_lock.cpp', 'nsync_lock.cpp', 'spin_lock.hpp', 'dijkstra_lock.cpp', 'cpp_std_mutex.cpp', 'bakery_mutex.cpp', 'lamport_lock.cpp', 'bakery_nonatomic_mutex.cpp'], 
