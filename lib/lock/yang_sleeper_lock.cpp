@@ -13,7 +13,7 @@ public:
     {
         this->spinners = (volatile size_t *)malloc(sizeof(size_t) * num_threads);
         this->spinnerSleep = (std::binary_semaphore *)malloc(sizeof(std::binary_semaphore)*num_threads);
-        for (int i=0; i<num_threads; i++){
+        for (int i=0; i<(int)num_threads; i++){
             spinnerSleep[i].try_acquire();
         }
 
@@ -171,7 +171,7 @@ public:
         helper_->destroy();
     }
 
-    std::string name() { return "yang"; };
+    std::string name() override { return "yang_sleep"; };
 
 private:
     size_t num_threads;

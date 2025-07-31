@@ -58,7 +58,7 @@ public:
         free((void*)c);
     }
 
-    std::string name(){return "djikstra_nonatomic_sleeper";};
+    std::string name() override {return "djikstra_nonatomic_sleeper";};
 
 private:
     volatile bool *unlocking;

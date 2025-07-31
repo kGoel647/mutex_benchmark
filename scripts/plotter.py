@@ -1,16 +1,37 @@
 from math import ceil
-
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+import itertools
 
 from .constants import Constants
 from .logger import logger
 
+# Color Changer/Symbols.
+MARKERS = itertools.cycle(['o', 's', '^', 'D', '*', 'X', 'v', '<', '>', 'P', 'H'])
+coloring = [
+    "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
+    "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe",
+    "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000",
+    "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080",
+    "#ffffff", "#000000", "#ff4500", "#00ced1", "#ff69b4",
+    "#1e90ff", "#7cfc00", "#ff1493", "#00ff7f", "#dc143c",
+    "#8a2be2", "#00bfff", "#ff6347", "#7fffd4", "#d2691e",
+    "#6495ed", "#dda0dd", "#f0e68c", "#ffb6c1", "#a52a2a"
+]
+COLORS = itertools.cycle(coloring)
+MUTEX_STYLES = {}
+
+def get_style(mutex_name):
+    if mutex_name not in MUTEX_STYLES:
+        MUTEX_STYLES[mutex_name] = {
+            "marker": next(MARKERS),
+            "color": next(COLORS)
+        }
+    return MUTEX_STYLES[mutex_name]
+
 
 def finish_plotting_cdf(thread_time_or_lock_time):
-    """
-    Finalize and show a cumulative distribution (CDF) plot.
-    """
     print("Finishing plotting CDF...")
     title = (
         f"{thread_time_or_lock_time} CDF for "
@@ -25,83 +46,146 @@ def finish_plotting_cdf(thread_time_or_lock_time):
         )
     if Constants.low_contention:
         title += f"\nLow-contention mode: stagger {Constants.stagger_ms} ms/start"
+
     plt.title(title)
+
     if Constants.log_scale and not Constants.iter:
         plt.xscale('log')
-    legend = plt.legend()
-    for handle in legend.legend_handles: # type: ignore
+
+    legend = plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
+    for handle in legend.legend_handles:
         handle._sizes = [30]
+
+    plt.tight_layout()
     plt.show()
+
 
 def finish_plotting_graph(axis, rusage=False):
     print("Finishing plotting...")
-    if not(rusage):
-        axis[0].set_title(f"# Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-        axis[0].set_yscale('log')
-    else:
-        axis[0].set_title(f"# User time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
 
-    if len(axis)>1:
-        if not(rusage):
-            axis[1].set_title(f"Std. dev of # Iterations v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-            axis[1].set_yscale('log')
+    for i, ax in enumerate(axis):
+        if rusage:
+            if i == 0:
+                ax.set_title(f"User time vs threads ({Constants.bench_n_seconds}s, {Constants.n_program_iterations}x)")
+            else:
+                ax.set_title("System time vs threads")
         else:
-            axis[1].set_title(f"System time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
+            if i == 0:
+                ax.set_title(f"# Iterations vs threads ({Constants.bench_n_seconds}s, {Constants.n_program_iterations}x)")
+            else:
+                ax.set_title("Std. dev of # Iterations vs threads")
 
-    for ax in axis:
-      legend = ax.legend()
-      for handle in legend.legend_handles:
-          handle._sizes = [30]
+        if Constants.log_scale:
+            ax.set_yscale("log")
+        else:
+            ax.set_yscale("linear")
 
+        ax.set_xlabel("Threads")
+        ax.set_ylabel("Value")
+        ax.grid(True, linestyle='--', linewidth=0.5)
+
+        legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
+        for handle in legend.legend_handles:
+            handle._sizes = [30]
+
+    plt.tight_layout()
     plt.show()
+
 
 def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, average_lock_time=None):
     logger.info(f"Plotting {mutex_name=}")
-    # The y-values should go up from 0 to 1, while the X-values vary along the series
+    
     x_values = series.sort_values().reset_index(drop=True)
-    y_values = [a/x_values.size for a in range(x_values.size)]
-    title += f" ({x_values.size:,} datapoints)"
-    if average_lock_time:
-        title += f" ({average_lock_time=:.2e})"
-    # Skip some values to save time
-    logger.info(x_values.size)
-    skip = int(ceil(x_values.size / Constants.max_n_points))
-
-    if (x_values.size == 0):
+    if x_values.size == 0:
         logger.error(f"Failed to plot {mutex_name}: No data.")
         return
 
-    x = [x_values[i] for i in range(0, x_values.size, skip)]
-    y = [y_values[i] for i in range(0, x_values.size, skip)]
+    y_values = np.linspace(0, 1, x_values.size)
 
+    if average_lock_time:
+        title += f" (avg={average_lock_time:.2e})"
+    title += f" ({x_values.size:,} datapoints)"
+
+    # Subsample if too many points
+    skip = max(1, int(ceil(x_values.size / Constants.max_n_points)))
+    x = x_values[::skip]
+    y = y_values[::skip]
+
+    style = get_style(mutex_name)
+
+    # No markers for CDF
     if Constants.scatter:
-        plt.scatter(x, y, label=title, s=0.2)
-        plt.xscale("log")
+        plt.plot(
+            x, y,
+            label=title,
+            color=style["color"],
+            linewidth=0.8,
+            alpha=0.9
+        )
     elif error_bars is not None:
-        plt.errorbar(x, y, error_bars, label=title)
+        plt.errorbar(
+            x, y, error_bars[::skip],
+            label=title,
+            color=style["color"],
+            linewidth=0.8,
+            alpha=0.8
+        )
     else:
-        plt.plot(x, y, label=title)
+        plt.plot(
+            x, y,
+            label=title,
+            color=style["color"],
+            linewidth=0.8,
+            alpha=0.9
+        )
+
+    if Constants.log_scale:
         plt.xscale("log")
+
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None, colname=None, log=True):
+
+def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, data=None, iter_variable_name=None, colname=None):
     logger.info(f"Plotting {mutex_name=}")
-    # print(data)
-    if error_bars is not None:
-        # data = data.sample(1000)
-        # color = sns.color_palette()
-        print(data)
-        logger.debug(dict(data=data, x=iter_variable_name, y=colname, errorbar=("sd", .1), label=title))
-        grid = sns.lineplot(data=data, x=iter_variable_name, y=colname, errorbar=("sd", .1), label=title, ax=ax)
-        if (log):
-            grid.set(yscale="log")
-        # sns.scatterplot(data=data, x="threads", y="Time Spent", palette=color)
-        return
-        # ax.errorbar(x, y, error_bars, marker='o', capsize=5, capthick=1, label=title)
+
+    style = get_style(mutex_name)
+
+    if error_bars is not None and data is not None and iter_variable_name and colname:
+        sns.lineplot(
+            data=data,
+            x=iter_variable_name,
+            y=colname,
+            errorbar=("sd", 0.1),
+            label=title,
+            marker=style["marker"],
+            color=style["color"]
+        )
     elif Constants.scatter:
-        ax.scatter(x, y, label=title, s=0.2)
+        ax.scatter(
+            x, y,
+            label=title,
+            s=10,
+            color=style["color"],
+            marker=style["marker"],
+            alpha=0.8
+        )
     else:
-        ax.plot(x, y, label=title)
+        ax.plot(
+            x, y,
+            label=title,
+            color=style["color"],
+            marker=style["marker"],
+            markersize=3,
+            linewidth=1.0,
+            alpha=0.8
+        )
+
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+    if Constants.log_scale:
+        ax.set_yscale("log")
+    else:
+        ax.set_yscale("linear")
+

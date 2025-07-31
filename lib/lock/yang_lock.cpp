@@ -162,7 +162,7 @@ public:
         helper_->destroy();
     }
 
-    std::string name() { return "yang"; };
+    std::string name() override { return "yang"; };
 
 private:
     size_t num_threads;
