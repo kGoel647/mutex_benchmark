@@ -97,11 +97,10 @@ def init_args():
         Constants.mutex_names = Constants.Defaults.MUTEX_NAMES
     elif args.all_cxl:
         Constants.mutex_names = Constants.Defaults.CXL_MUTEXES
-    elif args.exclude:  
-        Constants.mutex_names = [
-            n for n in Constants.Defaults.MUTEX_NAMES
-            if n not in args.exclude
-        ]
+    if args.exclude:
+        for excluded_mutex_name in args.exclude:
+            if excluded_mutex_name in Constants.mutex_names:
+                Constants.mutex_names.remove(excluded_mutex_name)
     if args.include:
         Constants.mutex_names.extend(args.include)
 

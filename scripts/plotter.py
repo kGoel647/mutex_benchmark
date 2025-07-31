@@ -1,4 +1,5 @@
 from math import ceil
+from os.path import isfile
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -6,6 +7,13 @@ import seaborn as sns
 from .constants import Constants
 from .logger import logger
 
+def get_savefig_filepath(cdf_or_iter):
+    triplet = f"{Constants.bench_n_threads}_{Constants.bench_n_seconds}_{Constants.n_program_iterations}"
+    name_base = f"{Constants.data_folder}/../figs/fig-{triplet}-{cdf_or_iter}"
+    n = 0
+    while isfile(f"{name_base}{n}.png"):
+        n += 1
+    return f"{name_base}{n}.png"
 
 def finish_plotting_cdf(thread_time_or_lock_time):
     """
@@ -33,6 +41,8 @@ def finish_plotting_cdf(thread_time_or_lock_time):
     legend = plt.legend()
     for handle in legend.legend_handles: # type: ignore
         handle._sizes = [30]
+
+    plt.savefig(get_savefig_filepath("cdf"))
     plt.show()
 
 def finish_plotting_graph(axis, rusage=False):
@@ -58,6 +68,7 @@ def finish_plotting_graph(axis, rusage=False):
           handle._sizes = [30]
 
     plt.show()
+    plt.savefig(get_savefig_filepath("iter"))
 
 def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", title="", skip=-1, worst_case=-1, average_lock_time=None):
     if Constants.skip_plotting:

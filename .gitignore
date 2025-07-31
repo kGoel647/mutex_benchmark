@@ -5,6 +5,7 @@ venv/*
 subprojects/nsync
 data/generated/*
 data/logs/*
+data/figs/*
 
 perf.data
 perf.data.old
