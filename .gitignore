@@ -5,6 +5,7 @@ env/*
 .DS_Store
 subprojects/nsync
 data/*
+.env/
 
 perf.data
 perf.data.old
