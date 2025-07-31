@@ -113,36 +113,30 @@ def plot_one_cdf(series, mutex_name, error_bars=None, xlabel="", ylabel="", titl
 
     style = get_style(mutex_name)
 
+    # No markers for CDF
     if Constants.scatter:
-        plt.scatter(
+        plt.plot(
             x, y,
             label=title,
-            s=10,
             color=style["color"],
-            marker=style["marker"],
-            alpha=0.8
+            linewidth=0.8,
+            alpha=0.9
         )
     elif error_bars is not None:
         plt.errorbar(
             x, y, error_bars[::skip],
             label=title,
             color=style["color"],
-            marker=style["marker"],
-            markersize=4,
             linewidth=0.8,
             alpha=0.8
         )
     else:
-        # Smooth line + markers
         plt.plot(
             x, y,
             label=title,
             color=style["color"],
-            marker=style["marker"],
-            markersize=4,
             linewidth=0.8,
-            alpha=0.9,
-            markevery=max(1, len(x)//20)
+            alpha=0.9
         )
 
     if Constants.log_scale:
@@ -194,3 +188,4 @@ def plot_one_graph(ax, x, y, mutex_name, error_bars=None, xlabel="", ylabel="", 
         ax.set_yscale("log")
     else:
         ax.set_yscale("linear")
+
