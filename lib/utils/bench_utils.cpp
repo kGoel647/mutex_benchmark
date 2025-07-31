@@ -165,7 +165,7 @@ void report_run_latency(struct run_args *stats){
 
 void busy_sleep(size_t iterations) {
     volatile size_t i;
-    for (i = 0; i < iterations; i++);
+    for (i = 0; i < iterations; i+=1);
 }
 
 SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {

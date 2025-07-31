@@ -27,7 +27,7 @@ public:
         os_unfair_lock_unlock(&lock_);
     }
     void destroy() override {}
-    std::string name(){return "system_mac";};
+    std::string name() override {return "system_mac";};
     
 private:
     os_unfair_lock lock_;

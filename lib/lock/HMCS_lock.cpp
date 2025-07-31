@@ -143,7 +143,6 @@ private:
     // function mapsThreadtoLeaves assigns each thread to a leaf HNdode 
     // this isn't needed on an actual NUMA system
     void mapThreadsToLeaves() {
-        size_t tid = 0;
         
         int actual_sockets = hierarchy.size();
         int actual_cores_per_socket = actual_sockets > 0 ? hierarchy[0].size() : 0;

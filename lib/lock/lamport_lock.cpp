@@ -35,7 +35,7 @@ public:
         if (*x!=thread_id+1){ //someone started going for the lock
             b[thread_id] = false; //not longer going for the lock
 
-            for (int j=0; j<num_threads; j++){while(b[j]){}} //wait for contention to go down
+            for (int j=0; j<(int)num_threads; j++){while(b[j]){}} //wait for contention to go down
             Fence();
 
             if (*y!=thread_id+1){ //while waiting, someone messed with second confirmation
@@ -61,7 +61,7 @@ public:
         if (*x!=thread_id+1){ //someone started going for the lock
             b[thread_id] = false; //not longer going for the lock
             Fence();
-            for (int j=0; j<num_threads; j++){while(b[j]){}} //wait for contention to go down
+            for (int j=0; j<(int)num_threads; j++){while(b[j]){}} //wait for contention to go down
 
 
             if (*y!=thread_id+1){ //while waiting, someone messed with second confirmation

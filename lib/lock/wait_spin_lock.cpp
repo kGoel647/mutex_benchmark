@@ -34,6 +34,5 @@ public:
     }
 private:
     volatile std::atomic_flag lock_ = ATOMIC_FLAG_INIT;
-    struct timespec remaining;
     size_t num_threads;
 };

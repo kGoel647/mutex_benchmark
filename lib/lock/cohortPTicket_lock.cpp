@@ -168,7 +168,7 @@ static void destroy_c_ptkt_tkt(c_ptkt_tkt* c) {
 // acquires the cohort partitioned ticket lock
 static void c_acquire(c_ptkt_tkt* c, int node) {
     auto* local = c->llocks[node];
-    auto  me    = tkt_acquire(local);
+    auto  me    = tkt_acquire(local); //TODO: What?
 
     if (local->state.load(std::memory_order_relaxed) == 1 ) {
         local->gstate   = ptkt_acquire(c->glock);

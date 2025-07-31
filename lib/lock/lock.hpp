@@ -106,7 +106,7 @@ public:
         static size_t attempts = 0;
         if (attempts < 7) {
             volatile int i;
-            for (i = 0; i != 1 << attempts; i++);
+            for (i = 0; i != 1 << attempts; i+=1);
         } else {
             std::this_thread::yield();
         }
@@ -116,7 +116,7 @@ public:
     inline void spin_delay_linear() {
         static size_t delay = 5;
         volatile size_t i;
-        for (i = 0; i != delay; i++);
+        for (i = 0; i != delay; i+=1);
         delay += 5;
     }
 
