@@ -97,6 +97,7 @@ class Constants:
     rusage: bool
     cxl: bool
     skip_plotting: bool
+    averages: bool
 
     noncritical_delay: int
     groups: int

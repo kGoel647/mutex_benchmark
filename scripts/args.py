@@ -86,6 +86,7 @@ def init_args():
                       help='set log level to CRITICAL')
 
     parser.add_argument('--groups', type=int)
+    parser.add_argument('--averages', action="store_true")
 
     parser.add_argument('--bench', type=str, default='max')
     parser.add_argument('--skip-plotting', action='store_true')
@@ -107,6 +108,7 @@ def init_args():
     Constants.bench_n_threads      = args.threads
     Constants.bench_n_seconds      = args.seconds
     Constants.n_program_iterations = args.program_iterations
+    Constants.averages = args.averages
     # Constants.threads_start = args.threads_start
     # Constants.threads_end = args.threads_end
     # Constants.threads_step = args.threads_step
