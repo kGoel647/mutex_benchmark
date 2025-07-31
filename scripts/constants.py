@@ -54,6 +54,12 @@ class Constants:
             "ticket",
         ]
 
+        CONDITIONAL_COMPILATION_MUTEXES = [
+            "nsync",
+            "boost",
+            "umwait",
+        ]
+
         EXECUTABLE_NAME = "max_contention_bench"
         BENCH_N_THREADS = 10
         BENCH_N_SECONDS = 1

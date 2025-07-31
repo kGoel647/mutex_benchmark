@@ -2,9 +2,8 @@
 
 cpp = meson.get_compiler('cpp')
 
-nsync_dep = cpp.find_library('nsync_cpp')
-
-boost_dep = dependency('boost', static : true)
+nsync_dep = cpp.find_library('nsync_cpp', required: false)
+boost_dep = dependency('boost', static : true, required: false)
 
 utils_includes = include_directories('.')
 utils_lib = library(

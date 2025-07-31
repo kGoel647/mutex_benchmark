@@ -1,5 +1,5 @@
 
-#ifdef __x86_64__
+#ifdef inc_umwait
 #include "../utils/cxl_utils.hpp"
 
 #include "lock.hpp"
@@ -16,7 +16,6 @@
 
 #define UNLOCKED 0
 #define LOCKED 1
-
 
 class UMWaitLock : public virtual SoftwareMutex {
 public:
