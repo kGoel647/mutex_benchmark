@@ -1,10 +1,14 @@
+#ifdef __linux__
 #define _GNU_SOURCE
+#include <malloc.h>
+#endif
+
 #include "lock.hpp"
 #include <atomic>
 #include <cstdlib>
-#include <malloc.h>
 #include <sched.h>
 #include <string>
+#include <stdlib.h>
 
 /*
 CohortPTicketLock: NUMA-aware hierarchical partitioned ticket spinlock
@@ -32,7 +36,7 @@ struct tkt {
     unsigned long              gstate{0};  // Global ticket number
 
     // Padding to ensure who struct on its own cache 
-    // THis ensures that updates don't interfere with other threads on other NUMA nodes
+    // This ensures that updates don't interfere with other threads on other NUMA nodes
     char pad[CACHE_ALIGN
              - sizeof(request)
              - sizeof(grant)
@@ -45,7 +49,10 @@ struct tkt {
 
 // allocates cacheline-aligned raw memory
 static tkt* init_tkt() {
-    auto* l = (tkt*)memalign(CACHE_ALIGN, sizeof(tkt));
+    tkt* l;
+    if (posix_memalign((void**)&l, CACHE_ALIGN, sizeof(tkt)) != 0) {
+        return nullptr;
+    }
     new (&l->request)  std::atomic<unsigned long>(0);
     new (&l->grant)    std::atomic<unsigned long>(0);
     new (&l->visitors) std::atomic<unsigned long>(0);
@@ -80,9 +87,15 @@ struct ptkt {
 };
 
 static ptkt* init_ptkt() {
-    auto* g = (ptkt*)memalign(CACHE_ALIGN, sizeof(ptkt));
+    ptkt* g;
+    if (posix_memalign((void**)&g, CACHE_ALIGN, sizeof(ptkt)) != 0) {
+        return nullptr;
+    }
     new (&g->request) std::atomic<unsigned long>(0);
-    g->grants = (grantline*)memalign(CACHE_ALIGN, sizeof(grantline) * GRANT_SLOTS);
+    if (posix_memalign((void**)&g->grants, CACHE_ALIGN, sizeof(grantline) * GRANT_SLOTS) != 0) {
+        free(g);
+        return nullptr;
+    }
     for (int i = 0; i < GRANT_SLOTS; i++) {
         new (&g->grants[i].grant) std::atomic<int>(0);
     }
@@ -116,11 +129,31 @@ struct c_ptkt_tkt {
 //initializes a cohort parrtitioned ticket lock 
 //combines a global partitioned ticket with an array of local ticket locs
 static c_ptkt_tkt* init_c_ptkt_tkt() {
-    auto* c = (c_ptkt_tkt*)memalign(CACHE_ALIGN, sizeof(c_ptkt_tkt));
-    c->glock  = init_ptkt();
-    c->llocks = (tkt**)memalign(CACHE_ALIGN, sizeof(tkt*) * NUMA_NODES);
+    c_ptkt_tkt* c;
+    if (posix_memalign((void**)&c, CACHE_ALIGN, sizeof(c_ptkt_tkt)) != 0) {
+        return nullptr;
+    }
+    c->glock = init_ptkt();
+    if (c->glock == nullptr) {
+        free(c);
+        return nullptr;
+    }
+    if (posix_memalign((void**)&c->llocks, CACHE_ALIGN, sizeof(tkt*) * NUMA_NODES) != 0) {
+        destroy_ptkt(c->glock);
+        free(c);
+        return nullptr;
+    }
     for (int i = 0; i < NUMA_NODES; i++) {
         c->llocks[i] = init_tkt();
+        if (c->llocks[i] == nullptr) {
+            for (int j = 0; j < i; j++) {
+                destroy_tkt(c->llocks[j]);
+            }
+            free(c->llocks);
+            destroy_ptkt(c->glock);
+            free(c);
+            return nullptr;
+        }
     }
     return c;
 }

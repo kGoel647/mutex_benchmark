@@ -11,7 +11,11 @@
 #include <cassert>
 #include <set>
 #include <unistd.h>
+
+//syscall only on linux
+#ifdef __linux__
 #include <sys/syscall.h>
+#endif
 
 static inline int numa_available() { return -1; }
 static inline int numa_max_node() { return 0; }
@@ -70,8 +74,10 @@ private:
 
     // this doesn't really do anything on a non-NUMA system
     inline size_t detect_numa_node() const {
+#ifdef __linux__
         unsigned cpu, node;
         if (syscall(__NR_getcpu, &cpu, &node, nullptr)==0) return static_cast<size_t>(node);
+#endif
         return 0;
     }
 
