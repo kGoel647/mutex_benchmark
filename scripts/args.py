@@ -139,6 +139,8 @@ def init_args():
         Constants.executable = "./build/apps/grouped_contention_bench/grouped_contention_bench"
     elif (args.bench=='min'):
         Constants.executable = "./build/apps/min_contention_bench/min_contention_bench"
+    elif (args.bench=='kc_cache'):
+        Constants.executable = "./build/apps/kc_cache_bench/kc_cache_bench"
     else:
         raise NotImplementedError(f"Unknown executable: {args.bench}")
     

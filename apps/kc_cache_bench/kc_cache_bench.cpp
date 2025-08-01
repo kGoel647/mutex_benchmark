@@ -394,6 +394,10 @@ int main(int argc, char *argv[])
         {
             rusage_ = true;
         }
+        else if (strcmp(argv[i], "--thread-level") == 0)
+        {
+            // rusage_ = true;
+        }
         else if (strcmp(argv[i], "--no-output") == 0)
         {
             no_output = true;

@@ -111,20 +111,22 @@ public:
     sched_yield();
   }
 
-  inline void spin_delay_exponential() {
-      // Same as nsync
-      static size_t attempts = 0;
-      if (attempts < 7) {
-          volatile int i;
-          for (i = 0; i != 1 << attempts; i+=1);
-      } else {
-          std::this_thread::yield();
-      }
-      attempts++;
-
+  inline void spin_delay_exponential()
+  {
+    // Same as nsync
+    static size_t attempts = 0;
+    if (attempts < 7)
+    {
+      volatile int i;
+      for (i = 0; i != 1 << attempts; i++)
+        ;
+    }
+    else
+    {
+      std::this_thread::yield();
+    }
+    attempts++;
   }
-  attempts++;
-
 
   inline void spin_delay_linear()
   {
@@ -141,19 +143,10 @@ public:
     nanosleep(&nanosleep_timespec, &remaining);
     nanosleep_timespec.tv_nsec *= 2;
   }
-  
-  inline void spin_delay_linear() {
-    static size_t delay = 5;
-    volatile size_t i;
-    for (i = 0; i != delay; i+=1);
-    delay += 5;
-
-  }
 
 private:
   volatile unsigned int *currentId = (volatile unsigned int *)malloc(sizeof(unsigned int *));
 };
-
 
 class RWSoftwareMutex
 {
@@ -230,6 +223,7 @@ public:
       // }
       // Fence();
       reader_lock_->unlock(thr_id);
+    }
   }
 
 private:
