@@ -202,6 +202,7 @@ class CacheDB : public BasicDB {
       Record* rec = slot->buckets[bidx];
       Record** entp = slot->buckets + bidx;
       uint32_t fhash = db_->fold_hash(hash) & ~KSIZMAX;
+
       while (rec) {
         uint32_t rhash = rec->ksiz & ~KSIZMAX;
         uint32_t rksiz = rec->ksiz & KSIZMAX;
@@ -227,6 +228,7 @@ class CacheDB : public BasicDB {
           }
         }
       }
+
       db_->set_error(_KCCODELINE_, Error::NOREC, "no record");
       sidx_ = -1;
       rec_ = NULL;
@@ -427,6 +429,7 @@ class CacheDB : public BasicDB {
     hash /= SLOTNUM;
     Slot* slot = slots_ + sidx;
     slot->lock.lock();
+
     accept_impl(slot, hash, kbuf, ksiz, visitor, comp_, rttmode_);
     slot->lock.unlock();
     return true;

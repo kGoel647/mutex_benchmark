@@ -164,6 +164,9 @@ public:
   explicit RWSoftwareMutex(SoftwareMutex *w_lock, SoftwareMutex *r_lock) : writer_lock_(w_lock), reader_lock_(r_lock)
   {
     this->num_readers_active = (volatile int*)malloc(sizeof(int));
+    *num_readers_active=0;
+    this->reader_id_who_locked_writer = (volatile int*)malloc(sizeof(int));
+    *reader_id_who_locked_writer=0;
   }
   /**
    * Destructor.
@@ -194,12 +197,13 @@ public:
   void lock_reader()
   {
     reader_lock_->lock(thr_id);
-    *num_readers_active++;
-    Fence();
-    if (*num_readers_active==1){
-      writer_lock_->lock(thr_id);
-    }
-    reader_lock_->unlock(thr_id);
+    // (*num_readers_active)++;
+    // if (*num_readers_active==1){
+    //   // writer_lock_->lock(thr_id);
+    //   *reader_id_who_locked_writer=thr_id;
+    // }
+    // Fence();
+    // reader_lock_->unlock(thr_id);
   }
   /**
    * Try to get a reader lock.
@@ -218,12 +222,13 @@ public:
       writer_lock_->unlock(thr_id);
     }
     else{
-      reader_lock_->lock(thr_id);
-      *num_readers_active--;
-      Fence();
-      if (*num_readers_active==0){
-        writer_lock_->unlock(thr_id);
-      }
+      // reader_lock_->lock(thr_id);
+      // (*num_readers_active)--;
+      // if (*reader_id_who_locked_writer==thr_id){
+      //   // writer_lock_->unlock(thr_id);
+      //   *reader_id_who_locked_writer=-1;
+      // }
+      // Fence();
       reader_lock_->unlock(thr_id);
   }
 
@@ -231,12 +236,13 @@ private:
   /** Dummy constructor to forbid the use. */
   RWSoftwareMutex(const RWSoftwareMutex &);
   /** Dummy Operator to forbid the use. */
-  //   RWSoftwareMutex& operator =(const RWSoftwareMutex&);
+  RWSoftwareMutex& operator =(const RWSoftwareMutex&);
 
   SoftwareMutex *writer_lock_;
   SoftwareMutex *reader_lock_;
 
   volatile int* num_readers_active;
+  volatile int* reader_id_who_locked_writer;
 
 };
 
@@ -275,6 +281,7 @@ public:
     {
       rwlock_->unlock(false);
     }
+
   }
 
 private:

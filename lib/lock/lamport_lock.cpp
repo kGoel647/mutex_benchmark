@@ -3,8 +3,6 @@
 
 #include "lock.hpp"
 #include <stdexcept>
-#include <iostream>
-
 
 class LamportLock : public virtual SoftwareMutex {
 public:
@@ -43,7 +41,6 @@ public:
                 goto start;
             }
         }
-        // std::cout<<"haha"<<std::endl;
         Fence();
     }
     
