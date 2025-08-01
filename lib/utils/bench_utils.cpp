@@ -19,7 +19,7 @@
 #include "../lock/wait_spin_lock.cpp"
 #include "../lock/bakery_mutex.cpp"
 #include "../lock/bakery_nonatomic_mutex.cpp"
-#include "../lock/lamport_lock.cpp"
+#include "../lock/lamport_lock.hpp"
 #include "../lock/lamport_sleeper_lock.cpp"
 #include "../lock/mcs_lock.cpp"
 #include "../lock/mcs_sleeper_lock.cpp"
@@ -39,8 +39,6 @@
 #include "../lock/clh_lock.cpp"
 #include "../lock/linear_elevator.cpp"
 #include "../lock/tree_elevator.cpp"
-#include "../lock/linear_lamport_elevator.cpp"
-#include "../lock/tree_lamport_elevator.cpp"
 #include "../lock/burns_lamport_lock.hpp"
 // #include "../lock/futex_mutex.cpp"
 #include "../lock/elevator_mutex.hpp"
@@ -181,41 +179,13 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     (void)num_threads; // May be used in the future
 
     SoftwareMutex* lock = nullptr;
-    if      (strcmp(mutex_name, "pthread") == 0)             lock = new Pthread();
-    else if (strcmp(mutex_name, "cpp_std") == 0)             lock = new CPPMutex();
-    else if (strcmp(mutex_name, "dijkstra") == 0)            lock = new DijkstraMutex();
-    else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0)  lock = new DijkstraNonatomicMutex();
-    else if (strcmp(mutex_name, "spin") == 0)                lock = new SpinLock();
-    else if (strcmp(mutex_name, "exp_spin") == 0)            lock = new ExponentialSpinLock();
-    else if (strcmp(mutex_name, "bakery") == 0)              lock = new BakeryMutex();
-    else if (strcmp(mutex_name, "bakery_nonatomic") == 0)    lock = new BakeryNonAtomicMutex();
-    else if (strcmp(mutex_name, "lamport") == 0)             lock = new LamportLock();
-    else if (strcmp(mutex_name, "mcs") == 0)                 lock = new MCSMutex();
-    else if (strcmp(mutex_name, "mcs_local") == 0)           lock = new MCSLocalMutex();
-    else if (strcmp(mutex_name, "mcs_malloc") == 0)          lock = new MCSMallocMutex();
-    else if (strcmp(mutex_name, "knuth") == 0)               lock = new KnuthMutex();
-    else if (strcmp(mutex_name, "peterson") == 0)            lock = new PetersonMutex();
-    else if (strcmp(mutex_name, "boulangerie") == 0)         lock = new Boulangerie();
-    else if (strcmp(mutex_name, "szymanski") == 0)           lock = new SzymanskiLock();
-    else if (strcmp(mutex_name, "ticket") == 0)              lock = new TicketMutex();
-    else if (strcmp(mutex_name, "threadlocal_ticket") == 0)  lock = new ThreadlocalTicketMutex();
-    else if (strcmp(mutex_name, "ring_ticket") == 0)         lock = new RingTicketMutex();
-    else if (strcmp(mutex_name, "null") == 0)                lock = new NullMutex();
-    else if (strcmp(mutex_name, "halfnode") == 0)            lock = new HalfnodeMutex();
-    else if (strcmp(mutex_name, "hopscotch") == 0)           lock = new HopscotchMutex();
-    else if (strcmp(mutex_name, "hopscotch_local") == 0)     lock = new HopscotchLocalMutex();
-    else if (strcmp(mutex_name, "clh") == 0)                 lock = new CLHMutex();
-    else if (strcmp(mutex_name, "linear_cas_elevator") == 0) lock = new LinearElevatorMutex<SpinLock>();
-    else if (strcmp(mutex_name, "tree_cas_elevator") == 0)   lock = new TreeElevatorMutex<SpinLock>();
-    else if (strcmp(mutex_name, "linear_bl_elevator") == 0)  lock = new LinearElevatorMutex<BurnsLamportMutex>();
-    else if (strcmp(mutex_name, "tree_bl_elevator") == 0)    lock = new TreeElevatorMutex<BurnsLamportMutex>();
-    else if (strcmp(mutex_name, "burns_lamport") == 0)       lock = new BurnsLamportMutex();
-    else if (strcmp(mutex_name, "futex") == 0)               lock = new FutexLock();
-    else if (strcmp(mutex_name, "elevator") == 0)            lock = new ElevatorMutex();
-    else if (strcmp(mutex_name, "broken") == 0)              lock = new BrokenLock();
+
+    if (strcmp(mutex_name, "hopscotch_local") == 0)                  lock = new HopscotchLocalMutex();
+    else if (strcmp(mutex_name, "clh") == 0)                         lock = new CLHMutex();
+    else if (strcmp(mutex_name, "elevator") == 0)                    lock = new ElevatorMutex();
+    else if (strcmp(mutex_name, "broken") == 0)                      lock = new BrokenLock();
     else if (strcmp(mutex_name, "system") == 0)                      lock = new System();
     else if (strcmp(mutex_name, "cpp_std") == 0)                     lock = new CPPMutex();
-    else if (strcmp(mutex_name, "boost") == 0)                       lock = new BoostMutex();
     else if (strcmp(mutex_name, "dijkstra") == 0)                    lock = new DijkstraMutex();
     else if (strcmp(mutex_name, "dijkstra_nonatomic") == 0)          lock = new DijkstraNonatomicMutex();
     else if (strcmp(mutex_name, "dijkstra_nonatomic_sleeper") == 0)  lock = new DijkstraNonatomicSleeperMutex();
@@ -223,14 +193,13 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "hard_spin") == 0)                   lock = new HardSpinLock();
     else if (strcmp(mutex_name, "exp_spin") == 0)                    lock = new ExponentialSpinLock();
     else if (strcmp(mutex_name, "wait_spin") == 0)                   lock = new WaitSpinLock();
-    else if (strcmp(mutex_name, "nsync") == 0)                       lock = new NSync();
     else if (strcmp(mutex_name, "bakery") == 0)                      lock = new BakeryMutex();
     else if (strcmp(mutex_name, "bakery_nonatomic") == 0)            lock = new BakeryNonAtomicMutex();
     else if (strcmp(mutex_name, "lamport") == 0)                     lock = new LamportLock();
     else if (strcmp(mutex_name, "lamport_sleeper") == 0)             lock = new LamportSleeperLock();
     else if (strcmp(mutex_name, "mcs") == 0)                         lock = new MCSMutex();
+    else if (strcmp(mutex_name, "mcs_local") == 0)                   lock = new MCSLocalMutex();
     else if (strcmp(mutex_name, "mcs_sleeper") == 0)                 lock = new MCSSleeperMutex();
-    else if (strcmp(mutex_name, "mcs_volatile") == 0)                lock = new MCSVolatileMutex();
     else if (strcmp(mutex_name, "mcs_malloc") == 0)                  lock = new MCSMallocMutex();
     else if (strcmp(mutex_name, "knuth") == 0)                       lock = new KnuthMutex();
     else if (strcmp(mutex_name, "knuth_sleeper") == 0)               lock = new KnuthSleeperMutex();
@@ -244,12 +213,12 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "halfnode") == 0)                    lock = new HalfnodeMutex();
     else if (strcmp(mutex_name, "hopscotch") == 0)                   lock = new HopscotchMutex();
     else if (strcmp(mutex_name, "clh") == 0)                         lock = new CLHMutex();
-    else if (strcmp(mutex_name, "linear_cas_elevator") == 0)         lock = new LinearCASElevatorMutex();
-    else if (strcmp(mutex_name, "tree_cas_elevator") == 0)           lock = new TreeCASElevatorMutex();
-    else if (strcmp(mutex_name, "linear_bl_elevator") == 0)          lock = new LinearBLElevatorMutex();
-    else if (strcmp(mutex_name, "tree_bl_elevator") == 0)            lock = new TreeBLElevatorMutex();
-    else if (strcmp(mutex_name, "linear_lamport_elevator") == 0)     lock = new LinearLamportElevatorMutex();
-    else if (strcmp(mutex_name, "tree_lamport_elevator") == 0)       lock = new TreeLamportElevatorMutex();
+    else if (strcmp(mutex_name, "linear_cas_elevator") == 0)         lock = new LinearElevatorMutex<SpinLock>();
+    else if (strcmp(mutex_name, "tree_cas_elevator") == 0)           lock = new TreeElevatorMutex<SpinLock>();
+    else if (strcmp(mutex_name, "linear_bl_elevator") == 0)          lock = new LinearElevatorMutex<BurnsLamportMutex>();
+    else if (strcmp(mutex_name, "tree_bl_elevator") == 0)            lock = new TreeElevatorMutex<BurnsLamportMutex>();
+    else if (strcmp(mutex_name, "linear_lamport_elevator") == 0)     lock = new LinearElevatorMutex<LamportLock>();
+    else if (strcmp(mutex_name, "tree_lamport_elevator") == 0)       lock = new TreeElevatorMutex<LamportLock>();
     else if (strcmp(mutex_name, "burns_lamport") == 0)               lock = new BurnsLamportMutex();
     else if (strcmp(mutex_name, "elevator") == 0)                    lock = new ElevatorMutex();
     else if (strcmp(mutex_name, "yang") == 0)                        lock = new YangMutex();
@@ -261,6 +230,9 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "cohortTAS") == 0)                   lock = new CohortTASLock();
     else if (strcmp(mutex_name, "cohortPTicket") == 0)               lock = new CohortPTicketLock();
     else if (strcmp(mutex_name, "hclh") == 0)                        lock = new hclh::HCLHMutex();
+    #ifdef inc_futex
+        else if (strcmp(mutex_name, "futex") == 0)               lock = new FutexLock();
+    #endif
     #ifdef inc_boost
         else if (strcmp(mutex_name, "boost") == 0)               lock = new BoostMutex();
     #endif

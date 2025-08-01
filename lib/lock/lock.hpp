@@ -9,6 +9,7 @@
 #include <vector>
 #include <sched.h>
 #include <sanitizer/tsan_interface.h>
+#include <semaphore>
 
 #if defined(__has_feature)
 #  if __has_feature(thread_sanitizer)
@@ -93,30 +94,11 @@ public:
     }
 
     std::binary_semaphore sleeper{0};
-
     virtual std::string name() =0;
-
 
     inline void spin_delay_sched_yield() {
         sched_yield();
     }
-
-    #ifdef __x86_64
-        inline void umwait_on(volatile bool *address) {
-            while (!*address) {
-                _umonitor((void*)address);
-                if (!*address) {
-                    _umwait(1, 0);
-                }
-            }
-        }
-    #else
-        inline void umwait_on(volatile bool *address) {
-            while (!*address) {
-                // Busy wait
-            }
-        }
-    #endif
 
     inline void spin_delay_exponential() {
         // Same as nsync

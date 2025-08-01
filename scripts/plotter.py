@@ -62,9 +62,10 @@ def get_cdf_title():
         title += f"\nLow-contention mode: stagger {Constants.stagger_ms} ms/start"
     return title
 
-def display(axis=None):
+def display(axis=None, tight_layout=True):
     fix_legend_point_size(axis)
-    plt.tight_layout()
+    if tight_layout:
+        plt.tight_layout()
     plt.savefig(get_savefig_filepath())
     plt.show()
 
@@ -142,7 +143,7 @@ def plot_iter(data):
             df, 
             x=Constants.iter_variable_name, 
             y="# Iterations", 
-            errorbar=("sd", Constants.Defaults.STANDARD_DEVIATION_SCALE), 
+            errorbar=("sd", Constants.stdev_scale), 
             label=mutex_name,
             marker=style["marker"],
             color=style["color"]
@@ -165,7 +166,7 @@ def plot_iter_rusage(data):
             )
     axis[0].set_title(f"# User time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
     axis[1].set_title(f"System time v threads for {Constants.bench_n_seconds} seconds ({Constants.n_program_iterations}x)")
-    display(axis)
+    display(axis, tight_layout=False)
 
 def plot_one_graph(ax, x, y, mutex_name, *, xlabel, ylabel):
     logger.info(f"plot_one_graph: Plotting {mutex_name=}")

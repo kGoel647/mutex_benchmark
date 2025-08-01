@@ -30,7 +30,6 @@ public:
         if (*k != thread_id+1) {
             while (!unlocking[*k]) {}
             *k = thread_id+1;
-            
             goto try_again;
         } 
         c[thread_id+1] = false;
@@ -39,11 +38,10 @@ public:
                 goto try_again;
             }
         }
-
     }
 
     void unlock(size_t thread_id) override {
-        k=0;
+        *k=0;
         unlocking[thread_id+1] = true;
         c[thread_id+1] = true;
     }

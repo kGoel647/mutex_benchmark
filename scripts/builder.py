@@ -23,6 +23,7 @@ def build():
     if Constants.cxl:
         cpp_args.append("'-Dcxl'")
     cpp_args.append("'-mwaitpkg'")
+    cpp_args.append("'-std=c++20'")
     for mutex_name in Constants.Defaults.CONDITIONAL_COMPILATION_MUTEXES:
         if mutex_name in Constants.mutex_names:
             cpp_args.append(f"'-Dinc_{mutex_name}'")

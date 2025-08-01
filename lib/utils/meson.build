@@ -1,6 +1,8 @@
 
 
 cpp = meson.get_compiler('cpp')
+cpp_compiler_version = cpp.version()
+message('C++ Compiler Version: ' + cpp_compiler_version)
 
 nsync_dep = cpp.find_library('nsync_cpp', required: false)
 boost_dep = dependency('boost', static : true, required: false)

@@ -1,18 +1,29 @@
 #ifndef LAMPORT_LOCK_HPP
 #define LAMPORT_LOCK_HPP
 
+#pragma once
+
 #include "lock.hpp"
+#include "trylock.hpp"
 #include "../utils/cxl_utils.hpp"
 #include <stdexcept>
 #include <iostream>
 
 
-class LamportLock : public virtual SoftwareMutex {
+class LamportLock : public virtual TryLock {
 public:
+    static size_t get_cxl_region_size(size_t num_threads) {
+        return sizeof(size_t) * 2 + sizeof(bool) * (num_threads + 1);
+    }
+
     void init(size_t num_threads) override {
         // size_t x_size = 
-        _cxl_region = (volatile char*)ALLOCATE(sizeof(size_t) * 2 + sizeof(bool) * (num_threads + 1));
+        _cxl_region = (volatile char*)ALLOCATE(get_cxl_region_size(num_threads));
+        region_init(num_threads, _cxl_region);
+    }
 
+    void region_init(size_t num_threads, volatile char *_cxl_region) override {
+        (void)num_threads; // This parameter is not used
         this->x = (volatile size_t*)&_cxl_region[0];
         this->y = (volatile size_t*)&_cxl_region[sizeof(size_t)];
         this->b = (volatile bool*)&_cxl_region[sizeof(size_t) * 2];
@@ -90,7 +101,7 @@ public:
     }
 
     void destroy() override {
-        FREE((void*)_cxl_region, sizeof(size_t) * 2 + sizeof(bool) * num_threads);
+        FREE((void*)_cxl_region, get_cxl_region_size(num_threads));
     }
 
     std::string name() override {return "lamport";}

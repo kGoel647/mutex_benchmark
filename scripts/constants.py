@@ -139,6 +139,7 @@ class Constants:
             "nsync",
             "boost",
             "umwait",
+            "futex",
         ]
 
         EXECUTABLE_NAME = "max_contention_bench"
@@ -182,6 +183,7 @@ class Constants:
     skip_plotting: bool
     averages: bool
     iter_variable_name: str
+    stdev_scale: float
 
     noncritical_delay: int
     groups: int

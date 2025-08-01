@@ -87,6 +87,7 @@ def init_args():
 
     parser.add_argument('--groups', type=int)
     parser.add_argument('--averages', action="store_true")
+    parser.add_argument('--stdev', type=float, default=Constants.Defaults.STANDARD_DEVIATION_SCALE)
 
     parser.add_argument('--bench', type=str, default='max')
     parser.add_argument('--skip-plotting', action='store_true')
@@ -113,27 +114,41 @@ def init_args():
             n for n in Constants.Defaults.MUTEX_NAMES
             if n not in args.exclude
         ]
+    
+    if args.exclude:
+        for excluded_mutex_name in args.exclude:
+            if excluded_mutex_name in Constants.mutex_names:
+                Constants.mutex_names.remove(excluded_mutex_name)
+    
+    if args.include:
+        for included_mutex_name in args.include:
+            if included_mutex_name not in Constants.mutex_names:
+                Constants.mutex_names.append(included_mutex_name)
 
     Constants.bench_n_threads      = args.threads
     Constants.bench_n_seconds      = args.seconds
     Constants.n_program_iterations = args.program_iterations
     Constants.averages = args.averages
     # Constants.threads_start = args.threads_start
-    # Constants.threads_end = args.threads_end
+    # Constants.threads_end = args.threads_endf
     # Constants.threads_step = args.threads_step
     Constants.rusage = args.rusage
 
     if args.iter_threads != None:
         Constants.iter_variable_name = "threads"
         Constants.iter_range = args.iter_threads
+        Constants.iter = True
     elif args.iter_critical_delay != None:
         Constants.iter_variable_name = "critical_delay"
         Constants.iter_range = args.iter_critical_delay
+        Constants.iter = True
     elif args.iter_noncritical_delay != None:
         Constants.iter_variable_name = "noncritical_delay"
         Constants.iter_range = args.iter_noncritical_delay
+        Constants.iter = True
+    else:
+        Constants.iter = False
         
-    Constants.iter = Constants.iter_variable_name is not None
     if Constants.iter:
         Constants.iter_range[1] += 1 # End inclusive range
 
@@ -142,10 +157,11 @@ def init_args():
     Constants.logs_folder = args.log_folder
     Constants.executable = Constants.Defaults.EXECUTABLE
     Constants.multithreaded = args.multithreaded
-    Constants.thread_level = args.thread_level
+    Constants.thread_level = args.thread_level or Constants.iter
     Constants.scatter = args.scatter
     Constants.bench = args.bench
     Constants.groups = args.groups
+    Constants.stdev_scale = args.stdev
 
     if (args.bench=='max'):
         Constants.executable = "./build/apps/max_contention_bench/max_contention_bench"
