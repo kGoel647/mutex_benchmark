@@ -2,29 +2,17 @@
 #include <stdexcept>
 #include <atomic>
 
-#include "spin_lock.hpp"
+#include "lamport_lock.cpp"
 // TODO: explicit memory ordering.
 // NOTE: Because of the limitations of `thread_local`,
 // this class MUST be singleton. TODO: This is not yet explicitly enforced.
 
-template <class WakerLock>
-class LinearElevatorMutex : public virtual SoftwareMutex {
+class LinearLamportElevatorMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        size_t waker_lock_size = WakerLock::get_cxl_region_size(num_threads);
-        size_t thread_n_given_lock_size = sizeof(volatile bool) * (num_threads + 1);
-        size_t thread_n_is_waiting_size = sizeof(volatile bool) * num_threads;
-        _cxl_region_size = waker_lock_size + thread_n_given_lock_size + thread_n_is_waiting_size;
-        _cxl_region = (volatile char*)ALLOCATE(_cxl_region_size);
-
-        size_t offset = 0;
-        this->designated_waker_lock.region_init(num_threads, &_cxl_region[offset]);
-        offset += waker_lock_size;
-        this->thread_n_given_lock = (volatile bool*)&_cxl_region[offset];
-        offset += thread_n_given_lock_size;
-        this->thread_n_is_waiting = (volatile bool*)&_cxl_region[offset];
-        
         this->num_threads = num_threads;
+        this->thread_n_given_lock = (volatile bool*)malloc(sizeof(volatile bool) * (num_threads + 1));
+        this->thread_n_is_waiting = (volatile bool*)malloc(sizeof(volatile bool) * num_threads);
         for (size_t i = 0; i < num_threads; i++) {
             this->thread_n_given_lock[i] = false;
         }
@@ -32,11 +20,14 @@ public:
         for (size_t i = 0; i < num_threads; i++) {
             this->thread_n_is_waiting[i] = false;
         }
+
+        this->designated_waker_lock.init(num_threads);
     }
 
     void lock(size_t thread_id) override {
         thread_n_is_waiting[thread_id] = true;
         if (designated_waker_lock.trylock(thread_id)) {
+            Fence();
             // This thread is the designated waker if 
             // a) the unlocker fucks up and doesn't realize anyone is waiting or
             // b) (more likely) if this thread is the first to get to the lock
@@ -70,18 +61,17 @@ public:
     }
 
     void destroy() override {
-        FREE((void*)_cxl_region, _cxl_region_size);
+        free((void*)thread_n_given_lock);
+        free((void*)thread_n_is_waiting);
+        this->designated_waker_lock.destroy();
     }
 
     std::string name() override {
-        return "linear_elevator";
+        return "linear_lamport_elevator";
     }
 private:
-    volatile char *_cxl_region;
-    size_t _cxl_region_size;
-    size_t num_threads;
-
-    WakerLock designated_waker_lock;
+    LamportLock designated_waker_lock;
     volatile bool *thread_n_given_lock; // Should this be atomic?
     volatile bool *thread_n_is_waiting;
+    size_t num_threads;
 };

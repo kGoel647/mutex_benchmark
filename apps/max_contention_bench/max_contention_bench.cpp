@@ -28,6 +28,7 @@ int max_contention_bench(
     int stagger_ms,
     SoftwareMutex* lock
 ) {
+
     // Create run args structure to hold thread arguments
     // struct run_args args;
     // args.num_threads = num_threads;
@@ -38,6 +39,7 @@ int max_contention_bench(
     // void* shared_memory = nullptr; // Replace with actual shared memory allocation if needed
 
     // Initialize the lock
+
     lock->init(num_threads);
     auto start_flag = std::make_shared<std::atomic<bool>>(false);
     auto end_flag   = std::make_shared<std::atomic<bool>>(false);
@@ -57,8 +59,10 @@ int max_contention_bench(
         thread_args[i].end_flag             = end_flag;
     }
 
+
     std::vector<std::thread> threads;
     threads.reserve(num_threads);
+
     for (int i = 0; i < num_threads; ++i) {
         if (thread_level) {
             threads.emplace_back([&, i]() {
@@ -67,13 +71,14 @@ int max_contention_bench(
                     std::this_thread::sleep_for(
                         std::chrono::milliseconds(i * stagger_ms)
                     );
+
                 }
                 while (!*start_flag) {}
                 while (!*end_flag) {
                     lock->lock(i);
                     thread_args[i].stats.num_iterations++;
-                    (*counter)++; // Critical section
-                    Fence(); //ensure that counter was updated before unlocking; required for any impl.
+                    (*counter) += lock->criticalSection(i);
+                    Fence();
                     lock->unlock(i);
                 }
             });
@@ -127,17 +132,20 @@ int max_contention_bench(
     if (rusage && !no_output){
         record_rusage(csv);
     }
-    
-    int expected = 0;
-    for (auto& targs : thread_args) {
-        expected += targs.stats.num_iterations;
+
+
+    int expectedCounter=0;
+    for (auto& targs : thread_args){
+        expectedCounter+=targs.stats.num_iterations;
     }
-    if (*counter != expected) {
+
+    if (expectedCounter != *counter)
+    {
+        
         fprintf(stderr,
-            "Mutex %s failed; counter = %d, expected = %d\n",
-            lock->name().c_str(), *counter, expected
+            "%s was not correct: expectedCounter %i did not match real counter %i",
+            lock->name().c_str(), expectedCounter, *counter
         );
-        return 1;
     }
 
     // printf("Unfairness summary: %d/%d iterations are repeats from the same thread.\n", *unfairness, *counter);
@@ -148,8 +156,7 @@ int max_contention_bench(
     free((void*)unfairness);
     delete lock;
 
-    if (!csv) {
-    }
+
 
     if (!no_output && !rusage) {
         for (auto& targs : thread_args) {
@@ -207,6 +214,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
+
 
     // 1 is the default because it's the exclusive maximum (rand() % delay)
     // so it can't be 0.

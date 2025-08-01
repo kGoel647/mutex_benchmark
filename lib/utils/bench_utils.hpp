@@ -10,19 +10,10 @@
 #include <atomic>
 #include <chrono>
 #include <vector>
+
 #include "../lock/lock.hpp"
 
-// asm fence
-#if defined(__x86_64)
-    //#define Fence() __asm__ __volatile__ ( "mfence" )
-    #define Fence() __asm__ __volatile__ ( "lock; addq $0,128(%%rsp);" ::: "cc" )
-#elif defined(__i386)
-    #define Fence() __asm__ __volatile__ ( "lock; addl $0,128(%%esp);" ::: "cc" )
-#elif defined(__ARM_ARCH)
-    #define Fence() __asm__ __volatile__ ( "DMB ISH" ::: )
-#else
-    #error unsupported architecture
-#endif
+class SoftwareMutex;
 
 struct per_thread_stats {
     int thread_id;
@@ -41,7 +32,6 @@ struct run_stats {
     struct per_thread_stats **thread_stats;
     struct rusage usage;
 };
-
 
 // Use getrusage  to record resource usage
 

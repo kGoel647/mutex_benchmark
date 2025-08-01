@@ -4,30 +4,111 @@ import logging
 
 class Constants:
     class Defaults:
+
         MUTEX_NAMES = [
-            "burns_lamport",
-            # "dijkstra",
-            # "bakery",
+            # "burns_lamport", TODO: Fix (Kush saw a data race multiple times)
+            "dijkstra",
+            "dijkstra_nonatomic",
+            "dijkstra_nonatomic_sleeper",
+            "bakery",
+            "bakery_nonatomic",
             "spin",
             "exp_spin",
+            "wait_spin",
             "nsync",
-            "pthread",
+            "system",
             "mcs",
-            # "knuth",
-            # "peterson",
+            "mcs_sleeper",
+            "knuth",
+            # "knuth_sleeper", Likely is not possible
+            "peterson",
             "clh",
             "hopscotch",
             "ticket", 
-            # "halfnode", 
+            "halfnode", 
+            "lamport", 
+            "lamport_sleeper", 
+            "boulangerie",
+            "tree_cas_elevator",
+            "linear_cas_elevator", #TODO: fix (Kush saw a data race once)
+            "tree_bl_elevator",
+            "linear_bl_elevator",  #TODO: fix (Kush saw a data race once)
+            "linear_lamport_elevator", #TODO: fix (Kush saw a data race multiple times)
+            "tree_lamport_elevator", #TODO: fix trees (known to deadlock)
+            # "futex", TODO: Add guard for macOS
+            "szymanski",
+            "hard_spin"
+            # "yang", TODO: Sometimes deadlocks
+            # "yang_sleeper", TODO: Sometimes deadlocks
+        ]
+
+        # MUTEX COMPARISON SETS (exp_spin is used as a baseline for all)
+        SLEEPER_SET = [
+            "dijkstra_nonatomic",
+            "dijkstra_nonatomic_sleeper",
+            "spin",
+            "exp_spin",
+            "wait_spin",
+            "system",
+            "mcs",
+            "mcs_sleeper",
+            "lamport", 
+            "lamport_sleeper", 
+            # "yang", TODO: Sometimes deadlocks
+            # "yang_sleeper", TODO: Sometimes deadlocks
+        ]
+
+        ELEVATOR_SET = [
+            "exp_spin",
+            "mcs",
+            "tree_cas_elevator",
+            "linear_cas_elevator", #TODO: fix (Kush saw a data race once)
+            "tree_bl_elevator",
+            "linear_bl_elevator",  #TODO: fix (Kush saw a data race once)
+            "linear_lamport_elevator", #TODO: fix (Kush saw a data race multiple times)
+            "tree_lamport_elevator", #TODO: fix trees (known to deadlock)
+        ]
+
+        FENCING_SET = [
+            "dijkstra",
+            "dijkstra_nonatomic",
+            "bakery",
+            "bakery_nonatomic",
+            "exp_spin",
+            "hard_spin"
+        ]
+
+        BASE_SET = [
+            # "burns_lamport", TODO: Fix (Kush saw a data race multiple times)
+            "dijkstra",
+            "bakery",
+            "spin",
+            "exp_spin",
+            "hard_spin",
+            "nsync",
+            "system",
+            "mcs",
+            "knuth",
+            "peterson",
+            "clh",
+            "hopscotch",
+            "ticket", 
+            "halfnode", 
             "lamport", 
             "boulangerie",
             "tree_cas_elevator",
-            "linear_cas_elevator",
+            "linear_cas_elevator", #TODO: fix (Kush saw a data race once)
             "tree_bl_elevator",
-            "linear_bl_elevator",
-            "futex",
+            "linear_bl_elevator",  #TODO: fix (Kush saw a data race once)
+            "linear_lamport_elevator", #TODO: fix (Kush saw a data race multiple times)
+            "tree_lamport_elevator", #TODO: fix trees (known to deadlock)
+            # "futex", TODO: Add guard for macOS
             "szymanski",
+            # "yang", TODO: Sometimes deadlocks
         ]
+
+
+
 
         # note: CLH technically works but it makes one allocation per
         # lock operation, so it is too slow.
@@ -63,6 +144,7 @@ class Constants:
         EXECUTABLE_NAME = "max_contention_bench"
         BENCH_N_THREADS = 10
         BENCH_N_SECONDS = 1
+
         N_PROGRAM_ITERATIONS = 10
         DATA_FOLDER          = "./data/generated"
         LOGS_FOLDER          = "./data/logs"

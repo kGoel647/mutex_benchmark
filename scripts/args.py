@@ -47,8 +47,8 @@ def init_args():
                         help='all except these names')
     parser.add_argument('-a','--all', action='store_true',
                         help='run all default mutexes')
-    parser.add_argument('--all-cxl', action='store_true',
-                        help="run all mutexes that can run on CXL")
+    parser.add_argument('-s', '--set', nargs='+',
+                        help='run specific mutex sets')
 
     parser.add_argument('--scatter', action='store_true',
                         help='scatter CDF plots instead of lines')
@@ -96,14 +96,23 @@ def init_args():
     Constants.mutex_names = []
     if args.all:
         Constants.mutex_names = Constants.Defaults.MUTEX_NAMES
-    elif args.all_cxl:
-        Constants.mutex_names = Constants.Defaults.CXL_MUTEXES
-    if args.exclude:
-        for excluded_mutex_name in args.exclude:
-            if excluded_mutex_name in Constants.mutex_names:
-                Constants.mutex_names.remove(excluded_mutex_name)
-    if args.include:
-        Constants.mutex_names.extend(args.include)
+    elif args.set:
+        Constants.mutex_names=[]
+        if ('sleeper' in args.set ):
+            Constants.mutex_names.extend(Constants.Defaults.SLEEPER_SET)
+        if ('elevator' in args.set):
+            Constants.mutex_names.extend(Constants.Defaults.ELEVATOR_SET)
+        if ('fencing' in args.set):
+            Constants.mutex_names.extend(Constants.Defaults.FENCING_SET)
+        if ('base' in args.set):
+            Constants.mutex_names.extend(Constants.Defaults.BASE_SET)
+    elif args.include:
+        Constants.mutex_names = args.include
+    else:  
+        Constants.mutex_names = [
+            n for n in Constants.Defaults.MUTEX_NAMES
+            if n not in args.exclude
+        ]
 
     Constants.bench_n_threads      = args.threads
     Constants.bench_n_seconds      = args.seconds

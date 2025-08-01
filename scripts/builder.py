@@ -10,8 +10,9 @@ def setup():
     parent_directory = os.path.dirname(absolute_path)
     os.chdir(parent_directory + "/..")
     
+#TODO: Make this more robust. Add option to use existing build directory.
 def build():
-    subprocess.run(f"mkdir build data {Constants.Defaults.DATA_FOLDER} {Constants.Defaults.LOGS_FOLDER} -p".split())
+    subprocess.run(f"mkdir build data {Constants.Defaults.DATA_FOLDER} {Constants.Defaults.LOGS_FOLDER}".split()) 
 
     # Compile
     result = subprocess.run("meson setup build".split())#, stdout=subprocess.DEVNULL)

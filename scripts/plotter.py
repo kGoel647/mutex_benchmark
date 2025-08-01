@@ -2,11 +2,35 @@ import pandas as pd # pyright: ignore[reportMissingModuleSource]
 import numpy as np # pyright: ignore[reportMissingImports]
 import matplotlib.pyplot as plt # pyright: ignore[reportMissingModuleSource]
 import seaborn as sns # pyright: ignore[reportMissingModuleSource]
+import itertools
 
 from math import ceil
 
 from .constants import Constants
 from .logger import logger
+
+# Color Changer/Symbols.
+MARKERS = itertools.cycle(['o', 's', '^', 'D', '*', 'X', 'v', '<', '>', 'P', 'H'])
+coloring = [
+    "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
+    "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe",
+    "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000",
+    "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080",
+    "#ffffff", "#000000", "#ff4500", "#00ced1", "#ff69b4",
+    "#1e90ff", "#7cfc00", "#ff1493", "#00ff7f", "#dc143c",
+    "#8a2be2", "#00bfff", "#ff6347", "#7fffd4", "#d2691e",
+    "#6495ed", "#dda0dd", "#f0e68c", "#ffb6c1", "#a52a2a"
+]
+COLORS = itertools.cycle(coloring)
+MUTEX_STYLES = {}
+
+def get_style(mutex_name):
+    if mutex_name not in MUTEX_STYLES:
+        MUTEX_STYLES[mutex_name] = {
+            "marker": next(MARKERS),
+            "color": next(COLORS)
+        }
+    return MUTEX_STYLES[mutex_name]
 
 
 def get_savefig_filepath():
@@ -26,7 +50,7 @@ def fix_legend_point_size(axes=None):
     if axes is None:
         axes = [plt]
     for ax in axes:
-        legend = ax.legend()
+        legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
         for handle in legend.legend_handles: # type: ignore
             handle._sizes = [30]
 
@@ -40,6 +64,7 @@ def get_cdf_title():
 
 def display(axis=None):
     fix_legend_point_size(axis)
+    plt.tight_layout()
     plt.savefig(get_savefig_filepath())
     plt.show()
 
@@ -47,6 +72,7 @@ def plot_one_cdf(series, mutex_name, *, xlabel, ylabel, title, average_lock_time
     logger.info(f"Plotting {mutex_name=}")
 
     # The y-values should go up from 0 to 1, while the X-values vary along the series
+    
     x_values = series.sort_values().reset_index(drop=True)
     y_values = [a/x_values.size for a in range(x_values.size)]
     title += f" ({x_values.size:,} datapoints)"
@@ -59,10 +85,34 @@ def plot_one_cdf(series, mutex_name, *, xlabel, ylabel, title, average_lock_time
     x = [x_values[i] for i in range(0, x_values.size, skip)]
     y = [y_values[i] for i in range(0, x_values.size, skip)]
 
+    if x_values.size == 0:
+        logger.error(f"Failed to plot {mutex_name}: No data.")
+        return
+
+    y_values = np.linspace(0, 1, x_values.size)
+
+    if average_lock_time:
+        title += f" (avg={average_lock_time:.2e})"
+    title += f" ({x_values.size:,} datapoints)"
+
+    # Subsample if too many points
+    skip = max(1, int(ceil(x_values.size / Constants.max_n_points)))
+    x = x_values[::skip]
+    y = y_values[::skip]
+
+    style = get_style(mutex_name)
+
+    # No markers for CDF
     if Constants.scatter:
         plt.scatter(x, y, label=title, s=0.2)
     else:
-        plt.plot(x, y, label=title)
+        plt.plot(
+            x, y,
+            label=title,
+            color=style["color"],
+            linewidth=0.8,
+            alpha=0.9
+        )
 
     plt.xscale("log")
     plt.xlabel(xlabel)
@@ -87,7 +137,16 @@ def plot_lock_level(data):
 def plot_iter(data):
     for mutex_name, df in data:
         logger.info(f"lineplot_with_std: Plotting {mutex_name=}")
-        sns.lineplot(df, x=Constants.iter_variable_name, y="# Iterations", errorbar=("sd", Constants.Defaults.STANDARD_DEVIATION_SCALE), label=mutex_name)
+        style = get_style(mutex_name)
+        sns.lineplot(
+            df, 
+            x=Constants.iter_variable_name, 
+            y="# Iterations", 
+            errorbar=("sd", Constants.Defaults.STANDARD_DEVIATION_SCALE), 
+            label=mutex_name,
+            marker=style["marker"],
+            color=style["color"]
+        )
     plt.yscale("log")
     display()
 
@@ -116,3 +175,10 @@ def plot_one_graph(ax, x, y, mutex_name, *, xlabel, ylabel):
         ax.plot(x, y, label=mutex_name)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+    if Constants.log_scale:
+        ax.set_yscale("log")
+    else:
+        ax.set_yscale("linear")
+    ax.grid(True, linestyle='--', linewidth=0.5)
+

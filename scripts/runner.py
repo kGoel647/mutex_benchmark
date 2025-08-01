@@ -67,7 +67,7 @@ def run_experiment_iter_single_threaded():
                 logger.info(f"{mutex_name=:<24} | {i=:0>2} | {extra_command_args=}")
                 data_file_name = get_data_file_name(mutex_name, i, **extra_command_args)
                 subprocess.run(["rm", "-f", data_file_name])
-                command = get_command(mutex_name, csv=True, thread_level=True, **extra_command_args)
+                command = get_command(mutex_name, csv=True, thread_level=Constants.thread_level, **extra_command_args)
                 thread = subprocess.run(command, stdout=subprocess.PIPE)
                 csv_data = thread.stdout
                 with open(data_file_name, "wb") as data_file:
