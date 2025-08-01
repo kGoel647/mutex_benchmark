@@ -42,6 +42,8 @@ int max_contention_bench(
     auto start_flag = std::make_shared<std::atomic<bool>>(false);
     auto end_flag   = std::make_shared<std::atomic<bool>>(false);
     volatile int* counter = (volatile int*)malloc(sizeof(int));
+    volatile int* last = (volatile int*)malloc(sizeof(int));
+    volatile int* total_unfair = (volatile int*)malloc(sizeof(int));
     *counter = 0;
 
     std::vector<per_thread_args> thread_args(num_threads);
@@ -98,6 +100,10 @@ int max_contention_bench(
 
                     // Critical section
                     (*counter)++;
+                    if (*last == i) {
+                        (*total_unfair)++;
+                    }
+                    *last = i;
                     busy_sleep(rand() % max_critical_delay_iterations);
 
                     // Unlock
@@ -124,7 +130,6 @@ int max_contention_bench(
         record_rusage(csv);
     }
 
-
     int expectedCounter=0;
     for (auto& targs : thread_args){
         expectedCounter+=targs.stats.num_iterations;
@@ -132,15 +137,21 @@ int max_contention_bench(
 
     if (expectedCounter != *counter)
     {
-        
         fprintf(stderr,
             "%s was not correct: expectedCounter %i did not match real counter %i",
             lock->name().c_str(), expectedCounter, *counter
         );
     }
 
+    if (!csv) {
+        double unfair_percentage = 100.0 * (double)*total_unfair / (double)expectedCounter;
+        printf("Unfairness: %d/%d of all lock passes were from a mutex back to itself. (%f%%)\n", *total_unfair, expectedCounter, unfair_percentage);
+    }
+
     lock->destroy();
     free((void*)counter);
+    free((void*)last);
+    free((void*)total_unfair);
     delete lock;
 
 
