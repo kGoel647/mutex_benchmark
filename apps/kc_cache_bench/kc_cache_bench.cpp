@@ -78,20 +78,6 @@ void kc_cache_bench::run(
         dberrprint(&db, __LINE__, "DB::open");
         err = true;
     }
-    // class ThreadWicked : public kc::Thread {
-    // public:
-    // void setparams(int32_t id, kc::CacheDB* db, int32_t thnum,
-    //                 const char* lbuf) {
-    //     id_ = id;
-    //     db_ = db;
-    //     thnum_ = thnum;
-    //     lbuf_ = lbuf;
-    //     err_ = false;
-    // }
-    // bool error() {
-    //     return err_;
-    // }
-    // void run() {
 
     std::vector<std::thread> threads;
     threads.reserve(num_threads);
@@ -121,147 +107,147 @@ void kc_cache_bench::run(
 
         char kbuf[RECBUFSIZ];
         size_t ksiz = std::sprintf(kbuf, "%lld", (long long)(myrand(range) + 1));
-        // if (myrand(1000) == 0) {
-        //     ksiz = myrand(RECBUFSIZ) + 1;
-        //     if (myrand(2) == 0) {
-        //     for (size_t j = 0; j < ksiz; j++) {
-        //         kbuf[j] = j;
-        //     }
-        //     } else {
-        //     for (size_t j = 0; j < ksiz; j++) {
-        //         kbuf[j] = myrand(256);
-        //     }
-        //     }
-        // }
+        if (myrand(1000) == 0) {
+            ksiz = myrand(RECBUFSIZ) + 1;
+            if (myrand(2) == 0) {
+            for (size_t j = 0; j < ksiz; j++) {
+                kbuf[j] = j;
+            }
+            } else {
+            for (size_t j = 0; j < ksiz; j++) {
+                kbuf[j] = myrand(256);
+            }
+            }
+        }
         const char* vbuf = kbuf;
         size_t vsiz = ksiz;
-        // if (myrand(10) == 0) {
-        //     vbuf = lbuf_;
-        //     vsiz = myrand(RECBUFSIZL) / (myrand(5) + 1);
-        // }
+        if (myrand(10) == 0) {
+            vbuf = lbuf_;
+            vsiz = myrand(RECBUFSIZL) / (myrand(5) + 1);
+        }
         do {
             switch (myrand(9)) {
-            // case 0: {
-            //     if (!db_->set(kbuf, ksiz, vbuf, vsiz)) {
-            //     dberrprint(db_, __LINE__, "DB::set");
-            //     err_ = true;
-            //     }
-            //     break;
-            // }
-            // case 1: {
-            //     if (!db_->add(kbuf, ksiz, vbuf, vsiz) &&
-            //         db_->error() != kc::BasicDB::Error::DUPREC) {
-            //     dberrprint(db_, __LINE__, "DB::add");
-            //     err_ = true;
-            //     }
-            //     break;
-            // }
-            // case 2: {
-            //     if (!db_->replace(kbuf, ksiz, vbuf, vsiz) &&
-            //         db_->error() != kc::BasicDB::Error::NOREC) {
-            //     dberrprint(db_, __LINE__, "DB::replace");
-            //     err_ = true;
-            //     }
-            //     break;
-            // }
-            // case 3: {
-            //     if (!db_->append(kbuf, ksiz, vbuf, vsiz)) {
-            //     dberrprint(db_, __LINE__, "DB::append");
-            //     err_ = true;
-            //     }
-            //     break;
-            // }
-            // case 4: {
-            //     if (myrand(2) == 0) {
-            //     int64_t num = myrand(500000);
-            //     int64_t orig = myrand(10) == 0 ? kc::INT64MIN : myrand(500000);
-            //     if (myrand(10) == 0) orig = orig == kc::INT64MIN ? kc::INT64MAX : -orig;
-            //     if (db_->increment(kbuf, ksiz, num, orig) == kc::INT64MIN &&
-            //         db_->error() != kc::BasicDB::Error::LOGIC) {
-            //         dberrprint(db_, __LINE__, "DB::increment");
-            //         err_ = true;
-            //     }
-            //     } else {
-            //     double num = myrand(500000 * 10) / (myrand(500000) + 1.0);
-            //     double orig = myrand(10) == 0 ? -kc::inf() : myrand(500000);
-            //     if (myrand(10) == 0) orig = -orig;
-            //     if (kc::chknan(db_->increment_double(kbuf, ksiz, num, orig)) &&
-            //         db_->error() != kc::BasicDB::Error::LOGIC) {
-            //         dberrprint(db_, __LINE__, "DB::increment_double");
-            //         err_ = true;
-            //     }
-            //     }
-            //     break;
-            // }
-            // case 5: {
-            //     if (!db_->cas(kbuf, ksiz, kbuf, ksiz, vbuf, vsiz) &&
-            //         db_->error() != kc::BasicDB::Error::LOGIC) {
-            //     dberrprint(db_, __LINE__, "DB::cas");
-            //     err_ = true;
-            //     }
-            //     break;
-            // }
-            // case 6: {
-            //     if (!db_->remove(kbuf, ksiz) &&
-            //         db_->error() != kc::BasicDB::Error::NOREC) {
-            //     dberrprint(db_, __LINE__, "DB::remove");
-            //     err_ = true;
-            //     }
-            //     break;
-            // }
-            // case 7: {
-            //     if (myrand(2) == 0) {
-            //     if (db_->check(kbuf, ksiz) < 0 && db_->error() != kc::BasicDB::Error::NOREC) {
-            //         dberrprint(db_, __LINE__, "DB::check");
-            //         err_ = true;
-            //     }
-            //     } else {
-            //     size_t rsiz;
-            //     char* rbuf = db_->seize(kbuf, ksiz, &rsiz);
-            //     if (rbuf) {
-            //         delete[] rbuf;
-            //     } else if (db_->error() != kc::BasicDB::Error::NOREC) {
-            //         dberrprint(db_, __LINE__, "DB::seize");
-            //         err_ = true;
-            //     }
-            //     }
-            //     break;
-            // }
-            // case 8: {
-            //     class VisitorImpl : public kc::DB::Visitor {
-            //     public:
-            //         explicit VisitorImpl(const char* lbuf) : lbuf_(lbuf) {}
-            //     private:
-            //         const char* visit_full(const char* kbuf, size_t ksiz,
-            //                             const char* vbuf, size_t vsiz, size_t* sp) {
-            //         const char* rv = NOP;
-            //         switch (myrand(3)) {
-            //             case 0: {
-            //             rv = lbuf_;
-            //             *sp = myrand(RECBUFSIZL) / (myrand(5) + 1);
-            //             break;
-            //             }
-            //             case 1: {
-            //             rv = REMOVE;
-            //             break;
-            //             }
-            //         }
-            //         return rv;
-            //         }
-            //         const char* lbuf_;
-            //     } visitor(lbuf_);
-            //     if (!cur->accept(&visitor, true, myrand(2) == 0) &&
-            //         db_->error() != kc::BasicDB::Error::NOREC) {
-            //         dberrprint(db_, __LINE__, "Cursor::accept");
-            //         err_ = true;
-            //     }
-            //     if (myrand(5) > 0 && !cur->step() &&
-            //         db_->error() != kc::BasicDB::Error::NOREC) {
-            //         dberrprint(db_, __LINE__, "Cursor::step");
-            //         err_ = true;
-            //     }
-            //     break;
-            // }
+            case 0: {
+                if (!db_->set(kbuf, ksiz, vbuf, vsiz)) {
+                dberrprint(db_, __LINE__, "DB::set");
+                err_ = true;
+                }
+                break;
+            }
+            case 1: {
+                if (!db_->add(kbuf, ksiz, vbuf, vsiz) &&
+                    db_->error() != kc::BasicDB::Error::DUPREC) {
+                dberrprint(db_, __LINE__, "DB::add");
+                err_ = true;
+                }
+                break;
+            }
+            case 2: {
+                if (!db_->replace(kbuf, ksiz, vbuf, vsiz) &&
+                    db_->error() != kc::BasicDB::Error::NOREC) {
+                dberrprint(db_, __LINE__, "DB::replace");
+                err_ = true;
+                }
+                break;
+            }
+            case 3: {
+                if (!db_->append(kbuf, ksiz, vbuf, vsiz)) {
+                dberrprint(db_, __LINE__, "DB::append");
+                err_ = true;
+                }
+                break;
+            }
+            case 4: {
+                if (myrand(2) == 0) {
+                int64_t num = myrand(500000);
+                int64_t orig = myrand(10) == 0 ? kc::INT64MIN : myrand(500000);
+                if (myrand(10) == 0) orig = orig == kc::INT64MIN ? kc::INT64MAX : -orig;
+                if (db_->increment(kbuf, ksiz, num, orig) == kc::INT64MIN &&
+                    db_->error() != kc::BasicDB::Error::LOGIC) {
+                    dberrprint(db_, __LINE__, "DB::increment");
+                    err_ = true;
+                }
+                } else {
+                double num = myrand(500000 * 10) / (myrand(500000) + 1.0);
+                double orig = myrand(10) == 0 ? -kc::inf() : myrand(500000);
+                if (myrand(10) == 0) orig = -orig;
+                if (kc::chknan(db_->increment_double(kbuf, ksiz, num, orig)) &&
+                    db_->error() != kc::BasicDB::Error::LOGIC) {
+                    dberrprint(db_, __LINE__, "DB::increment_double");
+                    err_ = true;
+                }
+                }
+                break;
+            }
+            case 5: {
+                if (!db_->cas(kbuf, ksiz, kbuf, ksiz, vbuf, vsiz) &&
+                    db_->error() != kc::BasicDB::Error::LOGIC) {
+                dberrprint(db_, __LINE__, "DB::cas");
+                err_ = true;
+                }
+                break;
+            }
+            case 6: {
+                if (!db_->remove(kbuf, ksiz) &&
+                    db_->error() != kc::BasicDB::Error::NOREC) {
+                dberrprint(db_, __LINE__, "DB::remove");
+                err_ = true;
+                }
+                break;
+            }
+            case 7: {
+                if (myrand(2) == 0) {
+                if (db_->check(kbuf, ksiz) < 0 && db_->error() != kc::BasicDB::Error::NOREC) {
+                    dberrprint(db_, __LINE__, "DB::check");
+                    err_ = true;
+                }
+                } else {
+                size_t rsiz;
+                char* rbuf = db_->seize(kbuf, ksiz, &rsiz);
+                if (rbuf) {
+                    delete[] rbuf;
+                } else if (db_->error() != kc::BasicDB::Error::NOREC) {
+                    dberrprint(db_, __LINE__, "DB::seize");
+                    err_ = true;
+                }
+                }
+                break;
+            }
+            case 8: {
+                class VisitorImpl : public kc::DB::Visitor {
+                public:
+                    explicit VisitorImpl(const char* lbuf) : lbuf_(lbuf) {}
+                private:
+                    const char* visit_full(const char* kbuf, size_t ksiz,
+                                        const char* vbuf, size_t vsiz, size_t* sp) {
+                    const char* rv = NOP;
+                    switch (myrand(3)) {
+                        case 0: {
+                        rv = lbuf_;
+                        *sp = myrand(RECBUFSIZL) / (myrand(5) + 1);
+                        break;
+                        }
+                        case 1: {
+                        rv = REMOVE;
+                        break;
+                        }
+                    }
+                    return rv;
+                    }
+                    const char* lbuf_;
+                } visitor(lbuf_);
+                if (!cur->accept(&visitor, true, myrand(2) == 0) &&
+                    db_->error() != kc::BasicDB::Error::NOREC) {
+                    dberrprint(db_, __LINE__, "Cursor::accept");
+                    err_ = true;
+                }
+                if (myrand(5) > 0 && !cur->step() &&
+                    db_->error() != kc::BasicDB::Error::NOREC) {
+                    dberrprint(db_, __LINE__, "Cursor::step");
+                    err_ = true;
+                }
+                break;
+            }
             default: {
                 size_t rsiz;
                 char* rbuf = db_->get(kbuf, ksiz, &rsiz);
@@ -275,55 +261,55 @@ void kc_cache_bench::run(
             }
             }
         } while (myrand(100) == 0);
-        // if (myrand(100) == 0) {
-        //     int32_t jnum = myrand(10);
-        //     switch (myrand(4)) {
-        //     case 0: {
-        //         std::map<std::string, std::string> recs;
-        //         for (int32_t j = 0; j < jnum; j++) {
-        //         char jbuf[RECBUFSIZ];
-        //         size_t jsiz = std::sprintf(jbuf, "%lld", (long long)(myrand(range) + 1));
-        //         recs[std::string(jbuf, jsiz)] = std::string(kbuf, ksiz);
-        //         }
-        //         if (db_->set_bulk(recs, myrand(4)) != (int64_t)recs.size()) {
-        //         dberrprint(db_, __LINE__, "DB::set_bulk");
-        //         err_ = true;
-        //         }
-        //         break;
-        //     }
-        //     case 1: {
-        //         std::vector<std::string> keys;
-        //         for (int32_t j = 0; j < jnum; j++) {
-        //         char jbuf[RECBUFSIZ];
-        //         size_t jsiz = std::sprintf(jbuf, "%lld", (long long)(myrand(range) + 1));
-        //         keys.push_back(std::string(jbuf, jsiz));
-        //         }
-        //         if (db_->remove_bulk(keys, myrand(4)) < 0) {
-        //         dberrprint(db_, __LINE__, "DB::remove_bulk");
-        //         err_ = true;
-        //         }
-        //         break;
-        //     }
-        //     default: {
-        //         std::vector<std::string> keys;
-        //         for (int32_t j = 0; j < jnum; j++) {
-        //         char jbuf[RECBUFSIZ];
-        //         size_t jsiz = std::sprintf(jbuf, "%lld", (long long)(myrand(range) + 1));
-        //         keys.push_back(std::string(jbuf, jsiz));
-        //         }
-        //         std::map<std::string, std::string> recs;
-        //         if (db_->get_bulk(keys, &recs, myrand(4)) < 0) {
-        //         dberrprint(db_, __LINE__, "DB::get_bulk");
-        //         err_ = true;
-        //         }
-        //         break;
-        //     }
-        //     }
-        //     if (!db_->switch_rotation(myrand(4) > 0)) {
-        //     dberrprint(db_, __LINE__, "DB::switch_rotation");
-        //     err_ = true;
-        //     }
-        // }
+        if (myrand(100) == 0) {
+            int32_t jnum = myrand(10);
+            switch (myrand(4)) {
+            case 0: {
+                std::map<std::string, std::string> recs;
+                for (int32_t j = 0; j < jnum; j++) {
+                char jbuf[RECBUFSIZ];
+                size_t jsiz = std::sprintf(jbuf, "%lld", (long long)(myrand(range) + 1));
+                recs[std::string(jbuf, jsiz)] = std::string(kbuf, ksiz);
+                }
+                if (db_->set_bulk(recs, myrand(4)) != (int64_t)recs.size()) {
+                dberrprint(db_, __LINE__, "DB::set_bulk");
+                err_ = true;
+                }
+                break;
+            }
+            case 1: {
+                std::vector<std::string> keys;
+                for (int32_t j = 0; j < jnum; j++) {
+                char jbuf[RECBUFSIZ];
+                size_t jsiz = std::sprintf(jbuf, "%lld", (long long)(myrand(range) + 1));
+                keys.push_back(std::string(jbuf, jsiz));
+                }
+                if (db_->remove_bulk(keys, myrand(4)) < 0) {
+                dberrprint(db_, __LINE__, "DB::remove_bulk");
+                err_ = true;
+                }
+                break;
+            }
+            default: {
+                std::vector<std::string> keys;
+                for (int32_t j = 0; j < jnum; j++) {
+                char jbuf[RECBUFSIZ];
+                size_t jsiz = std::sprintf(jbuf, "%lld", (long long)(myrand(range) + 1));
+                keys.push_back(std::string(jbuf, jsiz));
+                }
+                std::map<std::string, std::string> recs;
+                if (db_->get_bulk(keys, &recs, myrand(4)) < 0) {
+                dberrprint(db_, __LINE__, "DB::get_bulk");
+                err_ = true;
+                }
+                break;
+            }
+            }
+            if (!db_->switch_rotation(myrand(4) > 0)) {
+            dberrprint(db_, __LINE__, "DB::switch_rotation");
+            err_ = true;
+            }
+        }
         }
         if (err_){thread_args[id_].stats.num_iterations=-100000000000;}
         delete cur; });
@@ -351,9 +337,6 @@ void kc_cache_bench::run(
     {
         record_rusage(csv);
     }
-
-    // dbw_lock->destroy();
-    // dbr_lock->destroy();
 
     if (!no_output && !rusage)
     {

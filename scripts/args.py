@@ -28,6 +28,7 @@ def init_args():
     experiment_type.add_argument('--iter-noncritical-delay', type=int, nargs=3)
     experiment_type.add_argument('--iter-critical-delay', type=int, nargs=3)
     
+    parser.add_argument('--capsiz', type=int)
     
     parser.add_argument('-r', '--rusage', action='store_true', help = 'record CPU usage instead of time/# iterations')
 
@@ -132,6 +133,7 @@ def init_args():
     Constants.scatter = args.scatter
     Constants.bench = args.bench
     Constants.groups = args.groups
+    Constants.capsize = args.capsiz
 
     if (args.bench=='max'):
         Constants.executable = "./build/apps/max_contention_bench/max_contention_bench"
