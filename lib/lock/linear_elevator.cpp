@@ -51,6 +51,7 @@ public:
             }
         }
         thread_n_given_lock[thread_id] = false;
+        Fence();
     }
 
     void unlock(size_t thread_id) override {
