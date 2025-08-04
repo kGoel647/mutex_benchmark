@@ -9,7 +9,7 @@ boost_dep = dependency('boost', static : true, required: false)
 
 utils_includes = include_directories('.')
 utils_lib = library(
-  'utils', 'bench_utils.cpp',
+  'utils', 'bench_utils.cpp', 'cxl_utils.hpp',
   include_directories : utils_includes,
   dependencies : [boost_dep, nsync_dep]
 )
