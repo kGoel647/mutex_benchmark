@@ -1,14 +1,15 @@
 
 
 cpp = meson.get_compiler('cpp')
+cpp_compiler_version = cpp.version()
+message('C++ Compiler Version: ' + cpp_compiler_version)
 
-nsync_dep = cpp.find_library('nsync_cpp')
-
-boost_dep = dependency('boost', static : true)
+nsync_dep = cpp.find_library('nsync_cpp', required: false)
+boost_dep = dependency('boost', static : true, required: false)
 
 utils_includes = include_directories('.')
 utils_lib = library(
-  'utils', 'bench_utils.cpp', 
+  'utils', 'bench_utils.cpp',
   include_directories : utils_includes,
   dependencies : [boost_dep, nsync_dep]
 )

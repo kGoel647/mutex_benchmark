@@ -9,6 +9,7 @@
 #include <vector>
 #include <sched.h>
 #include <sanitizer/tsan_interface.h>
+#include <semaphore>
 
 #if defined(__has_feature)
 #if __has_feature(thread_sanitizer)
@@ -102,14 +103,12 @@ public:
     sleeper.release();
   }
 
-  std::binary_semaphore sleeper{0};
+    std::binary_semaphore sleeper{0};
+    virtual std::string name() =0;
 
-  virtual std::string name() = 0;
-
-  inline void spin_delay_sched_yield()
-  {
-    sched_yield();
-  }
+    inline void spin_delay_sched_yield() {
+        sched_yield();
+    }
 
   inline void spin_delay_exponential()
   {
@@ -137,12 +136,11 @@ public:
     delay += 5;
   }
 
-  inline void spin_delay_exponential_nanosleep()
-  {
-    static struct timespec nanosleep_timespec = {0, 10}, remaining;
-    nanosleep(&nanosleep_timespec, &remaining);
-    nanosleep_timespec.tv_nsec *= 2;
-  }
+    inline void spin_delay_exponential_nanosleep() {
+        static struct timespec nanosleep_timespec = { 0, 10 }, remaining;
+        nanosleep(&nanosleep_timespec, &remaining);
+        nanosleep_timespec.tv_nsec *= 2;
+    }
 
 private:
   volatile unsigned int *currentId = (volatile unsigned int *)malloc(sizeof(unsigned int *));
