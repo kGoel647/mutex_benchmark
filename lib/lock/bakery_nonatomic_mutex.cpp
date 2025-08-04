@@ -1,51 +1,55 @@
 #include "lock.hpp"
 #include <stdexcept>
+#include <cstring>
 #include "../utils/bench_utils.hpp"
 #include "../utils/cxl_utils.hpp"
 
 class BakeryNonAtomicMutex : public virtual SoftwareMutex {
 public:
+    struct ThreadData {
+        volatile int number;
+        volatile bool choosing;
+    };
+
     void init(size_t num_threads) override {
-        size_t number_size = sizeof(size_t) * num_threads;
-        size_t choosing_size = sizeof(bool) * num_threads;
-        _cxl_region_size = number_size + choosing_size;
-        _cxl_region = (volatile char*)ALLOCATE(_cxl_region_size);
-
-        this->number = (volatile size_t*)&_cxl_region[0];
-        this->choosing = (volatile bool*)&_cxl_region[number_size];
-
-        for (size_t i = 0; i < num_threads; i++) {
-            choosing[i] = false;
-            number[i] = 0;
-        }
+        _cxl_region_size = std::hardware_destructive_interference_size * num_threads;
+        this->_cxl_region = (volatile char*)ALLOCATE(_cxl_region_size);
         this->num_threads = num_threads;
+        memset((void*)this->_cxl_region, 0, _cxl_region_size);
+    }
+
+    inline ThreadData *get(size_t thread_id) {
+        return (ThreadData*)&this->_cxl_region[thread_id * std::hardware_destructive_interference_size];
     }
 
     void lock(size_t thread_id) override {
-        // struct timespec nanosleep_timespec = { 0, 10 };
         // Get "bakery number"
-        choosing[thread_id] = true;
+        ThreadData *td = get(thread_id);
+        td->choosing = true;
         Fence();
         size_t my_bakery_number = 1;
+        ThreadData *other_thread;
         for (size_t i = 0; i < num_threads; i++) {
-            if (number[i] + 1 > my_bakery_number) {
-                my_bakery_number = number[i] + 1;
+            other_thread = get(i);
+            if (other_thread->number + 1 > my_bakery_number) {
+                my_bakery_number = other_thread->number + 1;
             }
         }
         
-        number[thread_id] = my_bakery_number;
+        td->number = my_bakery_number;
         Fence();
-        choosing[thread_id] = false;
+        td->choosing = false;
         Fence();
 
         // Lock waiting part
         for (size_t j = 0; j < num_threads; j++) {
-            while (choosing[j] != 0) {
+            other_thread = get(j);
+            while (other_thread->choosing != 0) {
                 // Wait for that thread to be done choosing a number.
                 // nanosleep(&nanosleep_timespec, &remaining);
             }
-            while ((number[j] != 0 && number[j] < number[thread_id]) 
-                || (number[j] == number[thread_id] && j < thread_id)) {
+            while ((other_thread->number != 0 && other_thread->number < td->number) 
+                || (other_thread->number == td->number && j < thread_id)) {
                 // Stall until our bakery number is the lowest..
                 // nanosleep(&nanosleep_timespec, &remaining);
             }
@@ -54,8 +58,9 @@ public:
         Fence();
     }
     void unlock(size_t thread_id) override {
-        number[thread_id] = 0;
+        get(thread_id)->number = 0;
     }
+
     void destroy() override {
         FREE((void*)_cxl_region, _cxl_region_size);
     }
@@ -66,11 +71,6 @@ public:
 
 private:
     volatile char *_cxl_region;
-    volatile bool *choosing;
-    // Note: Mutex will fail if this number overflows,
-    // which happens if the "bakery" remains full for
-    // a long time.
-    volatile size_t *number;
     size_t num_threads;
     size_t _cxl_region_size;
 };

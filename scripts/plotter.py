@@ -35,12 +35,14 @@ def get_style(mutex_name):
 
 def get_savefig_filepath():
     from os.path import isfile
+    from datetime import datetime
+    formatted_digits = datetime.now().strftime("%Y%m%d%H%M%S")
     if Constants.iter:
         extension = "iter"
     else:
         extension = "cdf"
     triplet = f"{Constants.bench_n_threads}_{Constants.bench_n_seconds}_{Constants.n_program_iterations}"
-    name_base = f"{Constants.data_folder}/../figs/fig-{triplet}-{extension}"
+    name_base = f"{Constants.data_folder}/../figs/{formatted_digits}_{triplet}-{extension}"
     n = 0
     while isfile(f"{name_base}{n}.png"):
         n += 1
@@ -66,7 +68,7 @@ def display(axis=None, tight_layout=True):
     fix_legend_point_size(axis)
     if tight_layout:
         plt.tight_layout()
-    plt.savefig(get_savefig_filepath())
+    plt.savefig(get_savefig_filepath(), bbox_inches='tight')
     plt.show()
 
 def plot_one_cdf(series, mutex_name, *, xlabel, ylabel, title, average_lock_time=None):

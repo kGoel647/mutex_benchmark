@@ -22,6 +22,7 @@
 #include "../lock/lamport_lock.hpp"
 #include "../lock/lamport_sleeper_lock.cpp"
 #include "../lock/mcs_lock.cpp"
+#include "../lock/mcs_noncachealigned_lock.cpp"
 #include "../lock/mcs_sleeper_lock.cpp"
 #include "../lock/mcs_local_lock.cpp"
 #include "../lock/mcs_malloc_lock.cpp"
@@ -35,6 +36,7 @@
 #include "../lock/null_mutex.cpp"
 #include "../lock/halfnode_lock.cpp"
 #include "../lock/hopscotch_lock.cpp"
+#include "../lock/hopscotch_noncachealigned_lock.cpp"
 #include "../lock/hopscotch_local_lock.cpp"
 #include "../lock/clh_lock.cpp"
 #include "../lock/linear_elevator.cpp"
@@ -198,6 +200,7 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "lamport") == 0)                     lock = new LamportLock();
     else if (strcmp(mutex_name, "lamport_sleeper") == 0)             lock = new LamportSleeperLock();
     else if (strcmp(mutex_name, "mcs") == 0)                         lock = new MCSMutex();
+    else if (strcmp(mutex_name, "mcs_nca") == 0)         lock = new MCSNonCacheAlignedMutex();
     else if (strcmp(mutex_name, "mcs_local") == 0)                   lock = new MCSLocalMutex();
     else if (strcmp(mutex_name, "mcs_sleeper") == 0)                 lock = new MCSSleeperMutex();
     else if (strcmp(mutex_name, "mcs_malloc") == 0)                  lock = new MCSMallocMutex();
@@ -212,6 +215,7 @@ SoftwareMutex *get_mutex(const char *mutex_name, size_t num_threads) {
     else if (strcmp(mutex_name, "null") == 0)                        lock = new NullMutex();
     else if (strcmp(mutex_name, "halfnode") == 0)                    lock = new HalfnodeMutex();
     else if (strcmp(mutex_name, "hopscotch") == 0)                   lock = new HopscotchMutex();
+    else if (strcmp(mutex_name, "hopscotch_nca") == 0)   lock = new HopscotchNonCacheAlignedMutex();
     else if (strcmp(mutex_name, "clh") == 0)                         lock = new CLHMutex();
     else if (strcmp(mutex_name, "linear_cas_elevator") == 0)         lock = new LinearElevatorMutex<SpinLock>();
     else if (strcmp(mutex_name, "tree_cas_elevator") == 0)           lock = new TreeElevatorMutex<SpinLock>();
