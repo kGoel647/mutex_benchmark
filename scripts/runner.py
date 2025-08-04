@@ -28,6 +28,8 @@ def get_command(mutex_name, *, threads=None, csv=True, thread_level=False, criti
         cmd.insert(0, "sudo")
     if Constants.groups:
         cmd.append(str(Constants.groups))
+    if Constants.capsize:
+        cmd.append(str(Constants.capsize))
     if critical_delay != -1:
         cmd += ["--critical-delay", str(critical_delay)]
     if noncritical_delay != -1:
