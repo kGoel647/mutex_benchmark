@@ -190,7 +190,7 @@ public:
     reader_lock_->lock(thr_id);
     (*num_readers_active)++;
     if (*num_readers_active==1){
-      // writer_lock_->lock(thr_id);
+      writer_lock_->lock(thr_id);
       *reader_id_who_locked_writer=thr_id;
     }
     Fence();
@@ -216,7 +216,7 @@ public:
       reader_lock_->lock(thr_id);
       (*num_readers_active)--;
       if (*reader_id_who_locked_writer==thr_id){
-        // writer_lock_->unlock(thr_id);
+        writer_lock_->unlock(thr_id);
         *reader_id_who_locked_writer=-1;
       }
       Fence();
