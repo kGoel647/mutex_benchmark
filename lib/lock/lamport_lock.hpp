@@ -22,7 +22,7 @@ public:
 
     void init(size_t num_threads) override {
         volatile char *_cxl_region = (volatile char*)ALLOCATE(get_cxl_region_size(num_threads));
-        region_init(num_threads, this->_cxl_region);
+        region_init(num_threads, _cxl_region);
     }
 
     inline volatile bool *get_b(size_t thread_id) {

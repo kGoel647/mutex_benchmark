@@ -7,6 +7,13 @@
 #pragma once
 
 
+#ifndef __cpp_lib_hardware_interference_size
+namespace std {
+    const size_t hardware_destructive_interference_size = 64;
+}
+#endif
+
+
 // defined via macro so they can be changed for the actual hardware
 #ifdef cxl
     #include "stddef.h"
