@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <atomic>
 #include <stdio.h>
+#include <new>
 #include <string.h>
 
 // TODO: explicit memory ordering.

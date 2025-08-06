@@ -1,6 +1,7 @@
 #include "lock.hpp"
 #include <stdexcept>
 #include <cstring>
+#include <new>
 #include "../utils/bench_utils.hpp"
 #include "../utils/cxl_utils.hpp"
 

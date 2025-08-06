@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <assert.h>
+#include <new>
 
 // TODO: explicit memory ordering.
 // NOTE: Because of the limitations of `thread_local`,

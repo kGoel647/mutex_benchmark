@@ -3,6 +3,7 @@
 #include "lock.hpp"
 #include <stdexcept>
 #include <cstring>
+#include <new>
 
 class Boulangerie : public virtual SoftwareMutex {
 public:

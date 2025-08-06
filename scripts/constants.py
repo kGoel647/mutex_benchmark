@@ -67,6 +67,14 @@ class Constants:
             "linear_bl_elevator",  #TODO: fix (Kush saw a data race once)
             "linear_lamport_elevator", #TODO: fix (Kush saw a data race multiple times)
             "tree_lamport_elevator", #TODO: fix trees (known to deadlock)
+
+            "mcs_nca",
+            "tree_cas_elevator_nca",
+            "linear_cas_elevator_nca", #TODO: fix (Kush saw a data race once)
+            "tree_bl_elevator_nca",
+            "linear_bl_elevator_nca",  #TODO: fix (Kush saw a data race once)
+            "linear_lamport_elevator_nca", #TODO: fix (Kush saw a data race multiple times)
+            "tree_lamport_elevator_nca", #TODO: fix trees (known to deadlock)
         ]
 
         FENCING_SET = [
