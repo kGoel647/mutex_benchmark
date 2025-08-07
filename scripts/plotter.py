@@ -141,10 +141,11 @@ def plot_iter(data):
     for mutex_name, df in data:
         logger.info(f"lineplot_with_std: Plotting {mutex_name=}")
         style = get_style(mutex_name)
+        df["Throughput (Iterations / Second)"] = df["# Iterations"] / Constants.bench_n_seconds
         sns.lineplot(
             df, 
             x=Constants.iter_variable_name, 
-            y="# Iterations", 
+            y="Throughput (Iterations / Second)", 
             errorbar=("sd", Constants.stdev_scale), 
             label=mutex_name,
             marker=style["marker"],

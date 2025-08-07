@@ -187,7 +187,8 @@ class Constants:
     bench: str           = Defaults.BENCH
     iter: bool
     rusage: bool
-    cxl: bool
+    software_cxl: bool
+    hardware_cxl: bool
     skip_plotting: bool
     averages: bool
     iter_variable_name: str

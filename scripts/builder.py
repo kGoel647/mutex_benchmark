@@ -20,8 +20,10 @@ def build():
     configure_command = "meson configure build --optimization 3".split()
 
     cpp_args = []
-    if Constants.cxl:
-        cpp_args.append("'-Dcxl'")
+    if Constants.hardware_cxl:
+        cpp_args.append("'-Dhardware_cxl'")
+    elif Constants.software_cxl:
+        cpp_args.append("'-software_cxl'")
     cpp_args.append("'-mwaitpkg'")
     cpp_args.append("'-std=c++20'")
     for mutex_name in Constants.Defaults.CONDITIONAL_COMPILATION_MUTEXES:

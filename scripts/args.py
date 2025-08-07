@@ -70,7 +70,9 @@ def init_args():
     parser.add_argument('--skip-experiment', action='store_true', default=False,
                         help="use previous data files instead of rerunning experiment (only works if exact same experiment was just run)")
 
-    parser.add_argument('--cxl', action='store_true',
+    parser.add_argument('--scxl', action='store_true',
+                        help='compile with emucxl allocation for cxl machine/software')
+    parser.add_argument('--hcxl', action='store_true',
                         help='compile with emucxl allocation for cxl machine/hardware')
 
     logg = parser.add_mutually_exclusive_group()
@@ -183,7 +185,8 @@ def init_args():
     Constants.low_contention = args.low_contention
     Constants.stagger_ms     = args.stagger_ms
     Constants.skip_plotting = args.skip_plotting
-    Constants.cxl = args.cxl
+    Constants.software_cxl = args.scxl
+    Constants.hardware_cxl = args.hcxl
 
     # if Constants.cxl:
     #     for mutex_name in Constants.mutex_names:

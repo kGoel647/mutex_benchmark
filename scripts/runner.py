@@ -24,7 +24,7 @@ def get_command(mutex_name, *, threads=None, csv=True, thread_level=False, criti
         str(threads), 
         str(Constants.bench_n_seconds), 
     ]
-    if Constants.cxl:
+    if Constants.software_cxl:
         cmd.insert(0, "sudo")
     if Constants.groups:
         cmd.append(str(Constants.groups))
