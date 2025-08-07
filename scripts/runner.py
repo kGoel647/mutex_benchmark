@@ -71,6 +71,7 @@ def run_experiment_iter_single_threaded():
                 subprocess.run(["rm", "-f", data_file_name])
                 command = get_command(mutex_name, csv=True, thread_level=Constants.thread_level, **extra_command_args)
                 thread = subprocess.run(command, stdout=subprocess.PIPE)
+                assert thread.returncode ==0, thread.stdout
                 csv_data = thread.stdout
                 with open(data_file_name, "wb") as data_file:
                     data_file.write(csv_data)
