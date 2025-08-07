@@ -204,15 +204,11 @@ public:
   {
     return false; // TODO: Fix!!!
   }
-  /**
-   * Release the lock.
-   */
-  void unlock(bool writer = true)
-  {
-    if (writer){
-      writer_lock_->unlock(thr_id);
-    }
-    else{
+  void unlock_writer(){
+    writer_lock_->unlock(thr_id);
+  }
+
+  void unlock_reader(){
       reader_lock_->lock(thr_id);
       (*num_readers_active)--;
       if (*reader_id_who_locked_writer==thr_id){
@@ -221,7 +217,6 @@ public:
       }
       Fence();
       reader_lock_->unlock(thr_id);
-    }
   }
 
 private:
@@ -267,11 +262,11 @@ public:
   {
     if (writer_)
     {
-      rwlock_->unlock(true);
+      rwlock_->unlock_writer();
     }
     else
     {
-      rwlock_->unlock(false);
+      rwlock_->unlock_reader();
     }
 
   }

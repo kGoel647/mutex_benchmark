@@ -853,16 +853,16 @@ class CacheDB : public BasicDB {
       mlock_.lock_writer();
       if (omode_ == 0) {
         set_error(_KCCODELINE_, Error::INVALID, "not opened");
-        mlock_.unlock();
+        mlock_.unlock_writer();
         return false;
       }
       if (!(omode_ & OWRITER)) {
         set_error(_KCCODELINE_, Error::NOPERM, "permission denied");
-        mlock_.unlock();
+        mlock_.unlock_writer();
         return false;
       }
       if (!tran_) break;
-      mlock_.unlock();
+      mlock_.unlock_writer();
       if (wcnt >= LOCKBUSYLOOP) {
         Thread::chill();
       } else {
@@ -872,7 +872,7 @@ class CacheDB : public BasicDB {
     }
     tran_ = true;
     trigger_meta(MetaTrigger::BEGINTRAN, "begin_transaction");
-    mlock_.unlock();
+    mlock_.unlock_writer();
     return true;
   }
   /**
@@ -886,22 +886,22 @@ class CacheDB : public BasicDB {
     mlock_.lock_writer();
     if (omode_ == 0) {
       set_error(_KCCODELINE_, Error::INVALID, "not opened");
-      mlock_.unlock();
+      mlock_.unlock_writer();
       return false;
     }
     if (!(omode_ & OWRITER)) {
       set_error(_KCCODELINE_, Error::NOPERM, "permission denied");
-      mlock_.unlock();
+      mlock_.unlock_writer();
       return false;
     }
     if (tran_) {
       set_error(_KCCODELINE_, Error::LOGIC, "competition avoided");
-      mlock_.unlock();
+      mlock_.unlock_writer();
       return false;
     }
     tran_ = true;
     trigger_meta(MetaTrigger::BEGINTRAN, "begin_transaction_try");
-    mlock_.unlock();
+    mlock_.unlock_writer();
     return true;
   }
   /**
