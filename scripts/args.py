@@ -108,6 +108,8 @@ def init_args():
             Constants.mutex_names.extend(Constants.Defaults.FENCING_SET)
         if ('base' in args.set):
             Constants.mutex_names.extend(Constants.Defaults.BASE_SET)
+        if ('cxl' in args.set):
+            Constants.mutex_names.extend(Constants.Defaults.CXL_SET)
     elif args.include:
         Constants.mutex_names = args.include
     else:  
