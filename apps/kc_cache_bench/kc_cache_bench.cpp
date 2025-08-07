@@ -312,7 +312,7 @@ void kc_cache_bench::run(
         }
         }
         if (err_){thread_args[id_].stats.num_iterations=-100000000000;}
-        delete cur; });
+        });
     }
 
     std::this_thread::sleep_for(std::chrono::duration<double>(.01)); //give time to setup //TODO: make less
