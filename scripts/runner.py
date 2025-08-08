@@ -5,7 +5,7 @@ from .logger    import logger
 import subprocess
 
 def get_data_file_name(mutex_name, i, **kwargs):
-    name_root = f"{Constants.data_folder}/{mutex_name}-{i}"
+    name_root = f"{Constants.data_folder}/{mutex_name}-{i}-{Constants.bench}"
     for name, value in kwargs.items():
         name_root += f"-{name}={value}"
     name = name_root + ".csv"
