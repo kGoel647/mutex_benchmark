@@ -55,6 +55,7 @@ public:
             }
         }
         *given_lock = false;
+        Fence();
     }
 
     void unlock(size_t thread_id) override {
@@ -69,6 +70,10 @@ public:
                 return; // Successfully passed off to successor
             }
         }
+
+        thread_n_is_waiting[thread_id] = false;
+        Fence();
+
         // No successor found.
         *get_thread_n_given_lock(num_threads) = true;
     }

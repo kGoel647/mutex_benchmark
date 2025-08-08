@@ -5,7 +5,6 @@
 #include <atomic>
 #include <math.h>
 #include <string.h>
-#include <iostream>
 
 template<class WakerLock>
 class TreeElevatorMutex : public virtual SoftwareMutex {
