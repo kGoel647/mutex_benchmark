@@ -7,8 +7,6 @@
 #include <string.h>
 #include <iostream>
 
-#include "spin_lock.hpp"
-
 template<class WakerLock>
 class TreeElevatorMutex : public virtual SoftwareMutex {
 public:
@@ -24,12 +22,12 @@ public:
         size_t queue_buffer_size = sizeof(size_t) * num_threads_rounded_up_to_power_of_2;
         size_t queue_size = sizeof(Queue);
         size_t waker_lock_size = WakerLock::get_cxl_region_size(num_threads);
-        size_t flag_size = sizeof(std::atomic_bool) * (num_threads + 1);
+        size_t flag_size = std::hardware_destructive_interference_size * (num_threads + 1);
         _cxl_region_size = val_size + queue_buffer_size + queue_size + waker_lock_size + flag_size;
         _cxl_region = (volatile char*)ALLOCATE(_cxl_region_size);
 
-
         size_t offset = 0;
+        offset += flag_size;
         this->val = (std::atomic_size_t*)&_cxl_region[offset];
         offset += val_size;
         this->queue_buffer = (size_t*)&_cxl_region[offset];
@@ -37,16 +35,14 @@ public:
         this->queue = (Queue*)&_cxl_region[offset];
         offset += queue_size;
         this->designated_waker_lock.region_init(num_threads, (volatile char*)&_cxl_region[offset]);
-        offset += waker_lock_size;
-        this->flag = (std::atomic_bool*)&_cxl_region[offset];
 
         for (size_t i = 0; i < num_threads * 2; i++) {
             this->val[i] = num_threads; // num_threads represents Not A Thread
         }
         val[num_threads * 2] = num_threads; // optimization mentioned in paper
 
-        memset((void*)this->flag, 0, flag_size);
-        flag[num_threads] = true;
+        memset((void*)this->_cxl_region, 0, flag_size);
+        *get_flag(num_threads) = true;
 
         // Initialize ring queue
         // If we make the buffer length a power of 2, we can use a 
@@ -99,9 +95,15 @@ public:
         return queue->ring_start == queue->ring_end;
     }
 
+    inline volatile bool *get_flag(size_t thread_id) {
+        return (volatile bool*)&this->_cxl_region[thread_id * std::hardware_destructive_interference_size];
+    }
+
     void lock(size_t thread_id) override {
         // Setup waiting state for this thread
         // TODO set all nodes?
+        volatile bool *my_flag = get_flag(thread_id);
+
         for (size_t node = leaf(thread_id); node > 1; node = parent(node)) {
             val[node] = thread_id;
         }
@@ -109,18 +111,19 @@ public:
         if (designated_waker_lock.trylock(thread_id)) {
             // Fence included in algorithm. TODO test
             FENCE();
-            while (flag[thread_id] == false && flag[num_threads] == false) {
+            volatile bool *designated_waker_flag = get_flag(num_threads);
+            while (*my_flag == false && *designated_waker_flag == false) {
                 // spin_delay_exponential(); // Wait (TODO test spin_delay_exp here)
             }
-            flag[num_threads] = false;
+            *designated_waker_flag = false;
             designated_waker_lock.unlock(thread_id);
         } else {
-            while (flag[thread_id] == false) {
+            while (*my_flag == false) {
                 // spin_delay_exponential(); // Wait (TODO test spin_delay_exp here)
             }
         }
         val[leaf(thread_id)] = num_threads;
-        flag[thread_id] = false;
+        *my_flag = false;
     }
 
     void unlock(size_t thread_id) override {
@@ -135,9 +138,9 @@ public:
             }
         }
         if (!queue_empty()) {
-            flag[dequeue()] = true;
+            *get_flag(dequeue()) = true;
         } else {
-            flag[num_threads] = true;            
+            *get_flag(num_threads) = true;            
 
             std::atomic_thread_fence(std::memory_order_seq_cst);
         }
@@ -169,7 +172,6 @@ private:
     Queue *queue;
     size_t *queue_buffer;
     std::atomic_size_t *val; // TODO: test atomic_int performance instead
-    std::atomic_bool *flag;
 
     // Constants
     size_t num_threads;

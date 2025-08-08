@@ -43,10 +43,9 @@ int max_contention_bench(
     lock->init(num_threads);
     auto start_flag = std::make_shared<std::atomic<bool>>(false);
     auto end_flag   = std::make_shared<std::atomic<bool>>(false);
-    volatile int* counter = (volatile int*)malloc(sizeof(int));
-    volatile int* last = (volatile int*)malloc(sizeof(int));
-    volatile int* total_unfair = (volatile int*)malloc(sizeof(int));
-    *counter = 0;
+    volatile int* counter = new int{0};
+    volatile int* last = new int{-1};
+    volatile int* total_unfair = new int{0};
 
     std::vector<per_thread_args> thread_args(num_threads);
     for (int i = 0; i < num_threads; ++i) {
@@ -75,6 +74,13 @@ int max_contention_bench(
                 while (!*start_flag) {}
                 while (!*end_flag) {
                     lock->lock(i);
+                    // Critical section
+                    if (*last == i) {
+                        // lock->unlock(i);
+                        // continue;
+                        (*total_unfair)++;
+                    }
+                    *last = i;
                     thread_args[i].stats.num_iterations++;
                     (*counter) += lock->criticalSection(i);
                     Fence();
@@ -101,10 +107,12 @@ int max_contention_bench(
                     lock->lock(i);
 
                     // Critical section
-                    (*counter)++;
                     if (*last == i) {
+                        // lock->unlock(i);
+                        // continue;
                         (*total_unfair)++;
                     }
+                    (*counter)++;
                     *last = i;
                     busy_sleep(rand() % max_critical_delay_iterations);
 
@@ -147,13 +155,14 @@ int max_contention_bench(
 
     if (!csv) {
         double unfair_percentage = 100.0 * (double)*total_unfair / (double)expectedCounter;
-        printf("Unfairness: %d/%d of all lock passes were from a mutex back to itself. (%f%%)\n", *total_unfair, expectedCounter, unfair_percentage);
+        printf("Unfairness: %d/%d of all lock passes were from a mutex back to itself. (%f%%)\n", 
+            *total_unfair, expectedCounter, unfair_percentage);
     }
 
     lock->destroy();
-    free((void*)counter);
-    free((void*)last);
-    free((void*)total_unfair);
+    delete counter;
+    delete last;
+    delete total_unfair;
     delete lock;
 
 

@@ -3,14 +3,13 @@
 #include <stdexcept>
 #include <atomic>
 #include <stdio.h>
-#include <new>
 #include <string.h>
 
 // TODO: explicit memory ordering.
 // NOTE: Because of the limitations of `thread_local`,
 // this class MUST be singleton. TODO: This is not yet explicitly enforced.
 
-class MCSMutex : public virtual SoftwareMutex {
+class MCSNonCacheAlignedMutex : public virtual SoftwareMutex {
 public:
     struct Node {
         std::atomic<Node*> next;
@@ -18,7 +17,7 @@ public:
     };
 
     void init(size_t num_threads) override {
-        size_t nodes_size = std::hardware_destructive_interference_size * num_threads;
+        size_t nodes_size = sizeof(Node) * num_threads;
         _cxl_region_size = sizeof(std::atomic<Node*>) + nodes_size;
         this->_cxl_region = (volatile char *)ALLOCATE(_cxl_region_size);
         this->nodes = (Node*)&_cxl_region[0];
@@ -27,14 +26,8 @@ public:
         memset((void*)this->nodes, 0, nodes_size);
     }
 
-    inline Node *get_node_by_thread_id(size_t thread_id) {
-        Node *result = (Node*)&this->_cxl_region[thread_id * std::hardware_destructive_interference_size];
-        // printf("_cxl_region@%p: getting Node@%p\n", this->_cxl_region, this->_cxl_region[thread_id * std::hardware_destructive_interference_size]);
-        return result;
-    }
-
     void lock(size_t thread_id) override {
-        Node *local_node = get_node_by_thread_id(thread_id);
+        Node *local_node = &nodes[thread_id];
 
         // Initialize thread_local node
         local_node->next = nullptr;
@@ -51,7 +44,7 @@ public:
     }
 
     void unlock(size_t thread_id) override {
-        Node *local_node = get_node_by_thread_id(thread_id);
+        Node *local_node = &nodes[thread_id];
 
         if (local_node->next == nullptr) {
             Node *expected = local_node;
@@ -72,7 +65,7 @@ public:
     }
 
     std::string name() override {
-        return "mcs_cachealigned";
+        return "mcs";
     }
 private:
     volatile char *_cxl_region;
