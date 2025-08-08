@@ -121,7 +121,7 @@ class Constants:
         # note: CLH technically works but it makes one allocation per
         # lock operation, so it is too slow.
         # peterson is also probaby really really slow
-        CXL_MUTEXES = [
+        CXL_SET = [
             "bakery",
             "bakery_nonatomic",
             "boulangerie",
