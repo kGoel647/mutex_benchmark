@@ -6,6 +6,10 @@ import subprocess
 
 def get_data_file_name(mutex_name, i, **kwargs):
     name_root = f"{Constants.data_folder}/{mutex_name}-{i}-{Constants.bench}"
+    if Constants.hardware_cxl:
+        name_root += "-hcxl"
+    if Constants.software_cxl:
+        name_root += "-sxcl"
     for name, value in kwargs.items():
         name_root += f"-{name}={value}"
     name = name_root + ".csv"
@@ -24,7 +28,7 @@ def get_command(mutex_name, *, threads=None, csv=True, thread_level=False, criti
         str(threads), 
         str(Constants.bench_n_seconds), 
     ]
-    if Constants.cxl:
+    if Constants.software_cxl:
         cmd.insert(0, "sudo")
     if Constants.groups:
         cmd.append(str(Constants.groups))

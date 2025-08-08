@@ -1,5 +1,5 @@
-#include "lock.hpp"
 #include "../utils/cxl_utils.hpp"
+#include "lock.hpp"
 #include <stdexcept>
 #include <atomic>
 

@@ -9,16 +9,16 @@ class Constants:
             # "burns_lamport", TODO: Fix (Kush saw a data race multiple times)
             "dijkstra",
             "dijkstra_nonatomic",
-            "dijkstra_nonatomic_sleeper",
+            # "dijkstra_nonatomic_sleeper",
             "bakery",
             "bakery_nonatomic",
             "spin",
             "exp_spin",
-            "wait_spin",
-            "nsync",
-            "system",
+            # "wait_spin",
+            # "nsync",
+            # "system",
             "mcs",
-            "mcs_sleeper",
+            # "mcs_sleeper",
             "knuth",
             # "knuth_sleeper", Likely is not possible
             "peterson",
@@ -27,7 +27,7 @@ class Constants:
             "ticket", 
             "halfnode", 
             "lamport", 
-            "lamport_sleeper", 
+            # "lamport_sleeper", 
             "boulangerie",
             # "tree_cas_elevator",
             "linear_cas_elevator", #TODO: fix (Kush saw a data race once)
@@ -67,6 +67,14 @@ class Constants:
             "linear_bl_elevator",  #TODO: fix (Kush saw a data race once)
             "linear_lamport_elevator", #TODO: fix (Kush saw a data race multiple times)
             "tree_lamport_elevator", #TODO: fix trees (known to deadlock)
+
+            "mcs_nca",
+            "tree_cas_elevator_nca",
+            "linear_cas_elevator_nca", #TODO: fix (Kush saw a data race once)
+            "tree_bl_elevator_nca",
+            "linear_bl_elevator_nca",  #TODO: fix (Kush saw a data race once)
+            "linear_lamport_elevator_nca", #TODO: fix (Kush saw a data race multiple times)
+            "tree_lamport_elevator_nca", #TODO: fix trees (known to deadlock)
         ]
 
         FENCING_SET = [
@@ -131,7 +139,6 @@ class Constants:
             "tree_bl_elevator",
             "mcs",
             "peterson",
-            "szymanski",
             "ticket",
         ]
 
@@ -179,7 +186,8 @@ class Constants:
     bench: str           = Defaults.BENCH
     iter: bool
     rusage: bool
-    cxl: bool
+    software_cxl: bool
+    hardware_cxl: bool
     skip_plotting: bool
     averages: bool
     iter_variable_name: str

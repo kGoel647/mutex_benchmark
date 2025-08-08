@@ -10,14 +10,13 @@
 #include <stdio.h>
 #include <time.h>
 #include <assert.h>
-#include <new>
 
 // TODO: explicit memory ordering.
 // NOTE: Because of the limitations of `thread_local`,
 // this class MUST be singleton. TODO: This is not yet explicitly enforced.
 
 // CLH variant that does not use malloc or a prev pointer
-class HopscotchMutex : public virtual SoftwareMutex {
+class HopscotchNonCacheAlignedMutex : public virtual SoftwareMutex {
 public:
     struct Node {
         volatile bool successor_must_wait;
@@ -27,7 +26,7 @@ public:
         assert(sizeof(Node) == 1);
 
         // Create memory region
-        size_t nodes_size = std::hardware_destructive_interference_size * num_threads; // Each thread has 2 node slots, and the default node is in the last slot.
+        size_t nodes_size = sizeof(Node) * (num_threads * 2); // Each thread has 2 node slots, and the default node is in the last slot.
         size_t tail_size = sizeof(std::atomic<Node*>*);
         size_t default_node_size = sizeof(Node);
         _cxl_region_size = tail_size + nodes_size + default_node_size;
@@ -48,12 +47,10 @@ public:
         default_node->successor_must_wait = false;
         *tail = default_node;
         memset((void*)nodes, 0, nodes_size + default_node_size);
-
-        this->which_nodes = (bool*)ALLOCATE(sizeof(bool)*num_threads);
     }
 
     inline Node *my_node(size_t thread_id) {
-        return &nodes[thread_id * std::hardware_destructive_interference_size + which_node];
+        return &nodes[thread_id * 2 + which_node];
     }
 
     void lock(size_t thread_id) override {
@@ -66,14 +63,14 @@ public:
     void unlock(size_t thread_id) override {
         my_node(thread_id)->successor_must_wait = false;
         // The Hopscotch part, flipping to the other node to avoid reusing a node slot prematurely.
-        which_nodes[thread_id] ^= 1;
+        which_node ^= 1;
     }
 
     void destroy() override {
     }
 
     std::string name() override {
-        return "hopscotch";
+        return "hopscotch_noncachealigned";
     }
 private:
     // static Node default_node; no pointer, just stored in _cxl_region
@@ -90,5 +87,6 @@ private:
     std::atomic<Node*>* tail;
     Node *nodes;
     // This can be stored locally because nothing else depends on it.
-    bool* which_nodes;
+    static thread_local bool which_node;
 };
+thread_local bool HopscotchNonCacheAlignedMutex::which_node = 0;

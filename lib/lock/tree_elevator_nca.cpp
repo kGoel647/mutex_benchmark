@@ -1,41 +1,58 @@
+
+#include "cxl_utils.hpp"
 #include "lock.hpp"
 #include <stdexcept>
 #include <atomic>
 #include <math.h>
 #include <string.h>
 
-#include "lamport_lock.cpp"
+#include "spin_lock.hpp"
 
-class TreeLamportElevatorMutex : public virtual SoftwareMutex {
+template<class WakerLock>
+class TreeElevatorNCAMutex : public virtual SoftwareMutex {
 public:
     void init(size_t num_threads) override {
-        // TODO organize this function.
+        size_t num_threads_rounded_up_to_power_of_2 = 1;
+        while (num_threads_rounded_up_to_power_of_2 < num_threads) {
+            num_threads_rounded_up_to_power_of_2 *= 2;
+        }
         this->num_threads = num_threads;
         this->leaf_depth = depth(leaf(0));
 
-        this->val = (std::atomic_size_t*)malloc(sizeof(std::atomic_size_t) * (num_threads * 2 + 1));
-        for (size_t i = 0; i < num_threads*2; i++) {
+        size_t val_size = sizeof(std::atomic_size_t) * (num_threads * 2 + 1);
+        size_t queue_buffer_size = sizeof(size_t) * num_threads_rounded_up_to_power_of_2;
+        size_t queue_size = sizeof(Queue);
+        size_t waker_lock_size = WakerLock::get_cxl_region_size(num_threads);
+        size_t flag_size = sizeof(std::atomic_bool) * (num_threads + 1);
+        _cxl_region_size = val_size + queue_buffer_size + queue_size + waker_lock_size + flag_size;
+        _cxl_region = (volatile char*)ALLOCATE(_cxl_region_size);
+
+
+        size_t offset = 0;
+        this->designated_waker_lock.region_init(num_threads, (volatile char*)&_cxl_region[offset]);
+        offset += waker_lock_size;
+        this->val = (std::atomic_size_t*)&_cxl_region[offset];
+        offset += val_size;
+        this->queue_buffer = (size_t*)&_cxl_region[offset];
+        offset += queue_buffer_size;
+        this->queue = (Queue*)&_cxl_region[offset];
+        offset += queue_size;
+        this->flag = (std::atomic_bool*)&_cxl_region[offset];
+
+        for (size_t i = 0; i < num_threads * 2; i++) {
             this->val[i] = num_threads; // num_threads represents Not A Thread
         }
         val[num_threads * 2] = num_threads; // optimization mentioned in paper
 
-        this->flag = (std::atomic_bool*)malloc(sizeof(std::atomic_bool) * (num_threads + 1));
-        memset((void*)this->flag, 0, sizeof(volatile bool) * (num_threads + 1));
+        memset((void*)this->flag, 0, flag_size);
         flag[num_threads] = true;
 
         // Initialize ring queue
         // If we make the buffer length a power of 2, we can use a 
         // binary & operation instead of modulus to cycle the indices.
-        size_t num_threads_rounded_up_to_power_of_2 = 1;
-        while (num_threads_rounded_up_to_power_of_2 < num_threads) {
-            num_threads_rounded_up_to_power_of_2 *= 2;
-        }
-        this->queue = (size_t *)malloc(sizeof(size_t ) * num_threads_rounded_up_to_power_of_2);
-        this->queue_index_mask = num_threads_rounded_up_to_power_of_2 - 1;
-        this->queue_ring_start = 0;
-        this->queue_ring_end = 0;
-
-        this->designated_waker_lock.init(num_threads);
+        this->queue->index_mask = num_threads_rounded_up_to_power_of_2 - 1;
+        this->queue->ring_start = 0;
+        this->queue->ring_end = 0;
     }
 
     // depth(1) == 0
@@ -66,11 +83,11 @@ public:
     }
 
     inline void enqueue(size_t x) {
-        queue[(queue_ring_end++)&queue_index_mask] = x;
+        queue_buffer[(queue->ring_end++)&queue->index_mask] = x;
     }
 
     inline size_t dequeue() {
-        return queue[(queue_ring_start++)&queue_index_mask];
+        return queue_buffer[(queue->ring_start++)&queue->index_mask];
     }
 
     inline bool queue_empty() {
@@ -78,7 +95,7 @@ public:
         // this condition will be true even though the queue is not empty.
         // Hopefully that doesn't happen.
         // I don't think it's possible for the unlocking thread to be in the queue.
-        return queue_ring_start == queue_ring_end;
+        return queue->ring_start == queue->ring_end;
     }
 
     void lock(size_t thread_id) override {
@@ -90,6 +107,7 @@ public:
         // Contention loop
         if (designated_waker_lock.trylock(thread_id)) {
             // Fence included in algorithm. TODO test
+            FENCE();
             while (flag[thread_id] == false && flag[num_threads] == false) {
                 // spin_delay_exponential(); // Wait (TODO test spin_delay_exp here)
             }
@@ -108,7 +126,7 @@ public:
         // Traverse tree from root to lead (excluding root) to find and enqueue waiting nodes.
         // Exclude root because we're enqueueing only siblings and the root does not have a sibling.
         size_t node = leaf(thread_id);
-        for (size_t j = depth(leaf(thread_id))-1; j != -1; j--) { // doesn't have to be "signed" i think
+        for (size_t j = leaf_depth; j != -1; j--) { // doesn't have to be "signed" i think
             size_t k = val[sibling(path_climbing(node, j))];
             if (val[leaf(k)] < num_threads) {
                 val[leaf(k)] = num_threads;
@@ -116,8 +134,7 @@ public:
             }
         }
         if (!queue_empty()) {
-            int k = dequeue();
-            flag[k]= true;
+            flag[dequeue()] = true;
         } else {
             flag[num_threads] = true;            
 
@@ -126,24 +143,35 @@ public:
     }
 
     void destroy() override {
-        free((void*)this->val);
-        free((void*)this->queue);
-        free((void*)this->flag);
-        this->designated_waker_lock.destroy();
+        FREE((void*)_cxl_region, _cxl_region_size);
+        // free((void*)this->val);
+        // free((void*)this->queue);
+        // free((void*)this->flag);
+        // don't call the destroy method because 
+        // it doesn't own any memory to free.
+        // this.designated_waker_lock.destroy();
     }
 
     std::string name() override {
-        return "tree_cas_elevator";
+        return "tree_elevator";
     }
 private:
-    LamportLock designated_waker_lock;
+    struct Queue {
+        size_t index_mask;
+        size_t ring_start;
+        size_t ring_end;
+    };
+
+    // Pointers into _cxl_region
+    volatile char *_cxl_region;
+    WakerLock designated_waker_lock; // contains pointer (if compiling with --cxl)
+    Queue *queue;
+    size_t *queue_buffer;
     std::atomic_size_t *val; // TODO: test atomic_int performance instead
     std::atomic_bool *flag;
+
+    // Constants
     size_t num_threads;
     size_t leaf_depth;
-
-    size_t  *queue;
-    size_t queue_index_mask;
-    size_t queue_ring_start;
-    size_t queue_ring_end;
+    size_t _cxl_region_size;
 };

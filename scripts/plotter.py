@@ -36,12 +36,20 @@ def get_style(mutex_name):
 
 def get_savefig_filepath():
     from os.path import isfile
+    from datetime import datetime
+    formatted_digits = datetime.now().strftime("%Y%m%d%H%M%S")
     if Constants.iter:
         extension = "iter"
     else:
         extension = "cdf"
+    if Constants.hardware_cxl:
+        extension += "_hcxl"
+    elif Constants.software_cxl:
+        extension += "_scxl"
+    else:
+        extension += "_local"
     triplet = f"{Constants.bench_n_threads}_{Constants.bench_n_seconds}_{Constants.n_program_iterations}"
-    name_base = f"{Constants.data_folder}/../figs/fig-{triplet}-{extension}"
+    name_base = f"{Constants.data_folder}/../figs/{formatted_digits}_{triplet}-{extension}"
     n = 0
     while isfile(f"{name_base}{n}.png"):
         n += 1
@@ -67,8 +75,8 @@ def display(axis=None, tight_layout=True):
     fix_legend_point_size(axis)
     if tight_layout:
         plt.tight_layout()
-    plt.savefig(get_savefig_filepath(), dpi=400)
-    # plt.show()
+    plt.savefig(get_savefig_filepath(), bbox_inches='tight', dpi=400)
+    plt.show()
 
 def plot_one_cdf(series, mutex_name, *, xlabel, ylabel, title, average_lock_time=None):
     logger.info(f"Plotting {mutex_name=}")
@@ -140,16 +148,17 @@ def plot_iter(data):
     for mutex_name, df in data:
         logger.info(f"lineplot_with_std: Plotting {mutex_name=}")
         style = get_style(mutex_name)
+        df["Throughput (Iterations / Second)"] = df["# Iterations"] / Constants.bench_n_seconds
         sns.lineplot(
             df, 
             x=Constants.iter_variable_name, 
-            y="Throughput", 
+            y="Throughput (Iterations / Second)", 
             errorbar=("sd", Constants.stdev_scale), 
             label=mutex_name,
             marker=style["marker"],
             color=style["color"]
         )
-    plt.ylabel('Throughput (Iterations/ms)')
+    plt.grid()
     plt.yscale("log")
     display()
 
