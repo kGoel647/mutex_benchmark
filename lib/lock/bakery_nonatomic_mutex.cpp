@@ -1,9 +1,9 @@
+#include "../utils/cxl_utils.hpp"
+#include "../utils/bench_utils.hpp"
 #include "lock.hpp"
 #include <stdexcept>
 #include <cstring>
 #include <new>
-#include "../utils/bench_utils.hpp"
-#include "../utils/cxl_utils.hpp"
 
 class BakeryNonAtomicMutex : public virtual SoftwareMutex {
 public:

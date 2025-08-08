@@ -22,14 +22,15 @@ def build():
     cpp_args = []
     if Constants.hardware_cxl:
         cpp_args.append("'-Dhardware_cxl'")
+        cpp_args.append("'-lnuma'")
     elif Constants.software_cxl:
-        cpp_args.append("'-software_cxl'")
+        cpp_args.append("'-Dsoftware_cxl'")
     cpp_args.append("'-mwaitpkg'")
     cpp_args.append("'-std=c++20'")
     for mutex_name in Constants.Defaults.CONDITIONAL_COMPILATION_MUTEXES:
         if mutex_name in Constants.mutex_names:
             cpp_args.append(f"'-Dinc_{mutex_name}'")
-    configure_command.append(f'-Dcpp_args=[{", ".join(cpp_args)}]')
+    configure_command.append(f'-Dcpp_args=[{",".join(cpp_args)}]')
     print(configure_command)
 
     result = subprocess.run(configure_command)

@@ -41,6 +41,12 @@ def get_savefig_filepath():
         extension = "iter"
     else:
         extension = "cdf"
+    if Constants.hardware_cxl:
+        extension += "_hcxl"
+    elif Constants.software_cxl:
+        extension += "_scxl"
+    else:
+        extension += "_local"
     triplet = f"{Constants.bench_n_threads}_{Constants.bench_n_seconds}_{Constants.n_program_iterations}"
     name_base = f"{Constants.data_folder}/../figs/{formatted_digits}_{triplet}-{extension}"
     n = 0
@@ -151,6 +157,7 @@ def plot_iter(data):
             marker=style["marker"],
             color=style["color"]
         )
+    plt.grid()
     plt.yscale("log")
     display()
 
